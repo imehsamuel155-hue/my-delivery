@@ -352,11 +352,7 @@
 
     <script>
         // Same origin when site + API share host; override with window.NS_API if frontend is separate
-        const API = window.NS_API || (
-            (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
-                ? 'http://localhost:5000/api'
-                : (location.origin + '/api')
-        );
+        const API_BASE = "https://my-delivery-w6xz.onrender.com/api";
 
         function set(id, v) {
             const el = document.getElementById(id);

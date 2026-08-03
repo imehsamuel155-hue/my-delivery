@@ -227,11 +227,7 @@
     <script>
         function mdShowWait() { const e = document.getElementById('mdPleaseWait'); if (e) { e.style.display = 'flex'; } }
         function mdHideWait() { const e = document.getElementById('mdPleaseWait'); if (e) { e.style.display = 'none'; } }
-        const API = window.NS_API || (
-            (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
-                ? 'http://localhost:5000/api'
-                : (location.origin + '/api')
-        );
+        const API_BASE = "https://my-delivery-w6xz.onrender.com/api";
 
         // Drag paper label
         (function () {

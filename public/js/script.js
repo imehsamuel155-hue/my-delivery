@@ -36,7 +36,7 @@ function mdHideWait() {
    ========================================================= */
 
 // Change this once your backend is deployed somewhere real.
-const API_BASE = "https://my-delivery.onrender.com/api";
+const API_BASE = "https://my-delivery-w6xz.onrender.com/api";
 
 // Admin login token — kept in a plain JS variable only (no localStorage),
 // so you'll need to log in again after refreshing the page. That's expected.
