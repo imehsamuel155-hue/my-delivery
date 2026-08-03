@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shipment Receipt</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@700&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Barlow', Arial, sans-serif;
+            background: #f0f0f0;
+            color: #111;
+        }
+
+        .toolbar {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 16px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .toolbar input {
+            flex: 1;
+            min-width: 160px;
+            padding: 12px 14px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 15px;
+        }
+
+        .toolbar button {
+            padding: 12px 18px;
+            border: none;
+            border-radius: 4px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-y {
+            background: #FFCC00;
+            color: #111;
+        }
+
+        .btn-g {
+            background: #111;
+            color: #fff;
+        }
+
+        .btn-g:disabled {
+            opacity: .4;
+            cursor: not-allowed;
+        }
+
+        .msg {
+            max-width: 900px;
+            margin: 0 auto 12px;
+            padding: 0 16px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .msg.err {
+            color: #D40511;
+        }
+
+        .sheet-wrap {
+            max-width: 900px;
+            margin: 0 auto 40px;
+            padding: 0 12px;
+        }
+
+        .sheet {
+            display: none;
+            background: #fff;
+            border: 1px solid #ddd;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, .08);
+            padding: 28px 32px 36px;
+        }
+
+        .sheet.show {
+            display: block;
+        }
+
+        .hdr {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 3px solid #FFCC00;
+            padding-bottom: 14px;
+            margin-bottom: 22px;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 42px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #D40511;
+        }
+
+        .logo span {
+            color: #FFCC00;
+            -webkit-text-stroke: 1px #D40511;
+        }
+
+        .hdr h1 {
+            font-size: 22px;
+            font-weight: 600;
+            color: #333;
+            margin-top: 8px;
+        }
+
+        .code-box {
+            text-align: right;
+            font-size: 13px;
+            color: #555;
+        }
+
+        .code-box b {
+            display: block;
+            font-size: 18px;
+            color: #111;
+            font-family: monospace;
+            margin-top: 4px;
+        }
+
+        .grid2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 28px;
+            margin-bottom: 22px;
+        }
+
+        @media (max-width: 640px) {
+            .grid2 {
+                grid-template-columns: 1fr;
+            }
+
+            .sheet {
+                padding: 18px;
+            }
+        }
+
+        .block h3 {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: .8px;
+            color: #D40511;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 6px;
+            margin-bottom: 10px;
+        }
+
+        .block p {
+            font-size: 14px;
+            line-height: 1.55;
+            color: #222;
+        }
+
+        .block strong {
+            font-size: 15px;
+        }
+
+        .meta {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px 32px;
+            border-top: 1px solid #eee;
+            border-bottom: 1px solid #eee;
+            padding: 18px 0;
+            margin-bottom: 18px;
+        }
+
+        @media (max-width: 640px) {
+            .meta {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .meta h3 {
+            font-size: 13px;
+            text-transform: uppercase;
+            color: #D40511;
+            margin-bottom: 10px;
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            font-size: 13.5px;
+            padding: 3px 0;
+        }
+
+        .row span:first-child {
+            color: #666;
+        }
+
+        .row span:last-child {
+            font-weight: 600;
+            text-align: right;
+        }
+
+        .desc h3 {
+            font-size: 13px;
+            text-transform: uppercase;
+            color: #D40511;
+            margin-bottom: 8px;
+        }
+
+        .desc p {
+            font-size: 14px;
+        }
+
+        .foot {
+            margin-top: 24px;
+            font-size: 11px;
+            color: #888;
+            line-height: 1.5;
+            border-top: 1px solid #eee;
+            padding-top: 12px;
+        }
+
+        @media print {
+            body {
+                background: #fff;
+            }
+
+            .toolbar,
+            .msg,
+            .no-print {
+                display: none !important;
+            }
+
+            .sheet {
+                display: block !important;
+                box-shadow: none;
+                border: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="mdPleaseWait"
+        style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);align-items:center;justify-content:center;flex-direction:column;color:#fff;font-family:sans-serif;">
+        <div id="mdDots" style="font-size:28px;color:#FFCC00;letter-spacing:4px;">......</div>
+        <div style="font-weight:600;margin-top:10px;">Please wait</div>
+    </div>
+
+    <div class="toolbar no-print">
+        <input id="code" class="mono" placeholder="Enter tracking / delivery code" autocomplete="off">
+        <button type="button" class="btn-y" id="btnLoad">Show receipt</button>
+        <button type="button" class="btn-g" id="btnDl" disabled>Download / Print PDF</button>
+    </div>
+    <p class="msg no-print" id="msg">Enter the exact tracking code from your shipment. Receipt unlocks only when the
+        code is correct.</p>
+
+    <div class="sheet-wrap">
+        <div class="sheet" id="sheet">
+            <div class="hdr">
+                <div>
+                    <div class="logo">DHL</div>
+                    <h1>Shipment Receipt</h1>
+                </div>
+                <div class="code-box">
+                    Tracking code
+                    <b id="rCode">—</b>
+                </div>
+            </div>
+
+            <div class="grid2">
+                <div class="block">
+                    <h3>Shipment From</h3>
+                    <p>
+                        <strong id="sName">—</strong><br>
+                        <span id="sAddr">—</span><br>
+                        <span id="sPhone">—</span><br>
+                        <span id="sEmail">—</span>
+                    </p>
+                </div>
+                <div class="block">
+                    <h3>Shipment To</h3>
+                    <p>
+                        <strong id="rName">—</strong><br>
+                        <span id="rAddr">—</span><br>
+                        <span id="rPhone">—</span><br>
+                        <span id="rEmail">—</span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="meta">
+                <div>
+                    <h3>Shipment Details</h3>
+                    <div class="row"><span>Shipment Date:</span><span id="dDate">—</span></div>
+                    <div class="row"><span>Waybill Number:</span><span id="dWaybill">—</span></div>
+                    <div class="row"><span>Service Type:</span><span id="dService">—</span></div>
+                    <div class="row"><span>Packaging Type:</span><span id="dPack">—</span></div>
+                    <div class="row"><span>Number of Pieces:</span><span id="dPieces">—</span></div>
+                    <div class="row"><span>Total Weight:</span><span id="dWeight">—</span></div>
+                    <div class="row"><span>Dimensional:</span><span id="dDim">—</span></div>
+                    <div class="row"><span>Chargeable:</span><span id="dCharge">—</span></div>
+                    <div class="row"><span>Insured Amount:</span><span id="dInsure">—</span></div>
+                    <div class="row"><span>Terms of Trade:</span><span id="dTerms">—</span></div>
+                </div>
+                <div>
+                    <h3>International Information</h3>
+                    <div class="row"><span>Declared Value:</span><span id="dDecl">—</span></div>
+                    <div class="row"><span>Duties/Taxes acct:</span><span id="dDuties">—</span></div>
+                    <div class="row"><span>Estimated Del. date:</span><span id="dEtd">—</span></div>
+                    <div class="row"><span>Mode:</span><span id="dMode">—</span></div>
+                    <div class="row"><span>Carrier:</span><span id="dCarrier">—</span></div>
+                    <h3 style="margin-top:14px;">Billing Information</h3>
+                    <div class="row"><span>Payment Type:</span><span id="dPayMethod">—</span></div>
+                    <div class="row"><span>Payment Status:</span><span id="dPayStatus">—</span></div>
+                    <div class="row"><span>Amount:</span><span id="dAmount">—</span></div>
+                    <div class="row"><span>Billing Account:</span><span id="dBillAcct">—</span></div>
+                    <div class="row"><span>Special Services:</span><span id="dSpecial">—</span></div>
+                </div>
+            </div>
+
+            <div class="desc">
+                <h3>Reference Information</h3>
+                <p id="dRef">—</p>
+                <h3 style="margin-top:14px;">Description of Contents</h3>
+                <p id="dDesc">—</p>
+            </div>
+
+            <div class="foot">
+                Charges &amp; estimated costs may not include all fees and surcharges. This receipt is generated from
+                the official shipment record.
+                Only a valid tracking code can unlock this document.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Same origin when site + API share host; override with window.NS_API if frontend is separate
+        const API = window.NS_API || (
+            (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+                ? 'http://localhost:5000/api'
+                : (location.origin + '/api')
+        );
+
+        function set(id, v) {
+            const el = document.getElementById(id);
+            if (el) el.textContent = (v != null && String(v).trim() !== '') ? String(v) : '—';
+        }
+
+        async function load() {
+            mdShowWait();
+            const code = document.getElementById('code').value.trim();
+            const msg = document.getElementById('msg');
+            const sheet = document.getElementById('sheet');
+            const btnDl = document.getElementById('btnDl');
+            btnDl.disabled = true;
+            sheet.classList.remove('show');
+            if (!code) {
+                msg.className = 'msg err no-print';
+                msg.textContent = 'Enter a tracking code first.';
+                return;
+            }
+            msg.className = 'msg no-print';
+            msg.textContent = 'Checking code…';
+            try {
+                const res = await fetch(API + '/shipments/track/' + encodeURIComponent(code));
+                const s = await res.json();
+                if (!res.ok) throw new Error(s.error || 'Invalid tracking code');
+
+                set('rCode', s.code);
+                set('sName', s.sender && s.sender.name);
+                set('sAddr', s.sender && s.sender.address);
+                set('sPhone', s.sender && s.sender.phone);
+                set('sEmail', s.sender && s.sender.email);
+                set('rName', s.receiver && s.receiver.name);
+                set('rAddr', s.receiver && s.receiver.address);
+                set('rPhone', s.receiver && s.receiver.phone);
+                set('rEmail', s.receiver && s.receiver.email);
+
+                set('dDate', s.shipmentDate || (s.createdAt ? new Date(s.createdAt).toISOString().slice(0, 10) : ''));
+                set('dWaybill', s.waybillNumber || s.code);
+                set('dService', s.serviceType);
+                set('dPack', s.packagingType);
+                set('dPieces', s.pieces);
+                const w = s.weightLbs || ((s.package && s.package.weightKg != null) ? (s.package.weightKg + ' kg') : '');
+                set('dWeight', w);
+                const dims = s.dimensionalWeight || (s.package ? [s.package.length, s.package.width, s.package.height].filter(Boolean).join('×') + ' cm' : '');
+                set('dDim', dims);
+                set('dCharge', s.chargeableWeight || w);
+                set('dInsure', s.insuredAmount);
+                set('dTerms', s.termsOfTrade);
+                set('dDecl', (s.declaredValue ? (s.declaredCurrency || '') + ' ' + s.declaredValue : ''));
+                set('dDuties', s.dutiesTaxesAccount || s.dutiable);
+                set('dEtd', s.estimatedDelivery);
+                set('dMode', s.mode);
+                set('dCarrier', s.carrier);
+                set('dPayMethod', s.payment && s.payment.method);
+                set('dPayStatus', s.payment && s.payment.status);
+                set('dAmount', s.payment ? ((s.payment.currency || '') + ' ' + Number(s.payment.amount || 0).toFixed(2)) : '');
+                set('dBillAcct', s.billingAccount);
+                set('dSpecial', s.specialServices);
+                set('dRef', s.reference || s.code);
+                set('dDesc', (s.package && s.package.description) || '');
+
+                sheet.classList.add('show');
+                btnDl.disabled = false;
+                msg.className = 'msg no-print';
+                msg.textContent = 'Receipt unlocked. You can download / print as PDF.';
+                mdHideWait();
+                history.replaceState(null, '', '/receipt?code=' + encodeURIComponent(s.code));
+            } catch (e) {
+                msg.className = 'msg err no-print';
+                msg.textContent = e.message || 'Incorrect tracking code. Receipt not available.';
+            } finally { mdHideWait(); }
+        }
+
+        document.getElementById('btnLoad').onclick = load;
+        document.getElementById('code').addEventListener('keydown', e => { if (e.key === 'Enter') load(); });
+        document.getElementById('btnDl').onclick = () => window.print();
+
+        const q = new URLSearchParams(location.search).get('code');
+        if (q) { document.getElementById('code').value = q; load(); }
+    </script>
+</body>
+
+</html>

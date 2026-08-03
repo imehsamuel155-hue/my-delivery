@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shipping Box Label</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700&family=Barlow:wght@400;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Barlow', sans-serif;
+            background: #e8e8e8;
+            color: #111;
+            min-height: 100vh;
+        }
+
+        .bar {
+            background: #111;
+            color: #FFCC00;
+            padding: 12px 16px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .bar input[type=text] {
+            flex: 1;
+            min-width: 140px;
+            padding: 10px 12px;
+            border-radius: 4px;
+            border: none;
+            font-size: 14px;
+        }
+
+        .bar button,
+        .bar label.btn {
+            padding: 10px 14px;
+            border: none;
+            border-radius: 4px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 13px;
+            background: #FFCC00;
+            color: #111;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .bar button.dark {
+            background: #333;
+            color: #fff;
+        }
+
+        .hint {
+            padding: 10px 16px;
+            font-size: 13px;
+            color: #555;
+            background: #fff;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .stage {
+            padding: 20px 12px 40px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .box {
+            position: relative;
+            width: min(420px, 100%);
+            aspect-ratio: 3/4;
+            background: #c4a574;
+            border: 4px solid #5c4030;
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, .25);
+            background-size: cover;
+            background-position: center;
+        }
+
+        .box-img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            z-index: 1;
+        }
+
+        .logo-strip {
+            position: relative;
+            z-index: 3;
+            background: #FFCC00;
+            color: #D40511;
+            text-align: center;
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            padding: 10px;
+            border-bottom: 3px solid #111;
+        }
+
+        /* Draggable paper label */
+        .paper {
+            position: absolute;
+            z-index: 4;
+            left: 12%;
+            top: 28%;
+            width: 76%;
+            min-height: 120px;
+            background: #fffef6;
+            border: 1px solid #ccc;
+            box-shadow: 2px 3px 0 rgba(0, 0, 0, .15);
+            padding: 14px 16px;
+            cursor: move;
+            user-select: none;
+            touch-action: none;
+        }
+
+        .paper.dragging {
+            opacity: .95;
+            box-shadow: 4px 8px 16px rgba(0, 0, 0, .25);
+        }
+
+        .paper h4 {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #888;
+            margin-bottom: 6px;
+        }
+
+        .paper .name {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .paper .addr {
+            font-size: 14px;
+            line-height: 1.45;
+            color: #222;
+        }
+
+        .paper .code {
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #555;
+            border-top: 1px dashed #ccc;
+            padding-top: 8px;
+        }
+
+        .paper .handle {
+            position: absolute;
+            right: 6px;
+            top: 4px;
+            font-size: 11px;
+            color: #aaa;
+        }
+
+        @media print {
+
+            .bar,
+            .hint {
+                display: none !important;
+            }
+
+            body {
+                background: #fff;
+            }
+
+            .stage {
+                padding: 0;
+            }
+
+            .box {
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="mdPleaseWait"
+        style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);align-items:center;justify-content:center;flex-direction:column;color:#fff;font-family:sans-serif;">
+        <div id="mdDots" style="font-size:28px;color:#FFCC00;letter-spacing:4px;">......</div>
+        <div style="font-weight:600;margin-top:10px;">Please wait</div>
+    </div>
+
+    <div class="bar">
+        <input type="text" id="code" placeholder="Tracking code">
+        <button type="button" id="loadBtn">Load receiver</button>
+        <label class="btn">Pick box photo<input type="file" id="file" accept="image/*" hidden></label>
+        <button type="button" class="dark" id="dlBtn">Download label</button>
+        <button type="button" class="dark" onclick="window.print()">Print</button>
+    </div>
+    <p class="hint">This page is only at <b>/box</b> — not linked from the main site. Drag the white label to arrange
+        text on the box. Load a valid tracking code to fill receiver details from admin.</p>
+
+    <div class="stage">
+        <div class="box" id="box">
+            <img class="box-img" id="boxImg" alt="" style="display:none;">
+            <div class="logo-strip">DHL</div>
+            <div class="paper" id="paper">
+                <span class="handle">⋮⋮ drag</span>
+                <h4>Ship to</h4>
+                <div class="name" id="name">—</div>
+                <div class="addr" id="addr">Enter tracking code to load receiver</div>
+                <div class="code" id="showCode"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script>
+        function mdShowWait() { const e = document.getElementById('mdPleaseWait'); if (e) { e.style.display = 'flex'; } }
+        function mdHideWait() { const e = document.getElementById('mdPleaseWait'); if (e) { e.style.display = 'none'; } }
+        const API = window.NS_API || (
+            (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+                ? 'http://localhost:5000/api'
+                : (location.origin + '/api')
+        );
+
+        // Drag paper label
+        (function () {
+            const paper = document.getElementById('paper');
+            const box = document.getElementById('box');
+            let ox = 0, oy = 0, dragging = false;
+
+            function pos(e) {
+                const t = e.touches ? e.touches[0] : e;
+                return { x: t.clientX, y: t.clientY };
+            }
+            function onStart(e) {
+                dragging = true;
+                paper.classList.add('dragging');
+                const p = pos(e);
+                const r = paper.getBoundingClientRect();
+                ox = p.x - r.left;
+                oy = p.y - r.top;
+                e.preventDefault();
+            }
+            function onMove(e) {
+                if (!dragging) return;
+                const p = pos(e);
+                const br = box.getBoundingClientRect();
+                let left = p.x - br.left - ox;
+                let top = p.y - br.top - oy;
+                left = Math.max(0, Math.min(left, br.width - paper.offsetWidth));
+                top = Math.max(0, Math.min(top, br.height - paper.offsetHeight));
+                paper.style.left = left + 'px';
+                paper.style.top = top + 'px';
+                paper.style.width = paper.offsetWidth + 'px';
+            }
+            function onEnd() { dragging = false; paper.classList.remove('dragging'); }
+
+            paper.addEventListener('mousedown', onStart);
+            paper.addEventListener('touchstart', onStart, { passive: false });
+            window.addEventListener('mousemove', onMove);
+            window.addEventListener('touchmove', onMove, { passive: false });
+            window.addEventListener('mouseup', onEnd);
+            window.addEventListener('touchend', onEnd);
+        })();
+
+        async function load() {
+            mdShowWait();
+            const code = document.getElementById('code').value.trim();
+            if (!code) { alert('Enter tracking code'); return; }
+            try {
+                const res = await fetch(API + '/shipments/track/' + encodeURIComponent(code));
+                const s = await res.json();
+                if (!res.ok) throw new Error(s.error || 'Invalid code');
+                const r = s.receiver || {};
+                document.getElementById('name').textContent = r.name || '—';
+                document.getElementById('addr').textContent =
+                    [r.address, r.phone, r.email].filter(Boolean).join('\n');
+                document.getElementById('addr').style.whiteSpace = 'pre-line';
+                document.getElementById('showCode').textContent = s.code;
+                if (s.boxImage) {
+                    const img = document.getElementById('boxImg');
+                    img.src = s.boxImage;
+                    img.style.display = 'block';
+                }
+                history.replaceState(null, '', '/box?code=' + encodeURIComponent(s.code));
+            } catch (e) {
+                alert(e.message || 'Code not found');
+            }
+        }
+
+        document.getElementById('loadBtn').onclick = load;
+        document.getElementById('code').addEventListener('keydown', e => { if (e.key === 'Enter') load(); });
+
+        document.getElementById('file').onchange = function (e) {
+            const f = e.target.files && e.target.files[0];
+            if (!f) return;
+            const r = new FileReader();
+            r.onload = function () {
+                const img = document.getElementById('boxImg');
+                img.src = r.result;
+                img.style.display = 'block';
+            };
+            r.readAsDataURL(f);
+        };
+
+        document.getElementById('dlBtn').onclick = async function () {
+            const el = document.getElementById('box');
+            const canvas = await html2canvas(el, { scale: 3, useCORS: true, backgroundColor: null });
+            const a = document.createElement('a');
+            a.download = 'box-label-' + (document.getElementById('showCode').textContent || 'label') + '.png';
+            a.href = canvas.toDataURL('image/png');
+            a.click();
+        };
+
+        const q = new URLSearchParams(location.search).get('code');
+        if (q) { document.getElementById('code').value = q; load(); }
+    </script>
+</body>
+
+</html>

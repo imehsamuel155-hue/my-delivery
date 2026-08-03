@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DHL Track.</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <div class="md-please-wait" id="mdPleaseWait" aria-live="polite">
+        <div class="dots" id="mdDots">......</div>
+        <div class="txt">Please wait</div>
+        <div class="sub">Loading…</div>
+    </div>
+
+
+    <!-- ===================== NAVBAR ===================== -->
+    <header class="navbar">
+        <div class="brand">
+            <div>
+                <span>DHL </span>
+                <small>Global Freight &amp; Courier</small>
+            </div>
+        </div>
+        <nav class="desktop-links">
+            <a href="#home" onclick="showSite()">Home</a>
+            <a href="#service" onclick="showSite()">Service</a>
+            <a href="#" onclick="goTrack()">Track Now</a>
+            <a href="#testimonials" onclick="showSite()">Testimonials</a>
+            <a href="#about" onclick="showSite()">About Us</a>
+            <a href="#contact" onclick="showSite()">Contact Us</a>
+            <a href="/receipt">Receipt</a>
+        </nav>
+        <div class="nav-btns" style="display:flex;">
+            <button class="btn btn-outline" onclick="openModal('loginModal')">Log In</button>
+        </div>
+        <button class="hamburger" onclick="toggleMobileMenu()" aria-label="Open menu">
+            <span></span><span></span><span></span>
+        </button>
+    </header>
+
+    <div id="overlay" onclick="toggleMobileMenu()"></div>
+    <div id="mobileMenu">
+        <button class="close-menu" onclick="toggleMobileMenu()">&times;</button>
+        <a href="#home" onclick="showSite();toggleMobileMenu()">Home</a>
+        <a href="#service" onclick="showSite();toggleMobileMenu()">Service</a>
+        <a href="#" onclick="goTrack();toggleMobileMenu()">Track Now</a>
+        <a href="#testimonials" onclick="showSite();toggleMobileMenu()">Testimonials</a>
+        <a href="#about" onclick="showSite();toggleMobileMenu()">About Us</a>
+        <a href="#contact" onclick="showSite();toggleMobileMenu()">Contact Us</a>
+        <a href="/receipt" onclick="toggleMobileMenu()">Receipt</a>
+        <button class="btn btn-outline" onclick="openModal('loginModal');toggleMobileMenu()">Log In</button>
+        <button class="btn btn-red" onclick="openModal('signupModal');toggleMobileMenu()">Sign Up</button>
+    </div>
+
+    <!-- ===================== PUBLIC SITE ===================== -->
+    <main id="siteView">
+
+        <section class="hero" id="home">
+            <div class="hero-inner">
+                <div class="eyebrow">Dispatched daily · 120+ countries</div>
+                <h1>Your package, <em>tracked</em><br>every mile of the way.</h1>
+                <p>DHL moves freight by air, sea and land with live status updates from pickup to your
+                    door.</p>
+                <div class="track-bar">
+                    <input id="heroTrackInput" type="text" placeholder="Enter tracking code e.g. DHL" class="mono">
+                    <button class="btn btn-red" onclick="trackFromHero()">Track Package</button>
+                </div>
+                <div class="track-msg" id="heroTrackMsg"></div>
+            </div>
+        </section>
+
+        <section id="service">
+            <div class="wrap">
+                <div class="sec-head">
+                    <div class="eyebrow">What we move</div>
+                    <h2>Freight, your way</h2>
+                    <p>Pick the lane that fits your shipment we handle documentation, customs and last mile delivery
+                        on all three.</p>
+                </div>
+                <div class="service-grid">
+                    <div class="service-card">
+                        <img src="images/plane.jfif" alt="Cargo plane on tarmac">
+                        <div class="body">
+                            <span class="tag">Fastest</span>
+                            <h3> Air Freight</h3>
+                            <p>Priority air lanes for time critical shipments, with door to door transit in as little as
+                                24/72 hours across major hubs.</p>
+                        </div>
+                    </div>
+                    <div class="service-card">
+                        <img src="images/sea.jfif" alt="Cargo ship at port">
+                        <div class="body">
+                            <span class="tag">Bulk &amp; Cost efficient</span>
+                            <h3>Sea Freight</h3>
+                            <p>Full and part container ocean shipping for bulky or heavy cargo, ideal for non urgent,
+                                high volume orders.</p>
+                        </div>
+                    </div>
+                    <div class="service-card">
+                        <img src="images/truck.jfif" alt="Delivery truck on highway">
+                        <div class="body">
+                            <span class="tag">Door to Door</span>
+                            <h3> Land Freight</h3>
+                            <p>Trucking networks covering regional and cross border routes, plus final last mile
+                                delivery to your address.</p>
+                        </div>
+                    </div>
+                    <div class="service-card">
+                        <img src="images/ware.jfif" alt="Warehouse shelves">
+                        <div class="body">
+                            <span class="tag">Storage</span>
+                            <h3>Warehousing</h3>
+                            <p>Secure short and long term storage with inventory tracking while your shipment awaits its
+                                next leg.</p>
+                        </div>
+                    </div>
+                    <div class="service-card">
+                        <img src="images/this map.jfif" alt="Warehouse shelves">
+                        <div class="body">
+                            <span class="tag"> GPS</span>
+                            <h3>Real-Time GPS Mapping</h3>
+                            <p>Watch the delivery vehicle move live on a map as it approaches your exact address on
+                                delivery day.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats">
+                    <div class="stat">
+                        <h3 data-count="670" data-suffix="+"><span>0</span></h3>
+                        <p>Shipments Handled (K)</p>
+                    </div>
+                    <div class="stat">
+                        <h3 data-count="99.9" data-decimal="1" data-suffix="%"><span>0</span></h3>
+                        <p>On-Time Delivery Rate</p>
+                    </div>
+                    <div class="stat">
+                        <h3 data-count="24" data-suffix="/7"><span>0</span></h3>
+                        <p>Customer Support</p>
+                    </div>
+                    <div class="stat">
+                        <h3 data-count="120" data-suffix="+"><span>0</span></h3>
+                        <p>Countries Served</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="testimonials" style="background:#fff;">
+            <div class="wrap">
+                <div class="sec-head">
+                    <div class="eyebrow">Trusted by shippers</div>
+                    <h2>What clients say</h2>
+                </div>
+                <div class="test-grid">
+                    <div class="test-card">
+                        <div class="stars">★★★★★</div>
+                        <p class="quote">Our containers arrived two days early and the tracking page told us exactly
+                            which port they were at. Made our own customer updates painless.</p>
+                        <div class="test-who">
+                            <div class="avatar">A</div>
+                            <div><strong>Am O.</strong><span>From indonesia</span></div>
+                        </div>
+                    </div>
+                    <div class="test-card">
+                        <div class="stars">★★★★★</div>
+                        <p class="quote">Switched from a competitor after one bad delivery window. DHL air
+                            freight team kept us posted at every leg of a rush order.</p>
+                        <div class="test-who">
+                            <div class="avatar">D</div>
+                            <div><strong>Da K.</strong><span>From united states</span></div>
+                        </div>
+                    </div>
+                    <div class="test-card">
+                        <div class="stars">★★★★☆</div>
+                        <p class="quote">Warehousing between shipments saved us from renting a second storage unit.
+                            Simple, and the team is easy to reach.</p>
+                        <div class="test-who">
+                            <div class="avatar">M</div>
+                            <div><strong>Mei L.</strong><span>From Singapore</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="about">
+            <div class="wrap">
+                <div class="about-grid">
+                    <img src="images/talk.jfif" alt="Logistics team at warehouse">
+                    <div>
+                        <div class="eyebrow">Since day one</div>
+                        <h2>Built for shipments that can't afford to go missing</h2>
+                        <p>DHL started as a small last mile courier and grew into a multi modal freight
+                            operator covering air, sea and land. Every shipment gets a tracking code the moment it's
+                            booked, and our admin team updates its status the instant it moves so you're never
+                            guessing where a package is.</p>
+                        <p>We work with importers, retailers and independent sellers who need a partner that answers the
+                            phone and tells the truth about delays. That's the whole pitch.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="contact" style="background:#fff;">
+            <div class="wrap">
+                <div class="sec-head">
+                    <div class="eyebrow">Get in touch</div>
+                    <h2>Talk to our team</h2>
+                    <p>Fill in the form below every field is required so we have what we need to get back to you.</p>
+                </div>
+                <div class="contact-grid">
+                    <div class="contact-info">
+                        <div class="row">
+                            <div class="icon">✉</div>
+                            <div><strong>Email</strong><span>support@mydhlexpress.com</span></div>
+                        </div>
+                        <div class="row">
+                            <div class="icon">📍</div>
+                            <div><strong>Head Office</strong><span>184 Airport Road, Umm Ramool, Deira, Dubai,
+                                    UAE</span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="icon">🕒</div>
+                            <div><strong>Hours</strong><span>Mon–Sat · 7am–9pm (Live tracking is 24/7)</span></div>
+                        </div>
+                    </div>
+                    <form class="card" id="contactForm" onsubmit="return handleContactSubmit(event)" novalidate>
+                        <div class="field">
+                            <label>Full Name</label>
+                            <input type="text" id="cName" required>
+                            <div class="field-error" id="err-cName">Please enter your name.</div>
+                        </div>
+                        <div class="field">
+                            <label>Email Address</label>
+                            <input type="email" id="cEmail" required>
+                            <div class="field-error" id="err-cEmail">Please enter a valid email.</div>
+                        </div>
+                        <div class="field">
+                            <label>Subject</label>
+                            <input type="text" id="cSubject" required>
+                            <div class="field-error" id="err-cSubject">Please enter a subject.</div>
+                        </div>
+                        <div class="field">
+                            <label>Message</label>
+                            <textarea id="cMessage" rows="4" required></textarea>
+                            <div class="field-error" id="err-cMessage">Please enter a message.</div>
+                        </div>
+                        <button type="submit" class="btn btn-red" style="width:100%;">Send Message</button>
+                        <div class="success-box" id="contactSuccess">Thanks — we've received your message and will get
+                            back to you shortly.</div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <div class="wrap">
+                <div>© Dhl. All rights reserved.</div>
+                <div style="display:flex; gap:18px;">
+                    <a href="#home" onclick="showSite()">Home</a>
+                    <a href="#service" onclick="showSite()">Service</a>
+                    <a href="#contact" onclick="showSite()">Contact</a>
+                </div>
+            </div>
+        </footer>
+    </main>
+
+    <!-- ===================== TRACK PAGE (ship.html view) ===================== -->
+    <div id="trackPage" class="page hidden">
+        <div class="wrap">
+            <button class="btn btn-outline" style="color:var(--ink); border-color:var(--line);"
+                onclick="showSite()">&larr; Back to site</button>
+            <div class="sec-head" style="margin-top:24px; text-align:left; max-width:100%;">
+                <h2>Track your shipment</h2>
+                <p>Enter your tracking code for live status, sender &amp; receiver, timeline, and the live map. This is
+                    normal tracking — not the print receipt.</p>
+            </div>
+            <div class="track-bar" style="max-width:520px; margin:0;">
+                <input id="pageTrackInput" type="text" placeholder="e.g. DHL" class="mono"
+                    style="color:var(--ink); border:1px solid var(--line);">
+                <button class="btn btn-red" onclick="trackFromPage()">Track</button>
+            </div>
+            <div class="track-msg" id="pageTrackMsg" style="color:var(--red-dark);"></div>
+            <div class="ns-live-banner" id="nsLiveBanner"></div>
+            <p style="margin:12px 0 8px;font-size:13.5px;color:var(--gray);">
+                Need a printable document? Use the separate receipt page (does not replace tracking above).
+                <a href="/receipt" id="receiptLink"
+                    style="color:#D40511;font-weight:600;text-decoration:underline;margin-left:6px;">Go to receipt /
+                    print</a>
+            </p>
+            <div id="trackResultBox"></div>
+        </div>
+    </div>
+
+    <!-- ===================== LOGIN MODAL ===================== -->
+    <div class="modal-overlay" id="loginModal">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeModal('loginModal')">&times;</button>
+            <h3>Log In</h3>
+            <p class="sub">Dhl.</p>
+            <form onsubmit="return handleLogin(event)">
+                <div class="field">
+                    <label>Username</label>
+                    <input type="text" id="loginUser" required>
+                </div>
+                <div class="field">
+                    <label>Password</label>
+                    <input type="password" id="loginPass" required>
+                </div>
+                <button type="submit" class="btn btn-red" style="width:100%;">Log In</button>
+                <div class="error-box" id="loginError">Incorrect username or password.</div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===================== PIN MODAL (step 2 of admin login) ===================== -->
+    <div class="modal-overlay" id="pinModal">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeModal('pinModal')">&times;</button>
+            <h3>Enter Your PIN</h3>
+            <p class="sub">One more step — enter your 6-digit admin PIN.</p>
+            <form onsubmit="return handlePinSubmit(event)">
+                <div class="field">
+                    <label>6-Digit PIN</label>
+                    <input type="password" id="pinInput" class="mono" maxlength="6" inputmode="numeric"
+                        autocomplete="one-time-code" required>
+                </div>
+                <button type="submit" class="btn btn-red" style="width:100%;">Verify</button>
+                <div class="error-box" id="pinError">Incorrect PIN.</div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===================== SIGN UP MODAL (intentionally non-functional) ===================== -->
+    <div class="modal-overlay" id="signupModal">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeModal('signupModal')">&times;</button>
+            <h3>Create Account</h3>
+            <p class="sub">Set up a customer account.</p>
+            <form onsubmit="return handleSignup(event)">
+                <div class="field">
+                    <label>Full Name</label>
+                    <input type="text" id="suName" required>
+                </div>
+                <div class="field">
+                    <label>Email Address</label>
+                    <input type="email" id="suEmail" required>
+                </div>
+                <div class="field">
+                    <label>Password</label>
+                    <input type="password" id="suPass" required>
+                </div>
+                <button type="submit" class="btn btn-red" style="width:100%;">Sign Up</button>
+                <div class="error-box" id="signupError">Server error. Please try again later.</div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===================== ACCOUNT SETTINGS MODAL (admin only) ===================== -->
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeModal('settingsModal')">&times;</button>
+            <h3>Account Settings</h3>
+            <p class="sub">Change your admin username, password, or PIN. Your current password is required.</p>
+            <form onsubmit="return handleCredentialsSubmit(event)">
+                <div class="field">
+                    <label>Current Password</label>
+                    <input type="password" id="settingsCurrentPass" required>
+                </div>
+                <div class="field">
+                    <label>New Username <span style="color:var(--gray);font-weight:400;">(leave blank to
+                            keep)</span></label>
+                    <input type="text" id="settingsNewUser">
+                </div>
+                <div class="field">
+                    <label>New Password <span style="color:var(--gray);font-weight:400;">(leave blank to
+                            keep)</span></label>
+                    <input type="password" id="settingsNewPass">
+                </div>
+                <div class="field">
+                    <label>New 6-Digit PIN <span style="color:var(--gray);font-weight:400;">(leave blank to
+                            keep)</span></label>
+                    <input type="text" id="settingsNewPin" class="mono" maxlength="6" inputmode="numeric">
+                </div>
+                <button type="submit" class="btn btn-red" style="width:100%;">Save Changes</button>
+                <div class="error-box" id="settingsError"></div>
+                <div class="success-box" id="settingsSuccess">Saved successfully.</div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===================== ADMIN DASHBOARD ===================== -->
+    <div id="adminDashboard" class="page hidden">
+        <div class="admin-wrap">
+            <div class="admin-top">
+                <div>
+                    <h2 style="font-size:28px;">Admin Dashboard</h2>
+                    <p style="color:var(--gray); font-size:13.5px;"> All codes should start with DHL
+                        .</p>
+                </div>
+                <div style="display:flex; gap:14px; align-items:center; position:relative;">
+                    <button type="button" class="ns-admin-bell" onclick="nsToggleAdminNotifs()" title="Notifications">
+                        🔔 Alerts <span class="ns-badge" id="nsNotifBadge">0</span>
+                    </button>
+                    <div class="ns-notif-panel" id="nsNotifPanel"></div>
+                    <button class="btn btn-red small-btn" onclick="startNewShipment()">+ New Shipment</button>
+                    <a class="btn btn-outline small-btn" href="/receipt"
+                        style="color:var(--ink);border-color:var(--line);text-decoration:none;">Open receipt page</a>
+                    <button class="btn btn-outline small-btn" style="color:var(--ink);border-color:var(--line);"
+                        onclick="openModal('settingsModal')">⚙ Account Settings</button>
+                    <a class="logout-link" onclick="logoutAdmin()">Log Out</a>
+                </div>
+            </div>
+
+            <div class="admin-layout">
+                <div class="panel">
+                    <h4 class="section-title">All Shipments</h4>
+                    <div class="ship-list" id="shipList"></div>
+                </div>
+
+                <div class="panel" id="shipDetailPanel">
+                    <!-- filled by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/script.js"></script>
+</body>
+
+</html>
