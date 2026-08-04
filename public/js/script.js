@@ -1,3 +1,7 @@
+function generateTrackCode() {
+    const n = Math.floor(100000 + Math.random() * 900000);
+    return 'DHL' + n;
+}
 
 /* ---------- PLEASE WAIT LOADER ---------- */
 let _mdDotTimer = null;
@@ -31,7 +35,7 @@ function mdHideWait() {
 /* =========================================================
    NOTE ON THIS FILE
    This front end talks to a real Node.js + Express + MongoDB API
-   (the novaship-backend files) instead of using localStorage.
+   (the DHL-backend files) instead of using localStorage.
    For it to work, that backend needs to be running.
    ========================================================= */
 
@@ -369,7 +373,7 @@ function renderShipDetail(shipment) {
     <h4 class="section-title">${isNew ? 'New Shipment' : 'Edit Shipment'}</h4>
     <div class="field">
       <label>Tracking Code</label>
-      <input id="f_code" class="mono" value="${esc(s.code)}" ${isNew ? '' : 'readonly style="background:#F3F1EC;"'} placeholder="e.g. DHL">
+      <input id="f_code" class="mono" value="${esc(s.code)}" ${isNew ? '' : 'readonly style="background:#F3F1EC;"'} placeholder="e.g. DHL XXX">
     </div>
     <div class="field">
       <label>Shipment Access Code <span style="color:var(--gray);font-weight:400;">(optional, 4 digits — locks this specific shipment from other admin users)</span></label>
@@ -452,7 +456,7 @@ function renderShipDetail(shipment) {
     <div class="grid2">
       <div class="field"><label>Estimated Delivery</label><input id="f_eta" type="date" value="${esc(s.estimatedDelivery || '')}"></div>
       <div class="field"><label>Carrier Service</label>
-        <input id="f_carrier" value="${esc(s.carrier || '')}" placeholder="e.g. My Delivery Express">
+        <input id="f_carrier" value="${esc(s.carrier || '')}" placeholder="e.g. DHL Express">
       </div>
     </div>
 
@@ -536,7 +540,10 @@ function renderShipDetail(shipment) {
 }
 
 function collectFormShipment(existingCode) {
-    const code = document.getElementById('f_code').value.trim() || existingCode;
+    let code = document.getElementById('f_code').value.trim() || existingCode || '';
+    if (!code) code = generateTrackCode();
+    const codeEl = document.getElementById('f_code');
+    if (codeEl && !codeEl.value.trim()) codeEl.value = code;
     const payload = {
         code,
         sender: { name: document.getElementById('f_senderName').value.trim(), address: document.getElementById('f_senderAddr').value.trim(), phone: document.getElementById('f_senderPhone').value.trim(), email: document.getElementById('f_senderEmail').value.trim() },
@@ -568,8 +575,12 @@ function collectFormShipment(existingCode) {
     // accidentally overwrites them.
 }
 async function saveShipment(isNew) {
-    const code = document.getElementById('f_code').value.trim();
-    if (!code) { alert('Please enter a tracking code.'); return; }
+    let code = document.getElementById('f_code').value.trim();
+    if (!code) {
+        code = generateTrackCode();
+        const el = document.getElementById('f_code');
+        if (el) el.value = code;
+    }
     const pinVal = document.getElementById('f_accessPin').value.trim();
     if (pinVal && !/^\d{4}$/.test(pinVal)) { alert('Shipment access code must be exactly 4 digits.'); return; }
     const payload = collectFormShipment(code);
@@ -1104,3 +1115,21 @@ const cardIo = new IntersectionObserver(entries => {
     });
 }, { threshold: 0.2 });
 document.querySelectorAll('.service-card').forEach(el => cardIo.observe(el));
+function openSettingsProtected() {
+    const el = document.getElementById('settingsPinInput');
+    if (el) el.value = '';
+    const err = document.getElementById('settingsPinError');
+    if (err) err.style.display = 'none';
+    openModal('settingsPinModal');
+}
+function submitSettingsPin() {
+    const pin = (document.getElementById('settingsPinInput') || {}).value || '';
+    const err = document.getElementById('settingsPinError');
+    if (String(pin).trim() !== '7711') {
+        if (err) { err.style.display = 'block'; err.textContent = 'Incorrect PIN.'; }
+        return;
+    }
+    closeModal('settingsPinModal');
+    const m = document.getElementById('settingsModal');
+    if (m) m.classList.add('show');
+}

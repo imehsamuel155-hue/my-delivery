@@ -4,14 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DHL Track.</title>
+    <title>DHL — Track. Ship. Deliver.</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link
         href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 
 <body>
@@ -71,7 +71,7 @@
                 <p>DHL moves freight by air, sea and land with live status updates from pickup to your
                     door.</p>
                 <div class="track-bar">
-                    <input id="heroTrackInput" type="text" placeholder="Enter tracking code e.g. DHL" class="mono">
+                    <input id="heroTrackInput" type="text" placeholder="Enter tracking code e.g. DHL XXX" class="mono">
                     <button class="btn btn-red" onclick="trackFromHero()">Track Package</button>
                 </div>
                 <div class="track-msg" id="heroTrackMsg"></div>
@@ -88,7 +88,7 @@
                 </div>
                 <div class="service-grid">
                     <div class="service-card">
-                        <img src="images/plane.jfif" alt="Cargo plane on tarmac">
+                        <img src="images/5.png" alt="Cargo plane on tarmac">
                         <div class="body">
                             <span class="tag">Fastest</span>
                             <h3> Air Freight</h3>
@@ -97,7 +97,7 @@
                         </div>
                     </div>
                     <div class="service-card">
-                        <img src="images/sea.jfif" alt="Cargo ship at port">
+                        <img src="/images/Sea-Freight-1.jpg" alt="Cargo ship at port">
                         <div class="body">
                             <span class="tag">Bulk &amp; Cost efficient</span>
                             <h3>Sea Freight</h3>
@@ -106,7 +106,7 @@
                         </div>
                     </div>
                     <div class="service-card">
-                        <img src="images/truck.jfif" alt="Delivery truck on highway">
+                        <img src="images/arameax_track_600x400.jpg" alt="Delivery truck on highway">
                         <div class="body">
                             <span class="tag">Door to Door</span>
                             <h3> Land Freight</h3>
@@ -115,21 +115,12 @@
                         </div>
                     </div>
                     <div class="service-card">
-                        <img src="images/ware.jfif" alt="Warehouse shelves">
+                        <img src="images/temperature-controlled-warehouses-1024x680.png" alt="Warehouse shelves">
                         <div class="body">
                             <span class="tag">Storage</span>
                             <h3>Warehousing</h3>
                             <p>Secure short and long term storage with inventory tracking while your shipment awaits its
                                 next leg.</p>
-                        </div>
-                    </div>
-                    <div class="service-card">
-                        <img src="images/this map.jfif" alt="Warehouse shelves">
-                        <div class="body">
-                            <span class="tag"> GPS</span>
-                            <h3>Real-Time GPS Mapping</h3>
-                            <p>Watch the delivery vehicle move live on a map as it approaches your exact address on
-                                delivery day.</p>
                         </div>
                     </div>
                 </div>
@@ -196,7 +187,7 @@
         <section id="about">
             <div class="wrap">
                 <div class="about-grid">
-                    <img src="images/talk.jfif" alt="Logistics team at warehouse">
+                    <img src="images/7d77ea393cee3c8412c298e4dfe95b04.jpg" alt="Logistics team at warehouse">
                     <div>
                         <div class="eyebrow">Since day one</div>
                         <h2>Built for shipments that can't afford to go missing</h2>
@@ -222,7 +213,7 @@
                     <div class="contact-info">
                         <div class="row">
                             <div class="icon">✉</div>
-                            <div><strong>Email</strong><span>support@mydhlexpress.com</span></div>
+                            <div><strong>Email</strong><span>support@dhlexpress.com</span></div>
                         </div>
                         <div class="row">
                             <div class="icon">📍</div>
@@ -266,7 +257,7 @@
 
         <footer>
             <div class="wrap">
-                <div>© Dhl. All rights reserved.</div>
+                <div>© DHL. All rights reserved.</div>
                 <div style="display:flex; gap:18px;">
                     <a href="#home" onclick="showSite()">Home</a>
                     <a href="#service" onclick="showSite()">Service</a>
@@ -287,7 +278,7 @@
                     normal tracking — not the print receipt.</p>
             </div>
             <div class="track-bar" style="max-width:520px; margin:0;">
-                <input id="pageTrackInput" type="text" placeholder="e.g. DHL" class="mono"
+                <input id="pageTrackInput" type="text" placeholder="e.g. DHL XXX" class="mono"
                     style="color:var(--ink); border:1px solid var(--line);">
                 <button class="btn btn-red" onclick="trackFromPage()">Track</button>
             </div>
@@ -308,7 +299,7 @@
         <div class="modal-box">
             <button class="modal-close" onclick="closeModal('loginModal')">&times;</button>
             <h3>Log In</h3>
-            <p class="sub">Dhl.</p>
+            <p class="sub">DHL.</p>
             <form onsubmit="return handleLogin(event)">
                 <div class="field">
                     <label>Username</label>
@@ -406,8 +397,7 @@
             <div class="admin-top">
                 <div>
                     <h2 style="font-size:28px;">Admin Dashboard</h2>
-                    <p style="color:var(--gray); font-size:13.5px;"> All codes should start with DHL
-                        .</p>
+                    <p style="color:var(--gray); font-size:13.5px;"> All codes should start with AMX.</p>
                 </div>
                 <div style="display:flex; gap:14px; align-items:center; position:relative;">
                     <button type="button" class="ns-admin-bell" onclick="nsToggleAdminNotifs()" title="Notifications">

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shipment Receipt</title>
+    <title>DHL Shipment Receipt</title>
     <link
         href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@700&display=swap"
         rel="stylesheet">
@@ -33,7 +33,7 @@
 
         .toolbar input {
             flex: 1;
-            min-width: 160px;
+            min-width: 140px;
             padding: 12px 14px;
             border: 1px solid #ccc;
             border-radius: 4px;
@@ -109,13 +109,7 @@
             font-family: 'Barlow Condensed', sans-serif;
             font-size: 42px;
             font-weight: 700;
-            letter-spacing: 1px;
             color: #D40511;
-        }
-
-        .logo span {
-            color: #FFCC00;
-            -webkit-text-stroke: 1px #D40511;
         }
 
         .hdr h1 {
@@ -152,7 +146,12 @@
             }
 
             .sheet {
-                padding: 18px;
+                padding: 16px;
+            }
+
+            .toolbar {
+                flex-direction: column;
+                align-items: stretch;
             }
         }
 
@@ -214,6 +213,7 @@
         .row span:last-child {
             font-weight: 600;
             text-align: right;
+            word-break: break-word;
         }
 
         .desc h3 {
@@ -236,6 +236,30 @@
             padding-top: 12px;
         }
 
+        #mdPleaseWait {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: rgba(0, 0, 0, .55);
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: #fff;
+        }
+
+        #mdPleaseWait.show {
+            display: flex;
+        }
+
+        #mdDots {
+            font-size: 28px;
+            color: #FFCC00;
+            letter-spacing: 4px;
+            font-weight: 700;
+            min-width: 5ch;
+        }
+
         @media print {
             body {
                 background: #fff;
@@ -243,7 +267,7 @@
 
             .toolbar,
             .msg,
-            .no-print {
+            #mdPleaseWait {
                 display: none !important;
             }
 
@@ -257,10 +281,10 @@
 </head>
 
 <body>
-    <div id="mdPleaseWait"
-        style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);align-items:center;justify-content:center;flex-direction:column;color:#fff;font-family:sans-serif;">
-        <div id="mdDots" style="font-size:28px;color:#FFCC00;letter-spacing:4px;">......</div>
+    <div id="mdPleaseWait" aria-live="polite">
+        <div id="mdDots">......</div>
         <div style="font-weight:600;margin-top:10px;">Please wait</div>
+        <div style="font-size:13px;color:#ccc;margin-top:4px;">Loading receipt…</div>
     </div>
 
     <div class="toolbar no-print">
@@ -268,8 +292,7 @@
         <button type="button" class="btn-y" id="btnLoad">Show receipt</button>
         <button type="button" class="btn-g" id="btnDl" disabled>Download / Print PDF</button>
     </div>
-    <p class="msg no-print" id="msg">Enter the exact tracking code from your shipment. Receipt unlocks only when the
-        code is correct.</p>
+    <p class="msg no-print" id="msg">Enter the exact tracking code. Receipt unlocks only when the code is correct.</p>
 
     <div class="sheet-wrap">
         <div class="sheet" id="sheet">
@@ -345,14 +368,38 @@
             <div class="foot">
                 Charges &amp; estimated costs may not include all fees and surcharges. This receipt is generated from
                 the official shipment record.
-                Only a valid tracking code can unlock this document.
+                Only a valid tracking code can unlock this document. © DHL
             </div>
         </div>
     </div>
 
     <script>
-        // Same origin when site + API share host; override with window.NS_API if frontend is separate
-        const API_BASE = "https://my-delivery-w6xz.onrender.com/api";
+        // IMPORTANT: must end with /api — set to your Render URL when frontend is on Firebase
+        const API = (typeof window.NS_API === 'string' && window.NS_API)
+            ? window.NS_API
+            : ((location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+                ? 'http://localhost:5000/api'
+                : 'https://my-delivery-w6xz.onrender.com/api');
+
+
+
+        let _dotTimer = null;
+        function mdShowWait() {
+            const el = document.getElementById('mdPleaseWait');
+            if (el) el.classList.add('show');
+            const dots = document.getElementById('mdDots');
+            let n = 0;
+            if (_dotTimer) clearInterval(_dotTimer);
+            _dotTimer = setInterval(function () {
+                n = (n % 6) + 1;
+                if (dots) dots.textContent = '.'.repeat(n);
+            }, 280);
+        }
+        function mdHideWait() {
+            const el = document.getElementById('mdPleaseWait');
+            if (el) el.classList.remove('show');
+            if (_dotTimer) { clearInterval(_dotTimer); _dotTimer = null; }
+        }
 
         function set(id, v) {
             const el = document.getElementById(id);
@@ -360,7 +407,6 @@
         }
 
         async function load() {
-            mdShowWait();
             const code = document.getElementById('code').value.trim();
             const msg = document.getElementById('msg');
             const sheet = document.getElementById('sheet');
@@ -372,11 +418,12 @@
                 msg.textContent = 'Enter a tracking code first.';
                 return;
             }
+            mdShowWait();
             msg.className = 'msg no-print';
-            msg.textContent = 'Checking code…';
+            msg.textContent = 'Checking code……';
             try {
-                const res = await fetch(API + '/shipments/track/' + encodeURIComponent(code));
-                const s = await res.json();
+                const res = await fetch(API + '/shipments/track/' + encodeURIComponent(code), { cache: 'no-store' });
+                const s = await res.json().catch(function () { return {}; });
                 if (!res.ok) throw new Error(s.error || 'Invalid tracking code');
 
                 set('rCode', s.code);
@@ -401,7 +448,7 @@
                 set('dCharge', s.chargeableWeight || w);
                 set('dInsure', s.insuredAmount);
                 set('dTerms', s.termsOfTrade);
-                set('dDecl', (s.declaredValue ? (s.declaredCurrency || '') + ' ' + s.declaredValue : ''));
+                set('dDecl', (s.declaredValue ? ((s.declaredCurrency || '') + ' ' + s.declaredValue) : ''));
                 set('dDuties', s.dutiesTaxesAccount || s.dutiable);
                 set('dEtd', s.estimatedDelivery);
                 set('dMode', s.mode);
@@ -418,19 +465,20 @@
                 btnDl.disabled = false;
                 msg.className = 'msg no-print';
                 msg.textContent = 'Receipt unlocked. You can download / print as PDF.';
-                mdHideWait();
                 history.replaceState(null, '', '/receipt?code=' + encodeURIComponent(s.code));
             } catch (e) {
                 msg.className = 'msg err no-print';
                 msg.textContent = e.message || 'Incorrect tracking code. Receipt not available.';
-            } finally { mdHideWait(); }
+            } finally {
+                mdHideWait();
+            }
         }
 
         document.getElementById('btnLoad').onclick = load;
-        document.getElementById('code').addEventListener('keydown', e => { if (e.key === 'Enter') load(); });
-        document.getElementById('btnDl').onclick = () => window.print();
+        document.getElementById('code').addEventListener('keydown', function (e) { if (e.key === 'Enter') load(); });
+        document.getElementById('btnDl').onclick = function () { window.print(); };
 
-        const q = new URLSearchParams(location.search).get('code');
+        var q = new URLSearchParams(location.search).get('code');
         if (q) { document.getElementById('code').value = q; load(); }
     </script>
 </body>
