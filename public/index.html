@@ -405,20 +405,22 @@
     <div id="adminDashboard" class="page hidden">
         <div class="admin-wrap">
             <div class="admin-top">
-                <div>
-                    <h2 style="font-size:28px;">Admin Dashboard</h2>
-                    <p style="color:var(--gray); font-size:13.5px;"> All codes should start with AMX.</p>
+                <div style="min-width:0;flex:1 1 200px;">
+                    <h2>Admin Dashboard</h2>
+                    <p style="color:var(--gray); font-size:13.5px;">Tracking codes auto-generate as DHL###### if left
+                        empty.</p>
                 </div>
-                <div style="display:flex; gap:14px; align-items:center; position:relative;">
-                    <button type="button" class="ns-admin-bell" onclick="nsToggleAdminNotifs()" title="Notifications">
+                <div class="admin-top-actions" style="position:relative;">
+                    <button type="button" class="ns-admin-bell small-btn" onclick="nsToggleAdminNotifs()"
+                        title="Notifications">
                         🔔 Alerts <span class="ns-badge" id="nsNotifBadge">0</span>
                     </button>
                     <div class="ns-notif-panel" id="nsNotifPanel"></div>
                     <button class="btn btn-red small-btn" onclick="startNewShipment()">+ New Shipment</button>
                     <a class="btn btn-outline small-btn" href="/receipt"
-                        style="color:var(--ink);border-color:var(--line);text-decoration:none;">Open receipt page</a>
+                        style="color:var(--ink);border-color:var(--line);text-decoration:none;">Receipt</a>
                     <button class="btn btn-outline small-btn" style="color:var(--ink);border-color:var(--line);"
-                        onclick="openModal('settingsModal')">⚙ Account Settings</button>
+                        onclick="openSettingsProtected()">⚙ Settings</button>
                     <a class="logout-link" onclick="logoutAdmin()">Log Out</a>
                 </div>
             </div>

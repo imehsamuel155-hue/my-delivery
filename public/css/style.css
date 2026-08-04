@@ -875,6 +875,7 @@ footer a:hover {
     word-wrap: break-word;
 }
 
+
 #adminDashboard {
     padding: 104px 20px 60px;
     min-height: 100vh;
@@ -884,25 +885,51 @@ footer a:hover {
 .admin-wrap {
     max-width: 1180px;
     margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .admin-top {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     flex-wrap: wrap;
     gap: 12px;
     margin-bottom: 26px;
 }
 
+.admin-top h2 {
+    font-size: clamp(20px, 4vw, 28px);
+    word-break: break-word;
+}
+
+.admin-top p {
+    color: var(--gray);
+    font-size: 13.5px;
+    max-width: 100%;
+}
+
+.admin-top-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    max-width: 100%;
+}
+
 .admin-layout {
     display: grid;
-    grid-template-columns: 340px 1fr;
+    grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
     gap: 22px;
     align-items: start;
+    width: 100%;
 }
 
 @media(max-width:900px) {
+    #adminDashboard {
+        padding: 88px 12px 40px;
+    }
+
     .admin-layout {
         grid-template-columns: 1fr;
     }
@@ -914,6 +941,15 @@ footer a:hover {
     border-radius: 8px;
     padding: 20px;
     min-width: 0;
+    max-width: 100%;
+    overflow-x: hidden;
+    box-sizing: border-box;
+}
+
+@media(max-width:560px) {
+    .panel {
+        padding: 14px;
+    }
 }
 
 .ship-row {
@@ -935,9 +971,10 @@ footer a:hover {
 }
 
 .ship-row .code {
-    font-family: 'JetBrains Mono';
+    font-family: 'JetBrains Mono', monospace;
     font-size: 13px;
     font-weight: 600;
+    word-break: break-all;
 }
 
 .ship-row .who {
@@ -951,18 +988,74 @@ footer a:hover {
 .ship-list {
     max-height: 560px;
     overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .grid2 {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 12px;
+    min-width: 0;
 }
 
-@media(max-width:560px) {
+@media(max-width:640px) {
     .grid2 {
         grid-template-columns: 1fr;
     }
+}
+
+.field {
+    margin-bottom: 14px;
+    min-width: 0;
+}
+
+.field label {
+    display: block;
+    font-size: 12.5px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    line-height: 1.35;
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
+}
+
+.field input,
+.field textarea,
+.field select {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+    background: #fff;
+}
+
+.field input,
+.field textarea {
+    word-break: break-word;
+}
+
+#shipDetailPanel,
+#shipDetailPanel * {
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+#shipDetailPanel h3,
+#shipDetailPanel h4 {
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
+    line-height: 1.35;
+}
+
+#shipDetailPanel p,
+#shipDetailPanel span,
+#shipDetailPanel label {
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 .status-add-row {
@@ -976,6 +1069,7 @@ footer a:hover {
 .status-add-row input {
     flex: 1 1 120px;
     min-width: 0;
+    max-width: 100%;
 }
 
 .quick-tags {
@@ -991,8 +1085,9 @@ footer a:hover {
     background: var(--paper);
     padding: 5px 10px;
     border-radius: 14px;
-    white-space: nowrap;
     cursor: pointer;
+    white-space: normal;
+    max-width: 100%;
 }
 
 .quick-tag:hover {
@@ -1001,16 +1096,21 @@ footer a:hover {
 }
 
 .small-btn {
-    padding: 7px 12px;
+    padding: 8px 12px;
     font-size: 13px;
+    white-space: normal;
+    text-align: center;
+    max-width: 100%;
+    line-height: 1.3;
 }
 
 h4.section-title {
-    font-size: 13px;
+    font-size: 12.5px;
     text-transform: uppercase;
     letter-spacing: 1px;
     color: var(--gray);
     margin: 18px 0 10px;
+    word-break: break-word;
 }
 
 h4.section-title:first-child {
@@ -1027,10 +1127,19 @@ h4.section-title:first-child {
 #adminMapBox,
 #publicMapBox {
     height: 280px;
+    max-width: 100%;
     border-radius: 8px;
     margin-top: 12px;
     border: 1px solid var(--line);
     background: var(--paper);
+}
+
+@media(max-width:560px) {
+
+    #adminMapBox,
+    #publicMapBox {
+        height: 220px;
+    }
 }
 
 .map-controls {
@@ -1039,6 +1148,12 @@ h4.section-title:first-child {
     margin-top: 12px;
     flex-wrap: wrap;
     align-items: center;
+}
+
+.map-controls .btn,
+.map-controls button {
+    flex: 1 1 auto;
+    min-width: 0;
 }
 
 .progress-bar {
@@ -1050,39 +1165,28 @@ h4.section-title:first-child {
     width: 100%;
 }
 
-.progress-fill {
-    height: 100%;
-    background: var(--dhl-yellow);
-    width: 0%;
-    transition: width .2s linear;
-}
-
-/* Receipt */
-.receipt-page {
-    padding: 100px 20px 40px;
-    max-width: 800px;
-    margin: 0 auto;
-}
-
-.receipt-card {
+.ns-notif-panel {
+    position: absolute;
+    right: 0;
+    top: 42px;
+    width: min(320px, calc(100vw - 24px));
+    max-height: 360px;
+    overflow-y: auto;
     background: #fff;
     border: 1px solid var(--line);
     border-radius: 8px;
-    padding: 28px;
-    margin-bottom: 20px;
-    border-top: 6px solid var(--dhl-yellow);
+    z-index: 50;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, .12);
+    display: none;
+    word-break: break-word;
 }
 
-.receipt-card h2 {
-    font-size: 22px;
-    margin-bottom: 8px;
+.ns-notif-panel.open {
+    display: block;
 }
 
-.receipt-actions {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
+.ns-admin-bell {
+    white-space: nowrap;
 }
 
 /* Box page */
