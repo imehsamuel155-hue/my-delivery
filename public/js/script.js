@@ -42,6 +42,95 @@ function dhlTimelineHtml(history) {
     </div>`;
     }).join('') + '</div>';
 }
+
+function downloadTrackQr(code) {
+    const url = qrUrlForCode(code) + '&download=1';
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'DHL-QR-' + code + '.png';
+    a.target = '_blank';
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    // Also try fetch blob for better mobile save
+    fetch(qrUrlForCode(code)).then(r => r.blob()).then(blob => {
+        const u = URL.createObjectURL(blob);
+        const a2 = document.createElement('a');
+        a2.href = u;
+        a2.download = 'DHL-QR-' + code + '.png';
+        document.body.appendChild(a2);
+        a2.click();
+        a2.remove();
+        URL.revokeObjectURL(u);
+    }).catch(() => { });
+}
+
+let _qrStream = null;
+let _qrTimer = null;
+function stopQrScan() {
+    if (_qrTimer) { clearInterval(_qrTimer); _qrTimer = null; }
+    if (_qrStream) {
+        _qrStream.getTracks().forEach(t => t.stop());
+        _qrStream = null;
+    }
+    const area = document.getElementById('qrScanArea');
+    if (area) area.style.display = 'none';
+    const v = document.getElementById('qrVideo');
+    if (v) v.srcObject = null;
+}
+async function startQrScan() {
+    const area = document.getElementById('qrScanArea');
+    const video = document.getElementById('qrVideo');
+    if (!area || !video) {
+        alert('Track a package first, then use Scan QR.');
+        return;
+    }
+    area.style.display = 'block';
+    try {
+        _qrStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        video.srcObject = _qrStream;
+        await video.play();
+    } catch (e) {
+        alert('Camera not available. Open the QR image or type the tracking code on Box.');
+        stopQrScan();
+        return;
+    }
+    if (typeof BarcodeDetector === 'undefined') {
+        // Fallback: manual — user can still use downloaded QR which links to box.html
+        return;
+    }
+    const detector = new BarcodeDetector({ formats: ['qr_code'] });
+    if (_qrTimer) clearInterval(_qrTimer);
+    _qrTimer = setInterval(async () => {
+        try {
+            if (video.readyState < 2) return;
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            if (!canvas.width) return;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            const codes = await detector.detect(canvas);
+            if (!codes || !codes.length) return;
+            const raw = String(codes[0].rawValue || '');
+            let code = '';
+            try {
+                const u = new URL(raw);
+                code = u.searchParams.get('code') || '';
+            } catch (_) {
+                code = raw;
+            }
+            const m = raw.match(/DHL[A-Z0-9]+/i);
+            if (!code && m) code = m[0];
+            if (code) {
+                stopQrScan();
+                location.href = '/box.html?code=' + encodeURIComponent(code.trim());
+            }
+        } catch (_) { }
+    }, 700);
+}
+
+
 function qrUrlForCode(code) {
     const origin = (typeof location !== 'undefined' && location.origin) ? location.origin : '';
     const target = origin + '/box.html?code=' + encodeURIComponent(code);
@@ -95,6 +184,11 @@ const API_BASE = "https://my-delivery-w6xz.onrender.com/api";
 // Admin login token — kept in a plain JS variable only (no localStorage),
 // so you'll need to log in again after refreshing the page. That's expected.
 let adminToken = null;
+let _dhlSwReg = null;
+if (typeof navigator !== 'undefined' && navigator.serviceWorker) {
+    navigator.serviceWorker.register('/sw.js').then(reg => { _dhlSwReg = reg; }).catch(() => { });
+}
+
 
 async function apiRequest(path, options = {}) {
     const headers = Object.assign({ "Content-Type": "application/json" }, options.headers || {});
@@ -190,12 +284,21 @@ async function renderTrackResult(code) {
         <div class="meta-chip">Amount<b>${esc(shipment.payment.currency || '')} ${esc(Number(shipment.payment.amount || 0).toFixed(2))}</b></div>
       </div>
       <div class="track-qr-row">
-        <img src="${qrUrlForCode(shipment.code)}" alt="QR ${esc(shipment.code)}" width="120" height="120">
+        <img id="trackQrImg" src="${qrUrlForCode(shipment.code)}" alt="QR ${esc(shipment.code)}" width="140" height="140">
         <div class="qr-info">
           <div><b>Shipment QR code</b></div>
-          <div>Scan to open the shipping box label for this delivery.</div>
+          <div>Save to your phone, then scan later to open this package (receiver details from admin).</div>
           <div class="mono" style="margin-top:6px;">${esc(shipment.code)}</div>
-          <a href="/box.html?code=${encodeURIComponent(shipment.code)}">Open shipping box →</a>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;">
+            <button type="button" class="btn btn-red small-btn" onclick="downloadTrackQr('${esc(shipment.code)}')">Download QR</button>
+            <a class="btn btn-outline small-btn" href="/box.html?code=${encodeURIComponent(shipment.code)}" style="color:#111;border-color:#ccc;text-decoration:none;">Open package box</a>
+            <button type="button" class="btn btn-outline small-btn" style="color:#111;border-color:#ccc;" onclick="startQrScan()">Scan QR now</button>
+          </div>
+          <div id="qrScanArea" style="display:none;margin-top:12px;">
+            <video id="qrVideo" playsinline style="width:100%;max-width:280px;border-radius:8px;background:#000;"></video>
+            <p style="font-size:12px;color:#666;margin-top:6px;">Point camera at the shipment QR. Correct code opens the package box.</p>
+            <button type="button" class="btn btn-outline small-btn" style="color:#111;border-color:#ccc;" onclick="stopQrScan()">Stop scan</button>
+          </div>
         </div>
       </div>
       ${dhlTimelineHtml(shipment.history)}
@@ -505,7 +608,7 @@ function renderShipDetail(shipment) {
     </div>
     <div class="field"><label>Method</label>
       <select id="f_method">
-        ${["Card", "Bank Transfer", "Cash on Delivery"].map(m => `<option ${s.payment.method === m ? 'selected' : ''}>${m}</option>`).join("")}
+        ${["Card", "Bank Transfer", "Outstanding Payment", "Cash on Delivery"].map(m => `<option ${s.payment.method === m ? 'selected' : ''}>${m}</option>`).join("")}
       </select>
     </div>
     <div class="field"><label>Payment Status</label>
@@ -1138,12 +1241,27 @@ function reflectPublicProgress(progress, isMoving) {
     const note = document.getElementById('publicProgressNote');
     if (note) note.textContent = Math.round(p) + '% of the way there' + (isMoving ? ' — currently moving.' : '.') + ' You can zoom and pan the map to follow along.';
 }
+let _lastProgNotif = -1;
 function startPublicAnimation(oLat, oLng, dLat, dLng, route) {
     if (publicAnimTimer) clearInterval(publicAnimTimer);
+    _lastProgNotif = -1;
     publicAnimTimer = setInterval(() => {
         const p = computeLiveProgress(route);
         reflectPublicProgress(p, true);
         if (publicMarker) publicMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, p / 100));
+        // Phone notification on movement milestones (0, 25, 50, 75, 100)
+        const step = Math.floor(p / 25) * 25;
+        if (nsBrowserPerm && step > _lastProgNotif && step >= 25) {
+            _lastProgNotif = step;
+            const o = (route && route.originCountry) || 'Origin';
+            const d = (route && route.destCountry) || 'Destination';
+            const ic = route && route.icon === 'plane' ? '✈️' : route && route.icon === 'ship' ? '🚢' : '🚚';
+            nsPhoneNotify(
+                'Delivery movement ' + Math.round(p) + '%',
+                ic + ' ' + o + ' → ' + d + ' · your package is on the way',
+                'dhl-prog-' + step
+            );
+        }
         if (p >= 100) { clearInterval(publicAnimTimer); publicAnimTimer = null; }
     }, 200);
 }
@@ -1186,14 +1304,69 @@ function nsShowToast(n) {
 }
 
 async function nsRequestBrowserNotify() {
-    if (typeof Notification === 'undefined') return false;
-    if (Notification.permission === 'granted') { nsBrowserPerm = true; return true; }
-    if (Notification.permission !== 'denied') {
-        const p = await Notification.requestPermission();
-        nsBrowserPerm = p === 'granted';
-        return nsBrowserPerm;
+    if (typeof Notification === 'undefined') {
+        alert('This browser does not support phone notifications.');
+        return false;
     }
-    return false;
+    if (Notification.permission === 'granted') { nsBrowserPerm = true; return true; }
+    if (Notification.permission === 'denied') {
+        alert('Notifications are blocked. Allow notifications for this site in your phone browser settings.');
+        return false;
+    }
+    const p = await Notification.requestPermission();
+    nsBrowserPerm = p === 'granted';
+    return nsBrowserPerm;
+}
+async function nsToggleLivePhoneNotify() {
+    try {
+        if (!_dhlSwReg && navigator.serviceWorker) {
+            _dhlSwReg = await navigator.serviceWorker.register('/sw.js');
+            await navigator.serviceWorker.ready;
+        }
+    } catch (e) { }
+    const ok = await nsRequestBrowserNotify();
+    nsBrowserPerm = ok;
+    const btn = document.getElementById('nsLiveToggleBtn');
+    if (btn) btn.textContent = ok ? 'Live notifications ON' : 'Turn on live notifications';
+    if (ok) {
+        nsPhoneNotify(
+            'DHL live tracking ON',
+            nsTrackCode
+                ? ('Movement updates for ' + nsTrackCode + ' will appear on your notification bar.')
+                : 'Live notifications enabled for this site.',
+            'dhl-live-on'
+        );
+    } else {
+        alert('Allow notifications for this site in your phone browser settings, then tap again.');
+    }
+}
+function nsPhoneNotify(title, body, tag) {
+    const payload = {
+        title: title || 'DHL update',
+        body: body || '',
+        tag: tag || ('dhl-' + Date.now()),
+        url: (typeof location !== 'undefined' ? location.href : '/')
+    };
+    // Prefer service worker (works better on phone notification bar)
+    if (_dhlSwReg && Notification.permission === 'granted') {
+        try {
+            if (_dhlSwReg.active) {
+                _dhlSwReg.active.postMessage({ type: 'notify', ...payload });
+                return;
+            }
+            _dhlSwReg.showNotification(payload.title, {
+                body: payload.body,
+                tag: payload.tag,
+                data: { url: payload.url },
+                vibrate: [120, 60, 120]
+            });
+            return;
+        } catch (e) { }
+    }
+    if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+    try {
+        new Notification(payload.title, { body: payload.body, tag: payload.tag });
+    } catch (e) { }
 }
 
 async function nsPollTrackNotifications() {
@@ -1220,6 +1393,13 @@ async function nsPollTrackNotifications() {
                 else n.icon = 'truck';
             }
             nsShowToast(n);
+            nsPhoneNotify(
+                n.title || 'Shipment update',
+                (n.origin && n.destination)
+                    ? ((n.icon === 'plane' ? '✈️ ' : n.icon === 'ship' ? '🚢 ' : '🚚 ') + n.origin + ' → ' + n.destination + (n.message ? ' · ' + n.message : ''))
+                    : (n.message || n.location || ''),
+                'dhl-n-' + (n._id || n.createdAt || Date.now())
+            );
             // refresh track view so timeline matches
             if (document.getElementById('trackResultBox')) {
                 renderTrackResult(nsTrackCode).catch(() => { });
@@ -1238,8 +1418,10 @@ function nsStartTrackWatch(code) {
     const banner = document.getElementById('nsLiveBanner');
     if (banner) {
         banner.classList.add('show');
-        banner.innerHTML = '<span class="ns-live-dot"></span><span>Live updates on for <b class="mono">' +
-            esc(nsTrackCode) + '</b></span><button type="button" class="btn btn-outline small-btn" style="color:#111;border-color:#ccc;margin-left:auto;" onclick="nsRequestBrowserNotify()">Enable desktop alerts</button>';
+        banner.innerHTML = '<span class="ns-live-dot"></span><span>Live tracking on for <b class="mono">' +
+            esc(nsTrackCode) + '</b> — movement updates will appear here.</span>' +
+            '<button type="button" class="btn btn-red small-btn" style="margin-left:auto;" id="nsLiveToggleBtn" onclick="nsToggleLivePhoneNotify()">' +
+            (nsBrowserPerm ? 'Live notifications ON' : 'Turn on live notifications') + '</button>';
     }
 }
 
