@@ -15,7 +15,8 @@
 
         body {
             background: #eee;
-            font-family: Arial, sans-serif
+            font-family: Arial, sans-serif;
+            color: #111
         }
 
         .bar {
@@ -110,11 +111,53 @@
             display: block
         }
 
-        #out canvas {
-            max-width: 100%;
-            height: auto;
+        .photo-only {
+            width: 100%;
             display: block;
-            margin: 0 auto
+            border-radius: 4px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .18)
+        }
+
+        .details {
+            margin-top: 14px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .details h3 {
+            background: #FFCC00;
+            color: #111;
+            padding: 10px 12px;
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .details table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px
+        }
+
+        .details td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #eee
+        }
+
+        .details tr:last-child td {
+            border-bottom: none
+        }
+
+        .details td.k {
+            width: 40%;
+            color: #555;
+            font-weight: 600;
+            background: #fafafa
+        }
+
+        .details td.v {
+            font-weight: 700
         }
 
         @media print {
@@ -126,24 +169,27 @@
             .wait {
                 display: none !important
             }
+
+            body {
+                background: #fff
+            }
         }
     </style>
 </head>
 
 <body>
-    <div class="bar no-print"><b>DHL</b><a href="/">Back</a></div>
+    <div class="bar"><b>DHL</b><a href="/">Back</a></div>
     <div class="wrap">
-        <div class="row no-print">
+        <div class="row">
             <input type="text" id="code" placeholder="Tracking code">
             <button class="red" type="button" id="go">Show box</button>
             <button class="out" type="button" id="printBtn" disabled>Print</button>
         </div>
-        <div class="pick no-print">QR from gallery<br><input type="file" id="file" accept="image/*"
-                style="margin-top:8px"></div>
+        <div class="pick">QR from gallery<br><input type="file" id="file" accept="image/*" style="margin-top:8px"></div>
         <div class="wait" id="wait"><b id="dots">......</b>
             <div>Please wait</div>
         </div>
-        <p class="msg no-print" id="msg"></p>
+        <p class="msg" id="msg"></p>
         <div id="out"></div>
     </div>
     <script>
@@ -151,23 +197,20 @@
             ? 'http://localhost:5000/api' : 'https://my-delivery-w6xz.onrender.com/api';
         const PHOTO = '/images/dhl-box-photo.jpg';
 
-        /* Position of the WHITE STICKER already printed on your package photo */
-        const S = { x: 0.14, y: 0.46, w: 0.47, h: 0.27 };
-
+        function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
         function splitName(n) {
             const p = String(n || '').trim().split(/\s+/).filter(Boolean);
-            if (!p.length) return { f: '', l: '' };
-            if (p.length === 1) return { f: p[0], l: '' };
+            if (!p.length) return { f: '—', l: '—' };
+            if (p.length === 1) return { f: p[0], l: '—' };
             return { f: p.slice(0, -1).join(' '), l: p[p.length - 1] };
         }
         function parseAddr(a) {
             const p = String(a || '').split(',').map(x => x.trim()).filter(Boolean);
-            if (!p.length) return { c: '', city: '', d: '' };
-            if (p.length === 1) return { c: p[0], city: '', d: '' };
-            if (p.length === 2) return { c: p[1], city: p[0], d: '' };
+            if (!p.length) return { c: '—', city: '—', d: '—' };
+            if (p.length === 1) return { c: p[0], city: '—', d: '—' };
+            if (p.length === 2) return { c: p[1], city: p[0], d: '—' };
             return { c: p[p.length - 1], city: p[p.length - 2], d: p.slice(0, -2).join(', ') };
         }
-        function v(x) { x = String(x || '').trim(); return x || '—'; }
         function extract(raw) {
             const t = String(raw || '').trim();
             try { const c = new URL(t).searchParams.get('code'); if (c) return c.trim(); } catch (e) { }
@@ -176,69 +219,25 @@
             return '';
         }
 
-        /** Paint receiver data onto the sticker area of YOUR photo only — no HTML card */
-        function paintBox(ship) {
-            return new Promise((resolve, reject) => {
-                const img = new Image();
-                img.onload = () => {
-                    const cv = document.createElement('canvas');
-                    cv.width = img.naturalWidth; cv.height = img.naturalHeight;
-                    const ctx = cv.getContext('2d');
-                    ctx.drawImage(img, 0, 0);
-
-                    const x = cv.width * S.x, y = cv.height * S.y, w = cv.width * S.w, h = cv.height * S.h;
-
-                    // white over the original printed sticker text
-                    ctx.fillStyle = '#fff';
-                    ctx.fillRect(x, y, w, h);
-                    ctx.strokeStyle = '#333';
-                    ctx.lineWidth = Math.max(1, cv.width * 0.0012);
-                    ctx.strokeRect(x, y, w, h);
-
-                    // header
-                    const hh = h * 0.13;
-                    ctx.fillStyle = '#f2f2f2';
-                    ctx.fillRect(x, y, w, hh);
-                    ctx.strokeStyle = '#ccc';
-                    ctx.beginPath(); ctx.moveTo(x, y + hh); ctx.lineTo(x + w, y + hh); ctx.stroke();
-                    ctx.fillStyle = '#222';
-                    ctx.font = 'bold ' + Math.floor(hh * 0.42) + 'px Arial';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText('RECEIVER INFORMATION', x + w * 0.03, y + hh / 2);
-                    // tiny bars
-                    const bw = w * 0.16, bh = hh * 0.5, bx = x + w - bw - w * 0.03, by = y + (hh - bh) / 2;
-                    for (let i = 0; i < 16; i++) if (i % 2 === 0) { ctx.fillStyle = '#111'; ctx.fillRect(bx + (bw / 16) * i, by, bw / 16 * 0.65, bh); }
-
-                    const r = ship.receiver || {};
-                    const nm = splitName(r.name);
-                    const ad = parseAddr(r.address);
-                    const rows = [
-                        ['Last name', v(nm.l)],
-                        ['First name', v(nm.f)],
-                        ['Country', v(ad.c)],
-                        ['City', v(ad.city)],
-                        ['District', v(ad.d)],
-                        ['Phone', v(r.phone)]
-                    ];
-                    const body = h - hh, rh = body / rows.length, col = w * 0.36, fs = Math.max(9, Math.floor(rh * 0.36));
-                    rows.forEach((row, i) => {
-                        const ry = y + hh + rh * i;
-                        ctx.strokeStyle = '#ccc';
-                        ctx.beginPath(); ctx.moveTo(x, ry); ctx.lineTo(x + w, ry); ctx.stroke();
-                        ctx.beginPath(); ctx.moveTo(x + col, ry); ctx.lineTo(x + col, ry + rh); ctx.stroke();
-                        ctx.fillStyle = '#333'; ctx.font = 'bold ' + fs + 'px Arial'; ctx.textBaseline = 'middle';
-                        ctx.fillText(row[0], x + w * 0.02, ry + rh / 2);
-                        ctx.fillStyle = '#000';
-                        let t = row[1];
-                        while (ctx.measureText(t).width > w - col - w * 0.04 && t.length > 2) t = t.slice(0, -2);
-                        if (t !== row[1]) t += '…';
-                        ctx.fillText(t, x + col + w * 0.02, ry + rh / 2);
-                    });
-                    resolve(cv);
-                };
-                img.onerror = () => reject(new Error('Box photo missing: /images/dhl-box-photo.jpg'));
-                img.src = PHOTO + '?v=' + Date.now();
-            });
+        /** Photo only — no drawing on the image. Details below (like receipt). */
+        function render(s) {
+            const r = s.receiver || {};
+            const nm = splitName(r.name);
+            const ad = parseAddr(r.address);
+            return `
+  <img class="photo-only" src="${PHOTO}?v=${Date.now()}" alt="DHL package box">
+  <div class="details">
+    <h3>Receiver details (from admin)</h3>
+    <table>
+      <tr><td class="k">Last name</td><td class="v">${esc(nm.l)}</td></tr>
+      <tr><td class="k">First name</td><td class="v">${esc(nm.f)}</td></tr>
+      <tr><td class="k">Country</td><td class="v">${esc(ad.c)}</td></tr>
+      <tr><td class="k">City</td><td class="v">${esc(ad.city)}</td></tr>
+      <tr><td class="k">District</td><td class="v">${esc(ad.d)}</td></tr>
+      <tr><td class="k">Phone</td><td class="v">${esc(r.phone || '—')}</td></tr>
+      <tr><td class="k">Tracking</td><td class="v">${esc(s.code)}</td></tr>
+    </table>
+  </div>`;
         }
 
         let timer = null;
@@ -246,9 +245,7 @@
         function hideWait() { document.getElementById('wait').classList.remove('on'); clearInterval(timer); }
 
         async function load(code) {
-            const msg = document.getElementById('msg');
-            const out = document.getElementById('out');
-            const pb = document.getElementById('printBtn');
+            const msg = document.getElementById('msg'), out = document.getElementById('out'), pb = document.getElementById('printBtn');
             pb.disabled = true; out.innerHTML = '';
             code = String(code || '').trim();
             if (!code) { msg.style.color = '#D40511'; msg.textContent = 'Enter code or upload QR.'; return; }
@@ -257,15 +254,13 @@
                 const res = await fetch(API + '/shipments/track/' + encodeURIComponent(code));
                 const s = await res.json().catch(() => ({}));
                 if (!res.ok) throw new Error(s.error || 'Invalid code');
-                const cv = await paintBox(s);
-                out.appendChild(cv);
+                out.innerHTML = render(s);
                 pb.disabled = false;
                 document.getElementById('code').value = s.code;
                 msg.style.color = '#1F9D55';
-                msg.textContent = 'Package ready — details are on the box sticker.';
-            } catch (e) {
-                msg.style.color = '#D40511'; msg.textContent = e.message || 'Failed';
-            } finally { hideWait(); }
+                msg.textContent = 'Package ready. Photo is clean — details are listed below.';
+            } catch (e) { msg.style.color = '#D40511'; msg.textContent = e.message || 'Failed'; }
+            finally { hideWait(); }
         }
 
         document.getElementById('go').onclick = () => load(document.getElementById('code').value);
@@ -281,31 +276,21 @@
                     fr.onload = () => {
                         const im = new Image();
                         im.onload = () => {
-                            const c = document.createElement('canvas');
-                            let w = im.width, h = im.height, max = 1400;
+                            const c = document.createElement('canvas'); let w = im.width, h = im.height, max = 1400;
                             if (Math.max(w, h) > max) { const sc = max / Math.max(w, h); w = Math.round(w * sc); h = Math.round(h * sc); }
                             c.width = w; c.height = h; c.getContext('2d').drawImage(im, 0, 0, w, h);
                             const id = c.getContext('2d').getImageData(0, 0, w, h);
                             const r = jsQR(id.data, id.width, id.height, { inversionAttempts: 'attemptBoth' });
                             if (!r || !r.data) rej(new Error('No QR found')); else res(r.data);
                         };
-                        im.onerror = () => rej(new Error('Bad image'));
-                        im.src = fr.result;
+                        im.onerror = () => rej(new Error('Bad image')); im.src = fr.result;
                     };
-                    fr.onerror = () => rej(new Error('Read failed'));
-                    fr.readAsDataURL(f);
+                    fr.onerror = () => rej(new Error('Read failed')); fr.readAsDataURL(f);
                 });
-                const code = extract(data);
-                if (!code) throw new Error('No tracking code in QR');
-                await load(code);
-            } catch (err) {
-                hideWait();
-                document.getElementById('msg').style.color = '#D40511';
-                document.getElementById('msg').textContent = err.message || 'QR failed';
-            }
+                const code = extract(data); if (!code) throw new Error('No tracking code in QR'); await load(code);
+            } catch (err) { hideWait(); document.getElementById('msg').style.color = '#D40511'; document.getElementById('msg').textContent = err.message || 'QR failed'; }
             e.target.value = '';
         };
-
         const q = new URLSearchParams(location.search).get('code');
         if (q) { document.getElementById('code').value = q; load(q); }
     </script>
