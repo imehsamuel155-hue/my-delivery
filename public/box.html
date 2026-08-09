@@ -14,8 +14,8 @@
         }
 
         body {
-            background: #ddd;
-            font-family: Arial, system-ui, sans-serif;
+            background: #e8e8e8;
+            font-family: Arial, Helvetica, sans-serif;
             color: #111;
         }
 
@@ -30,7 +30,7 @@
 
         .topbar b {
             color: #D40511;
-            font-size: 24px;
+            font-size: 22px;
             font-weight: 900;
         }
 
@@ -42,9 +42,9 @@
         }
 
         .wrap {
-            max-width: 520px;
+            max-width: 560px;
             margin: 0 auto;
-            padding: 14px 10px 40px;
+            padding: 12px 10px 40px;
         }
 
         .row {
@@ -57,14 +57,14 @@
         input[type="text"] {
             flex: 1;
             min-width: 120px;
-            padding: 11px;
+            padding: 10px;
             border: 1px solid #bbb;
             border-radius: 4px;
             font-size: 14px;
         }
 
         .btn {
-            padding: 11px 14px;
+            padding: 10px 14px;
             border: none;
             border-radius: 4px;
             font-weight: 700;
@@ -88,108 +88,44 @@
 
         .pick {
             background: #fff;
-            border: 2px dashed #aaa;
-            border-radius: 8px;
-            padding: 12px;
-            text-align: center;
+            border: 1px dashed #aaa;
+            padding: 10px;
             margin-bottom: 10px;
-            font-size: 13px;
+            font-size: 12px;
+            text-align: center;
+            border-radius: 6px;
         }
 
         .msg {
             font-size: 13px;
-            margin: 8px 0 12px;
+            margin: 8px 0;
             color: #555;
         }
 
         .wait {
             display: none;
             text-align: center;
-            padding: 18px;
+            padding: 16px;
             background: #fff;
-            border-radius: 8px;
-            margin-bottom: 10px;
+            border-radius: 6px;
+            margin-bottom: 8px;
         }
 
         .wait.on {
             display: block;
         }
 
-        /* ONLY your photo — no extra yellow design */
-        .pkg {
-            position: relative;
-            width: 100%;
-            line-height: 0;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, .25);
+        #boxOut {
+            text-align: center;
         }
 
-        .pkg img {
-            width: 100%;
+        #boxOut canvas,
+        #boxOut img {
+            max-width: 100%;
             height: auto;
             display: block;
-        }
-
-        /*
-      White label sits on the sticker area of YOUR photo (the area you circled).
-      Opaque white covers the printed French text; admin receiver data is written on top.
-    */
-        .sticker {
-            position: absolute;
-            left: 12%;
-            top: 41%;
-            width: 52%;
-            background: #ffffff;
-            border: 1px solid #333;
-            line-height: 1.2;
-            font-size: clamp(9px, 2.6vw, 12.5px);
-            box-shadow: 0 1px 4px rgba(0, 0, 0, .2);
-        }
-
-        .sticker .h {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 4px 6px;
-            background: #f2f2f2;
-            border-bottom: 1px solid #ccc;
-            font-size: 0.8em;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: .3px;
-        }
-
-        .sticker .bc {
-            width: 42px;
-            height: 11px;
-            background: repeating-linear-gradient(90deg, #111 0 1.5px, #fff 1.5px 3px);
-        }
-
-        .sticker table {
-            width: 100%;
-            border-collapse: collapse;
-            background: #fff;
-        }
-
-        .sticker td {
-            padding: 4px 6px;
-            border-bottom: 1px solid #ddd;
-            vertical-align: top;
-        }
-
-        .sticker tr:last-child td {
-            border-bottom: none;
-        }
-
-        .sticker td.k {
-            width: 42%;
-            color: #444;
-            font-weight: 600;
-            background: #fafafa;
-        }
-
-        .sticker td.v {
-            font-weight: 700;
-            word-break: break-word;
+            margin: 0 auto;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .2);
         }
 
         @media print {
@@ -207,7 +143,8 @@
                 background: #fff;
             }
 
-            .pkg {
+            #boxOut canvas,
+            #boxOut img {
                 box-shadow: none;
             }
         }
@@ -226,20 +163,14 @@
             <button class="btn btn-red" type="button" id="boxLoadBtn">Show box</button>
             <button class="btn btn-out" type="button" id="boxPrintBtn" disabled>Print</button>
         </div>
-
         <div class="pick no-print">
-            <div style="font-weight:700;margin-bottom:4px;">QR from gallery</div>
-            <div style="color:#666;margin-bottom:8px;">Use the QR you saved from Track. Correct code → this package
-                photo with receiver details on the white label.</div>
-            <input type="file" id="qrFile" accept="image/*">
+            QR from gallery
+            <input type="file" id="qrFile" accept="image/*" style="display:block;margin:8px auto 0;">
         </div>
-
-        <div class="wait" id="pleaseWait">
-            <div id="waitDots">......</div>
+        <div class="wait" id="pleaseWait"><span id="waitDots">......</span>
             <div style="margin-top:6px;font-weight:700;">Please wait</div>
         </div>
         <p class="msg no-print" id="boxMsg">Enter code or upload QR.</p>
-
         <div id="boxOut"></div>
     </div>
 
@@ -248,9 +179,19 @@
             ? 'http://localhost:5000/api'
             : 'https://my-delivery-w6xz.onrender.com/api';
 
-        // YOUR DHL box photo. Replace this file anytime:
-        //   public/images/dhl-box-photo.jpg
+        // Your package photo — the white sticker on this image is where text is written
         const BOX_IMG = '/images/dhl-box-photo.jpg';
+
+        /*
+          Sticker region on the photo (percent of image size).
+          Matches the printed white label on your DHL box picture.
+        */
+        const STICKER = {
+            x: 0.145,   // left
+            y: 0.455,   // top
+            w: 0.455,   // width
+            h: 0.265    // height
+        };
 
         let _t = null;
         function showWait() {
@@ -264,20 +205,24 @@
             if (_t) { clearInterval(_t); _t = null; }
         }
         function esc(s) {
-            return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            return String(s == null ? '' : s);
         }
         function splitName(full) {
             const p = String(full || '').trim().split(/\s+/).filter(Boolean);
-            if (!p.length) return { first: '—', last: '—' };
-            if (p.length === 1) return { first: p[0], last: '—' };
+            if (!p.length) return { first: '', last: '' };
+            if (p.length === 1) return { first: p[0], last: '' };
             return { first: p.slice(0, -1).join(' '), last: p[p.length - 1] };
         }
         function parseAddr(addr) {
             const parts = String(addr || '').split(',').map(x => x.trim()).filter(Boolean);
-            if (!parts.length) return { country: '—', city: '—', district: '—' };
-            if (parts.length === 1) return { country: parts[0], city: '—', district: '—' };
-            if (parts.length === 2) return { country: parts[1], city: parts[0], district: '—' };
-            return { country: parts[parts.length - 1], city: parts[parts.length - 2], district: parts.slice(0, -2).join(', ') };
+            if (!parts.length) return { country: '', city: '', district: '' };
+            if (parts.length === 1) return { country: parts[0], city: '', district: '' };
+            if (parts.length === 2) return { country: parts[1], city: parts[0], district: '' };
+            return {
+                country: parts[parts.length - 1],
+                city: parts[parts.length - 2],
+                district: parts.slice(0, -2).join(', ')
+            };
         }
         function extractCode(raw) {
             const text = String(raw || '').trim();
@@ -287,27 +232,125 @@
             if (/^[A-Za-z0-9\-_]{5,32}$/.test(text)) return text;
             return '';
         }
+        function val(v) {
+            const s = String(v || '').trim();
+            return s || '—';
+        }
 
-        function renderBox(s) {
-            const r = s.receiver || {};
-            const name = splitName(r.name);
-            const addr = parseAddr(r.address);
-            return `
-      <div class="pkg" id="printBox">
-        <img src="${BOX_IMG}" alt="DHL box">
-        <div class="sticker">
-          <div class="h"><span>Receiver information</span><span class="bc"></span></div>
-          <table>
-            <tr><td class="k">Last name</td><td class="v">${esc(name.last)}</td></tr>
-            <tr><td class="k">First name</td><td class="v">${esc(name.first)}</td></tr>
-            <tr><td class="k">Country</td><td class="v">${esc(addr.country)}</td></tr>
-            <tr><td class="k">City</td><td class="v">${esc(addr.city)}</td></tr>
-            <tr><td class="k">District</td><td class="v">${esc(addr.district)}</td></tr>
-            <tr><td class="k">Phone</td><td class="v">${esc(r.phone || '—')}</td></tr>
-            <tr><td class="k">Tracking</td><td class="v">${esc(s.code)}</td></tr>
-          </table>
-        </div>
-      </div>`;
+        /**
+         * Draw the package photo and write receiver details ON the existing white sticker
+         * (same place as on the real box). No separate HTML card.
+         */
+        function drawPackageBox(shipment) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.naturalWidth || img.width;
+                    canvas.height = img.naturalHeight || img.height;
+                    const ctx = canvas.getContext('2d');
+
+                    // 1) Full package photo
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                    // 2) Sticker rectangle on the photo
+                    const x = canvas.width * STICKER.x;
+                    const y = canvas.height * STICKER.y;
+                    const w = canvas.width * STICKER.w;
+                    const h = canvas.height * STICKER.h;
+
+                    // Cover original printed text (keep white sticker look)
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(x, y, w, h);
+                    ctx.strokeStyle = '#333333';
+                    ctx.lineWidth = Math.max(1, canvas.width * 0.0015);
+                    ctx.strokeRect(x, y, w, h);
+
+                    // Header bar like the real label
+                    const headerH = h * 0.14;
+                    ctx.fillStyle = '#f3f3f3';
+                    ctx.fillRect(x, y, w, headerH);
+                    ctx.strokeStyle = '#cccccc';
+                    ctx.beginPath();
+                    ctx.moveTo(x, y + headerH);
+                    ctx.lineTo(x + w, y + headerH);
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#222222';
+                    ctx.font = 'bold ' + Math.floor(headerH * 0.45) + 'px Arial';
+                    ctx.textAlign = 'left';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('RECEIVER INFORMATION', x + w * 0.03, y + headerH / 2);
+
+                    // Small barcode block (right of header) like the photo
+                    const bcW = w * 0.18;
+                    const bcH = headerH * 0.55;
+                    const bcX = x + w - bcW - w * 0.03;
+                    const bcY = y + (headerH - bcH) / 2;
+                    for (let i = 0; i < 18; i++) {
+                        if (i % 2 === 0) {
+                            ctx.fillStyle = '#111';
+                            ctx.fillRect(bcX + (bcW / 18) * i, bcY, bcW / 18 * 0.7, bcH);
+                        }
+                    }
+
+                    // Rows — same structure as the package sticker
+                    const r = shipment.receiver || {};
+                    const name = splitName(r.name);
+                    const addr = parseAddr(r.address);
+                    const rows = [
+                        ['Last name', val(name.last)],
+                        ['First name', val(name.first)],
+                        ['Country', val(addr.country)],
+                        ['City', val(addr.city)],
+                        ['District', val(addr.district)],
+                        ['Phone', val(r.phone)]
+                    ];
+
+                    const bodyTop = y + headerH;
+                    const bodyH = h - headerH;
+                    const rowH = bodyH / rows.length;
+                    const col1 = w * 0.36;
+                    const fontSize = Math.max(10, Math.floor(rowH * 0.38));
+
+                    rows.forEach((row, i) => {
+                        const ry = bodyTop + rowH * i;
+                        // horizontal line
+                        ctx.strokeStyle = '#cccccc';
+                        ctx.beginPath();
+                        ctx.moveTo(x, ry);
+                        ctx.lineTo(x + w, ry);
+                        ctx.stroke();
+                        // vertical split
+                        ctx.beginPath();
+                        ctx.moveTo(x + col1, ry);
+                        ctx.lineTo(x + col1, ry + rowH);
+                        ctx.stroke();
+
+                        ctx.fillStyle = '#333333';
+                        ctx.font = 'bold ' + fontSize + 'px Arial';
+                        ctx.textAlign = 'left';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(row[0], x + w * 0.025, ry + rowH / 2);
+
+                        ctx.fillStyle = '#000000';
+                        ctx.font = 'bold ' + fontSize + 'px Arial';
+                        // fit long text
+                        let text = row[1];
+                        const maxTw = w - col1 - w * 0.05;
+                        while (ctx.measureText(text).width > maxTw && text.length > 3) {
+                            text = text.slice(0, -2);
+                        }
+                        if (text !== row[1]) text += '…';
+                        ctx.fillText(text, x + col1 + w * 0.025, ry + rowH / 2);
+                    });
+
+                    resolve(canvas);
+                };
+                img.onerror = () => reject(new Error('Could not load box photo. Check public/images/dhl-box-photo.jpg'));
+                img.src = BOX_IMG + '?t=' + Date.now();
+            });
         }
 
         async function loadBox(code) {
@@ -329,11 +372,13 @@
                 const res = await fetch(API + '/shipments/track/' + encodeURIComponent(code));
                 const s = await res.json().catch(() => ({}));
                 if (!res.ok) throw new Error(s.error || 'Invalid code');
-                out.innerHTML = renderBox(s);
+                const canvas = await drawPackageBox(s);
+                out.innerHTML = '';
+                out.appendChild(canvas);
                 printBtn.disabled = false;
                 document.getElementById('boxCode').value = s.code;
                 msg.style.color = '#1F9D55';
-                msg.textContent = 'Package ready. Admin receiver details are on the white label.';
+                msg.textContent = 'Package ready. Receiver details are written on the box label.';
                 history.replaceState(null, '', '/box.html?code=' + encodeURIComponent(s.code));
             } catch (e) {
                 msg.style.color = '#D40511';
@@ -351,16 +396,15 @@
                     const img = new Image();
                     img.onload = () => {
                         const c = document.createElement('canvas');
-                        const max = 1400;
                         let w = img.width, h = img.height;
+                        const max = 1400;
                         if (Math.max(w, h) > max) {
                             const sc = max / Math.max(w, h);
                             w = Math.round(w * sc); h = Math.round(h * sc);
                         }
                         c.width = w; c.height = h;
-                        const ctx = c.getContext('2d');
-                        ctx.drawImage(img, 0, 0, w, h);
-                        const data = ctx.getImageData(0, 0, w, h);
+                        c.getContext('2d').drawImage(img, 0, 0, w, h);
+                        const data = c.getContext('2d').getImageData(0, 0, w, h);
                         const r = jsQR(data.data, data.width, data.height, { inversionAttempts: 'attemptBoth' });
                         if (!r || !r.data) reject(new Error('No QR in image'));
                         else resolve(r.data);
@@ -390,11 +434,16 @@
         };
 
         document.getElementById('boxLoadBtn').onclick = () => loadBox(document.getElementById('boxCode').value);
-        document.getElementById('boxCode').onkeydown = (e) => { if (e.key === 'Enter') loadBox(document.getElementById('boxCode').value); };
+        document.getElementById('boxCode').onkeydown = (e) => {
+            if (e.key === 'Enter') loadBox(document.getElementById('boxCode').value);
+        };
         document.getElementById('boxPrintBtn').onclick = () => window.print();
 
         const q = new URLSearchParams(location.search).get('code');
-        if (q) { document.getElementById('boxCode').value = q; loadBox(q); }
+        if (q) {
+            document.getElementById('boxCode').value = q;
+            loadBox(q);
+        }
     </script>
 </body>
 
