@@ -306,7 +306,7 @@ async function renderTrackResult(code) {
       <div class="route-progress-wrap">
         <div class="route-ends">
           <span>${esc((shipment.route && shipment.route.originCountry) || 'Origin')}</span>
-          <span class="route-vehicle-icon">${(shipment.route && shipment.route.icon === 'plane') ? '✈️' : (shipment.route && shipment.route.icon === 'ship') ? '🚢' : '🚚'}</span>
+          <span class="route-vehicle-icon" id="publicVehicleIcon">${vehicleIconHtml((shipment.route && shipment.route.icon) || 'truck', (shipment.route && shipment.route.vehicleImg) || '', 32)}</span>
           <span>${esc((shipment.route && shipment.route.destCountry) || 'Destination')}</span>
         </div>
         <div class="progress-bar tall"><div class="progress-fill" id="publicProgressFill" style="width:${Math.round(computeLiveProgress(shipment.route))}%"></div></div>
@@ -660,11 +660,14 @@ function renderShipDetail(shipment) {
       </div>
     </div>
     <div class="field"><label>Vehicle</label>
-      <select id="f_icon">
+      <select id="f_icon" onchange="updateVehicleIconDisplay()">
         <option value="plane" ${(s.route && s.route.icon === 'plane') ? 'selected' : ''}>✈️ Plane / Flight</option>
         <option value="truck" ${(!(s.route && s.route.icon) || (s.route && s.route.icon === 'truck')) ? 'selected' : ''}>🚚 Truck</option>
         <option value="ship" ${(s.route && s.route.icon === 'ship') ? 'selected' : ''}>🚢 Ship</option>
       </select>
+    </div>
+    <div class="field"><label>Vehicle photo URL <span style="color:var(--gray);font-weight:400;">(optional — any http image link)</span></label>
+      <input id="f_vehicleImg" type="url" placeholder="https://...jpg" value="${esc((s.route && s.route.vehicleImg) || '')}" oninput="updateVehicleIconDisplay()">
     </div>
     <div class="field"><label>Movement Speed</label>
       <select id="f_speed">
@@ -690,7 +693,7 @@ function renderShipDetail(shipment) {
     <div class="route-progress-wrap">
       <div class="route-ends">
         <span id="mapOriginLabel">${esc((s.route && s.route.originCountry) || 'Origin')}</span>
-        <span class="route-vehicle-icon" id="mapVehicleIcon">${(s.route && s.route.icon === 'plane') ? '✈️' : (s.route && s.route.icon === 'ship') ? '🚢' : '🚚'}</span>
+        <span class="route-vehicle-icon" id="mapVehicleIcon">${vehicleIconHtml((s.route && s.route.icon) || 'truck', (s.route && s.route.vehicleImg) || '', 32)}</span>
         <span id="mapDestLabel">${esc((s.route && s.route.destCountry) || 'Destination')}</span>
       </div>
       <div class="progress-bar tall"><div class="progress-fill" id="mapProgressFill" style="width:${Math.round(computeLiveProgress(s.route))}%"></div></div>
@@ -813,6 +816,30 @@ async function removeStatus(code, idx) {
 
 /* ---------- LIVE MAP: moving truck/plane/ship along a route ---------- */
 const ICONS = { truck: '🚚', plane: '✈️', ship: '🚢' };
+const DEFAULT_VEHICLE_IMGS = {
+    plane: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=96&h=96&fit=crop',
+    truck: 'https://images.unsplash.com/photo-1601584115197-04ecc1da58d3?w=96&h=96&fit=crop',
+    ship: 'https://images.unsplash.com/photo-1605281317010-fe5ffe798166?w=96&h=96&fit=crop'
+};
+function vehicleImgSrc(iconType, customUrl) {
+    const custom = String(customUrl || '').trim();
+    if (custom && /^https?:\/\//i.test(custom)) return custom;
+    return DEFAULT_VEHICLE_IMGS[iconType || 'truck'] || DEFAULT_VEHICLE_IMGS.truck;
+}
+function vehicleIconHtml(iconType, customUrl, size) {
+    const s = size || 28;
+    const src = vehicleImgSrc(iconType, customUrl);
+    return '<img src="' + src + '" alt="' + (iconType || 'vehicle') + '" width="' + s + '" height="' + s + '" style="width:' + s + 'px;height:' + s + 'px;object-fit:cover;border-radius:50%;border:2px solid #FFCC00;background:#fff;display:block;" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'inline\');"><span style="display:none;font-size:' + s + 'px;">' + (ICONS[iconType || 'truck'] || '🚚') + '</span>';
+}
+function updateVehicleIconDisplay() {
+    const sel = document.getElementById('f_icon');
+    const urlEl = document.getElementById('f_vehicleImg');
+    const iconType = sel ? sel.value : 'truck';
+    const custom = urlEl ? urlEl.value : '';
+    const el = document.getElementById('mapVehicleIcon');
+    if (el) el.innerHTML = vehicleIconHtml(iconType, custom, 32);
+}
+
 let adminMap = null, adminMarker = null, adminAnimTimer = null;
 let publicMap = null, publicMarker = null, publicAnimTimer = null, publicPollTimer = null;
 
@@ -1026,17 +1053,16 @@ function bearingDeg(oLat, oLng, dLat, dLng) {
         Math.sin(oLat * toRad) * Math.cos(dLat * toRad) * Math.cos((dLng - oLng) * toRad);
     return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
 }
-function makeVehicleIcon(iconType, oLat, oLng, dLat, dLng, flipOverride, rotationDeg) {
-    const emoji = ICONS[iconType || 'truck'];
+function makeVehicleIcon(iconType, oLat, oLng, dLat, dLng, flipOverride, rotationDeg, customUrl) {
     let deg = (rotationDeg != null && rotationDeg !== '' && Number(rotationDeg) !== 0)
         ? Number(rotationDeg)
         : bearingDeg(oLat, oLng, dLat, dLng);
     if (flipOverride) deg = (deg + 180) % 360;
-    // Planes/ships face "up" in emoji art; rotate so nose points toward destination
     const transform = 'rotate(' + deg + 'deg)';
+    const inner = vehicleIconHtml(iconType, customUrl, 36);
     return L.divIcon({
-        html: '<div style="font-size:28px;line-height:28px;transform:' + transform + ';transform-origin:center center;">' + emoji + '</div>',
-        className: '', iconSize: [28, 28], iconAnchor: [14, 14]
+        html: '<div style="transform:' + transform + ';transform-origin:center center;width:36px;height:36px;">' + inner + '</div>',
+        className: '', iconSize: [36, 36], iconAnchor: [18, 18]
     });
 }
 
@@ -1063,7 +1089,7 @@ function initAdminMap(shipment) {
     L.marker([dLat, dLng]).addTo(adminMap).bindPopup('Destination' + (r.destCountry ? ': ' + r.destCountry : ''));
     const line = L.polyline([[oLat, oLng], [dLat, dLng]], { color: '#FFCC00', weight: 3, dashArray: '6,8' }).addTo(adminMap);
     adminMap.fitBounds(line.getBounds(), { padding: [30, 30] });
-    const icon = makeVehicleIcon(r.icon, oLat, oLng, dLat, dLng, r.flipOverride, r.rotationDeg);
+    const icon = makeVehicleIcon(r.icon, oLat, oLng, dLat, dLng, r.flipOverride, r.rotationDeg, r.vehicleImg);
     const startProgress = computeLiveProgress(r);
     const pos = pointAlong(oLat, oLng, dLat, dLng, startProgress / 100);
     adminMarker = L.marker(pos, { icon, draggable: true }).addTo(adminMap);
@@ -1125,6 +1151,7 @@ async function saveRoute(code) {
         originLat: oCoords.lat, originLng: oCoords.lng,
         destLat: dCoords.lat, destLng: dCoords.lng,
         icon: document.getElementById('f_icon').value,
+        vehicleImg: (document.getElementById('f_vehicleImg') && document.getElementById('f_vehicleImg').value.trim()) || '',
         speed: document.getElementById('f_speed').value,
         flipOverride: (document.getElementById('f_face') && document.getElementById('f_face').value === 'flip'),
         rotationDeg: (function () {
@@ -1212,7 +1239,7 @@ function initPublicMap(shipment) {
     L.marker([dLat, dLng]).addTo(publicMap).bindPopup('Destination' + (r.destCountry ? ': ' + r.destCountry : ''));
     const line = L.polyline([[oLat, oLng], [dLat, dLng]], { color: '#FFCC00', weight: 3, dashArray: '6,8' }).addTo(publicMap);
     publicMap.fitBounds(line.getBounds(), { padding: [30, 30] });
-    const icon = makeVehicleIcon(r.icon, oLat, oLng, dLat, dLng, r.flipOverride, r.rotationDeg);
+    const icon = makeVehicleIcon(r.icon, oLat, oLng, dLat, dLng, r.flipOverride, r.rotationDeg, r.vehicleImg);
     const startProgress = computeLiveProgress(r);
     const pos = pointAlong(oLat, oLng, dLat, dLng, startProgress / 100);
     publicMarker = L.marker(pos, { icon, draggable: false, interactive: false }).addTo(publicMap).bindPopup('Current location');

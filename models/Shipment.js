@@ -1,4 +1,3 @@
-
 const mongoose = require("mongoose");
 
 const PartySchema = new mongoose.Schema(
@@ -28,7 +27,7 @@ const PaymentSchema = new mongoose.Schema(
         currency: { type: String, default: "USD", trim: true },
         method: {
             type: String,
-            enum: ["Card", "Bank Transfer", "Cash on Delivery"],
+            enum: ["Card", "Bank Transfer", "Outstanding Payment", "Cash on Delivery"],
             default: "Card",
         },
         status: {
@@ -58,6 +57,7 @@ const RouteSchema = new mongoose.Schema(
         destLat: Number,
         destLng: Number,
         icon: { type: String, enum: ["truck", "plane", "ship"], default: "truck" },
+        vehicleImg: { type: String, default: "" },
         speed: { type: String, enum: ["slow", "normal", "fast"], default: "slow" },
         flipOverride: { type: Boolean, default: false },
         rotationDeg: { type: Number, default: 0 },
