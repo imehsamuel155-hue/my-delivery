@@ -5,35 +5,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DHL Shipping Box</title>
-    <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <style>
         * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
-            margin: 0;
-            background: #e8e8e8;
-            font-family: Barlow, system-ui, sans-serif;
+            background: #ddd;
+            font-family: Arial, system-ui, sans-serif;
             color: #111;
         }
 
         .topbar {
             background: #FFCC00;
-            padding: 14px 20px;
+            padding: 12px 16px;
             display: flex;
-            align-items: center;
             justify-content: space-between;
+            align-items: center;
             border-bottom: 3px solid #D40511;
         }
 
-        .topbar .logo {
-            font-weight: 900;
-            font-size: 28px;
+        .topbar b {
             color: #D40511;
-            letter-spacing: -1px;
-            font-family: Arial Black, sans-serif;
+            font-size: 24px;
+            font-weight: 900;
         }
 
         .topbar a {
@@ -44,36 +42,34 @@
         }
 
         .wrap {
-            max-width: 560px;
+            max-width: 520px;
             margin: 0 auto;
-            padding: 20px 14px 48px;
+            padding: 14px 10px 40px;
         }
 
-        .box-toolbar {
+        .row {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 12px;
-            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
         }
 
-        .box-toolbar input[type="text"] {
+        input[type="text"] {
             flex: 1;
-            min-width: 140px;
-            padding: 12px 14px;
-            border: 1px solid #ccc;
+            min-width: 120px;
+            padding: 11px;
+            border: 1px solid #bbb;
             border-radius: 4px;
-            font-size: 15px;
-            font-family: ui-monospace, monospace;
+            font-size: 14px;
         }
 
         .btn {
+            padding: 11px 14px;
             border: none;
             border-radius: 4px;
-            padding: 12px 16px;
             font-weight: 700;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
         }
 
         .btn-red {
@@ -81,239 +77,127 @@
             color: #fff;
         }
 
-        .btn-outline {
+        .btn-out {
             background: #fff;
-            color: #111;
-            border: 1px solid #111;
+            border: 1px solid #333;
         }
 
         .btn:disabled {
-            opacity: .45;
-            cursor: not-allowed;
+            opacity: .4;
+        }
+
+        .pick {
+            background: #fff;
+            border: 2px dashed #aaa;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 13px;
         }
 
         .msg {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 14px;
-            line-height: 1.45;
-        }
-
-        .qr-pick {
-            width: 100%;
-            margin-bottom: 14px;
-            padding: 16px;
-            background: #fff;
-            border: 2px dashed #ccc;
-            border-radius: 8px;
-            text-align: center;
-        }
-
-        .qr-pick strong {
-            display: block;
-            margin-bottom: 6px;
-        }
-
-        .qr-pick span {
             font-size: 13px;
-            color: #666;
-            display: block;
-            margin-bottom: 12px;
-        }
-
-        .qr-pick input[type="file"] {
-            font-size: 14px;
-            max-width: 100%;
+            margin: 8px 0 12px;
+            color: #555;
         }
 
         .wait {
             display: none;
             text-align: center;
-            padding: 28px 16px;
+            padding: 18px;
             background: #fff;
             border-radius: 8px;
-            margin-bottom: 14px;
-            border: 1px solid #eee;
+            margin-bottom: 10px;
         }
 
-        .wait.show {
+        .wait.on {
             display: block;
         }
 
-        .wait .dots {
-            font-size: 28px;
-            letter-spacing: 4px;
-            color: #D40511;
-            font-weight: 700;
-        }
-
-        .wait .t {
-            margin-top: 8px;
-            font-weight: 700;
-        }
-
-        .wait .s {
-            color: #666;
-            font-size: 13px;
-            margin-top: 4px;
-        }
-
-        .ship-box {
+        /* ONLY your photo — no extra yellow design */
+        .pkg {
             position: relative;
             width: 100%;
-            min-height: 420px;
-            border-radius: 6px;
-            overflow: hidden;
-            box-shadow: 0 16px 40px rgba(0, 0, 0, .22);
-            background-color: #FFCC00;
-            background-image: url('/images/dhl-box-bg.svg');
-            background-size: cover;
-            background-position: center;
-            border: 2px solid #c9a000;
+            line-height: 0;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .25);
         }
 
-        .ship-box.has-photo {
-            background-image: url('/images/dhl-box-photo.jpg'), url('/images/dhl-box-bg.svg');
-            background-size: cover, cover;
-        }
-
-        .ship-box .tape {
-            position: absolute;
-            top: 18%;
-            left: 8%;
-            right: 18%;
-            height: 28px;
-            background: repeating-linear-gradient(90deg, transparent, transparent 12px, rgba(212, 5, 17, .15) 12px, rgba(212, 5, 17, .15) 14px);
-            opacity: .5;
-            pointer-events: none;
-        }
-
-        .ship-box .side-text {
-            position: absolute;
-            left: 6px;
-            top: 50%;
-            transform: translateY(-50%) rotate(-90deg);
-            white-space: nowrap;
-            font-weight: 900;
-            font-size: 13px;
-            letter-spacing: 4px;
-            color: #D40511;
-            font-family: Arial Black, sans-serif;
-        }
-
-        .ship-box .corner-dhl {
-            position: absolute;
-            right: 10px;
-            top: 40%;
-            font-weight: 900;
-            font-size: 42px;
-            color: #D40511;
-            opacity: .9;
-            font-family: Arial Black, sans-serif;
-            letter-spacing: -2px;
-            writing-mode: vertical-rl;
-        }
-
-        .ship-box .label-wrap {
-            position: relative;
-            z-index: 2;
-            padding: 22% 14% 12% 16%;
-            display: flex;
-            justify-content: center;
-        }
-
-        .recv-label {
+        .pkg img {
             width: 100%;
-            max-width: 340px;
-            background: #fff;
+            height: auto;
+            display: block;
+        }
+
+        /*
+      White label sits on the sticker area of YOUR photo (the area you circled).
+      Opaque white covers the printed French text; admin receiver data is written on top.
+    */
+        .sticker {
+            position: absolute;
+            left: 12%;
+            top: 41%;
+            width: 52%;
+            background: #ffffff;
             border: 1px solid #333;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, .18);
-            font-size: 13px;
+            line-height: 1.2;
+            font-size: clamp(9px, 2.6vw, 12.5px);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, .2);
         }
 
-        .recv-label .head {
+        .sticker .h {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: #f5f5f5;
+            padding: 4px 6px;
+            background: #f2f2f2;
             border-bottom: 1px solid #ccc;
-            padding: 8px 10px;
-            font-size: 11px;
+            font-size: 0.8em;
             font-weight: 700;
-            letter-spacing: .4px;
             text-transform: uppercase;
+            letter-spacing: .3px;
         }
 
-        .recv-label .barcode {
-            height: 18px;
-            width: 70px;
-            background: repeating-linear-gradient(90deg, #111 0 2px, #fff 2px 4px);
+        .sticker .bc {
+            width: 42px;
+            height: 11px;
+            background: repeating-linear-gradient(90deg, #111 0 1.5px, #fff 1.5px 3px);
         }
 
-        .recv-label table {
+        .sticker table {
             width: 100%;
             border-collapse: collapse;
+            background: #fff;
         }
 
-        .recv-label td {
-            padding: 9px 10px;
-            border-bottom: 1px solid #e0e0e0;
+        .sticker td {
+            padding: 4px 6px;
+            border-bottom: 1px solid #ddd;
             vertical-align: top;
         }
 
-        .recv-label tr:last-child td {
+        .sticker tr:last-child td {
             border-bottom: none;
         }
 
-        .recv-label td.k {
-            width: 38%;
-            color: #555;
+        .sticker td.k {
+            width: 42%;
+            color: #444;
             font-weight: 600;
             background: #fafafa;
         }
 
-        .recv-label td.v {
+        .sticker td.v {
             font-weight: 700;
-            color: #111;
-        }
-
-        .recv-label .track-row {
-            font-family: ui-monospace, monospace;
-            font-size: 12px;
-        }
-
-        .hint {
-            margin-top: 16px;
-            padding: 12px 14px;
-            background: #fff;
-            border: 1px dashed #ccc;
-            border-radius: 6px;
-            font-size: 13px;
-            color: #555;
-            line-height: 1.5;
-        }
-
-        @media (max-width: 480px) {
-            .ship-box {
-                min-height: 360px;
-            }
-
-            .ship-box .label-wrap {
-                padding: 18% 10% 10% 12%;
-            }
-
-            .ship-box .corner-dhl {
-                font-size: 32px;
-            }
+            word-break: break-word;
         }
 
         @media print {
 
             .topbar,
-            .box-toolbar,
+            .row,
+            .pick,
             .msg,
-            .hint,
-            .qr-pick,
             .wait,
             .no-print {
                 display: none !important;
@@ -323,7 +207,7 @@
                 background: #fff;
             }
 
-            .ship-box {
+            .pkg {
                 box-shadow: none;
             }
         }
@@ -332,36 +216,31 @@
 
 <body>
     <div class="topbar no-print">
-        <div class="logo">DHL</div>
+        <b>DHL</b>
         <a href="/">← Back to track</a>
     </div>
 
     <div class="wrap">
-        <div class="box-toolbar no-print">
-            <input type="text" id="boxCode" placeholder="Or type tracking code" autocomplete="off">
-            <button type="button" class="btn btn-red" id="boxLoadBtn">Show box</button>
-            <button type="button" class="btn btn-outline" id="boxPrintBtn" disabled>Print package</button>
+        <div class="row no-print">
+            <input type="text" id="boxCode" placeholder="Tracking code">
+            <button class="btn btn-red" type="button" id="boxLoadBtn">Show box</button>
+            <button class="btn btn-out" type="button" id="boxPrintBtn" disabled>Print</button>
         </div>
 
-        <div class="qr-pick no-print">
-            <strong>Scan QR from gallery</strong>
-            <span>Pick the QR image you downloaded from Track. If the code is correct, the package box opens with
-                receiver details from admin.</span>
-            <input type="file" id="qrFile" accept="image/*" capture="environment">
+        <div class="pick no-print">
+            <div style="font-weight:700;margin-bottom:4px;">QR from gallery</div>
+            <div style="color:#666;margin-bottom:8px;">Use the QR you saved from Track. Correct code → this package
+                photo with receiver details on the white label.</div>
+            <input type="file" id="qrFile" accept="image/*">
         </div>
 
         <div class="wait" id="pleaseWait">
-            <div class="dots" id="waitDots">......</div>
-            <div class="t">Please wait</div>
-            <div class="s" id="waitSub">Checking QR / tracking code…</div>
+            <div id="waitDots">......</div>
+            <div style="margin-top:6px;font-weight:700;">Please wait</div>
         </div>
+        <p class="msg no-print" id="boxMsg">Enter code or upload QR.</p>
 
-        <p class="msg no-print" id="boxMsg">Upload a saved QR from Track, or enter a tracking code.</p>
         <div id="boxOut"></div>
-
-        <div class="hint no-print">
-            Optional photo: place your yellow box picture at <code>public/images/dhl-box-photo.jpg</code> and redeploy.
-        </div>
     </div>
 
     <script>
@@ -369,28 +248,23 @@
             ? 'http://localhost:5000/api'
             : 'https://my-delivery-w6xz.onrender.com/api';
 
-        let _dotTimer = null;
-        function showWait(sub) {
-            const el = document.getElementById('pleaseWait');
-            const subEl = document.getElementById('waitSub');
-            const dots = document.getElementById('waitDots');
-            if (subEl) subEl.textContent = sub || 'Please wait…';
-            el.classList.add('show');
-            let n = 0;
-            if (_dotTimer) clearInterval(_dotTimer);
-            _dotTimer = setInterval(() => {
-                n = (n % 6) + 1;
-                if (dots) dots.textContent = '.'.repeat(n);
-            }, 280);
+        // YOUR DHL box photo. Replace this file anytime:
+        //   public/images/dhl-box-photo.jpg
+        const BOX_IMG = '/images/dhl-box-photo.jpg';
+
+        let _t = null;
+        function showWait() {
+            document.getElementById('pleaseWait').classList.add('on');
+            let n = 0; const d = document.getElementById('waitDots');
+            if (_t) clearInterval(_t);
+            _t = setInterval(() => { n = (n % 6) + 1; if (d) d.textContent = '.'.repeat(n); }, 280);
         }
         function hideWait() {
-            document.getElementById('pleaseWait').classList.remove('show');
-            if (_dotTimer) { clearInterval(_dotTimer); _dotTimer = null; }
+            document.getElementById('pleaseWait').classList.remove('on');
+            if (_t) { clearInterval(_t); _t = null; }
         }
-
         function esc(s) {
-            return String(s == null ? '' : s)
-                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         }
         function splitName(full) {
             const p = String(full || '').trim().split(/\s+/).filter(Boolean);
@@ -399,26 +273,15 @@
             return { first: p.slice(0, -1).join(' '), last: p[p.length - 1] };
         }
         function parseAddr(addr) {
-            const a = String(addr || '').trim();
-            const parts = a.split(',').map(x => x.trim()).filter(Boolean);
+            const parts = String(addr || '').split(',').map(x => x.trim()).filter(Boolean);
             if (!parts.length) return { country: '—', city: '—', district: '—' };
             if (parts.length === 1) return { country: parts[0], city: '—', district: '—' };
             if (parts.length === 2) return { country: parts[1], city: parts[0], district: '—' };
-            return {
-                country: parts[parts.length - 1],
-                city: parts[parts.length - 2],
-                district: parts.slice(0, -2).join(', ')
-            };
+            return { country: parts[parts.length - 1], city: parts[parts.length - 2], district: parts.slice(0, -2).join(', ') };
         }
-
-        function extractCodeFromQrText(raw) {
+        function extractCode(raw) {
             const text = String(raw || '').trim();
-            if (!text) return '';
-            try {
-                const u = new URL(text);
-                const c = u.searchParams.get('code');
-                if (c) return c.trim();
-            } catch (_) { }
+            try { const c = new URL(text).searchParams.get('code'); if (c) return c.trim(); } catch (_) { }
             const m = text.match(/DHL[A-Za-z0-9]+/i);
             if (m) return m[0];
             if (/^[A-Za-z0-9\-_]{5,32}$/.test(text)) return text;
@@ -430,26 +293,19 @@
             const name = splitName(r.name);
             const addr = parseAddr(r.address);
             return `
-      <div class="ship-box" id="printBox">
-        <div class="tape"></div>
-        <div class="side-text">DHL EXPRESS</div>
-        <div class="corner-dhl">DHL</div>
-        <div class="label-wrap">
-          <div class="recv-label">
-            <div class="head">
-              <span>Receiver information</span>
-              <span class="barcode"></span>
-            </div>
-            <table>
-              <tr><td class="k">Last name</td><td class="v">${esc(name.last)}</td></tr>
-              <tr><td class="k">First name</td><td class="v">${esc(name.first)}</td></tr>
-              <tr><td class="k">Country</td><td class="v">${esc(addr.country)}</td></tr>
-              <tr><td class="k">City</td><td class="v">${esc(addr.city)}</td></tr>
-              <tr><td class="k">District / Area</td><td class="v">${esc(addr.district)}</td></tr>
-              <tr><td class="k">Phone</td><td class="v">${esc(r.phone || '—')}</td></tr>
-              <tr><td class="k">Tracking code</td><td class="v track-row">${esc(s.code)}</td></tr>
-            </table>
-          </div>
+      <div class="pkg" id="printBox">
+        <img src="${BOX_IMG}" alt="DHL box">
+        <div class="sticker">
+          <div class="h"><span>Receiver information</span><span class="bc"></span></div>
+          <table>
+            <tr><td class="k">Last name</td><td class="v">${esc(name.last)}</td></tr>
+            <tr><td class="k">First name</td><td class="v">${esc(name.first)}</td></tr>
+            <tr><td class="k">Country</td><td class="v">${esc(addr.country)}</td></tr>
+            <tr><td class="k">City</td><td class="v">${esc(addr.city)}</td></tr>
+            <tr><td class="k">District</td><td class="v">${esc(addr.district)}</td></tr>
+            <tr><td class="k">Phone</td><td class="v">${esc(r.phone || '—')}</td></tr>
+            <tr><td class="k">Tracking</td><td class="v">${esc(s.code)}</td></tr>
+          </table>
         </div>
       </div>`;
         }
@@ -463,109 +319,82 @@
             code = String(code || '').trim();
             if (!code) {
                 msg.style.color = '#D40511';
-                msg.textContent = 'Enter a tracking code or upload a QR image.';
+                msg.textContent = 'Enter a tracking code or upload a QR.';
                 return;
             }
-            showWait('Checking code…');
-            msg.style.color = '#666';
+            showWait();
+            msg.style.color = '#555';
             msg.textContent = 'Please wait…';
             try {
                 const res = await fetch(API + '/shipments/track/' + encodeURIComponent(code));
                 const s = await res.json().catch(() => ({}));
-                if (!res.ok) throw new Error(s.error || 'Invalid QR / tracking code');
+                if (!res.ok) throw new Error(s.error || 'Invalid code');
                 out.innerHTML = renderBox(s);
-                const img = new Image();
-                img.onload = function () {
-                    const box = document.getElementById('printBox');
-                    if (box) box.classList.add('has-photo');
-                };
-                img.src = '/images/dhl-box-photo.jpg';
                 printBtn.disabled = false;
                 document.getElementById('boxCode').value = s.code;
                 msg.style.color = '#1F9D55';
-                msg.textContent = 'Correct code — package box ready. Receiver details are from admin.';
+                msg.textContent = 'Package ready. Admin receiver details are on the white label.';
                 history.replaceState(null, '', '/box.html?code=' + encodeURIComponent(s.code));
             } catch (e) {
                 msg.style.color = '#D40511';
-                msg.textContent = e.message || 'Could not open package.';
+                msg.textContent = e.message || 'Failed';
             } finally {
                 hideWait();
             }
         }
 
-        function decodeQrFromFile(file) {
+        function decodeQr(file) {
             return new Promise((resolve, reject) => {
-                if (typeof jsQR !== 'function') {
-                    reject(new Error('QR reader not loaded. Check internet and try again.'));
-                    return;
-                }
-                const reader = new FileReader();
-                reader.onerror = () => reject(new Error('Could not read image.'));
-                reader.onload = () => {
+                if (typeof jsQR !== 'function') return reject(new Error('QR reader not loaded'));
+                const fr = new FileReader();
+                fr.onload = () => {
                     const img = new Image();
                     img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        const max = 1200;
+                        const c = document.createElement('canvas');
+                        const max = 1400;
                         let w = img.width, h = img.height;
-                        if (w > max || h > max) {
-                            const scale = max / Math.max(w, h);
-                            w = Math.round(w * scale);
-                            h = Math.round(h * scale);
+                        if (Math.max(w, h) > max) {
+                            const sc = max / Math.max(w, h);
+                            w = Math.round(w * sc); h = Math.round(h * sc);
                         }
-                        canvas.width = w;
-                        canvas.height = h;
-                        const ctx = canvas.getContext('2d');
+                        c.width = w; c.height = h;
+                        const ctx = c.getContext('2d');
                         ctx.drawImage(img, 0, 0, w, h);
-                        const imageData = ctx.getImageData(0, 0, w, h);
-                        const result = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'attemptBoth' });
-                        if (!result || !result.data) {
-                            reject(new Error('No QR code found in this image. Use the QR downloaded from Track.'));
-                            return;
-                        }
-                        resolve(result.data);
+                        const data = ctx.getImageData(0, 0, w, h);
+                        const r = jsQR(data.data, data.width, data.height, { inversionAttempts: 'attemptBoth' });
+                        if (!r || !r.data) reject(new Error('No QR in image'));
+                        else resolve(r.data);
                     };
-                    img.onerror = () => reject(new Error('Invalid image file.'));
-                    img.src = reader.result;
+                    img.onerror = () => reject(new Error('Bad image'));
+                    img.src = fr.result;
                 };
-                reader.readAsDataURL(file);
+                fr.onerror = () => reject(new Error('Read failed'));
+                fr.readAsDataURL(file);
             });
         }
 
-        document.getElementById('qrFile').addEventListener('change', async function (e) {
-            const file = e.target.files && e.target.files[0];
-            if (!file) return;
-            const msg = document.getElementById('boxMsg');
-            document.getElementById('boxOut').innerHTML = '';
-            document.getElementById('boxPrintBtn').disabled = true;
-            showWait('Reading QR from gallery…');
-            msg.style.color = '#666';
-            msg.textContent = 'Please wait…';
+        document.getElementById('qrFile').onchange = async (e) => {
+            const f = e.target.files && e.target.files[0];
+            if (!f) return;
+            showWait();
             try {
-                const raw = await decodeQrFromFile(file);
-                const code = extractCodeFromQrText(raw);
-                if (!code) throw new Error('QR found but no tracking code inside.');
-                msg.textContent = 'QR read — verifying ' + code + '…';
+                const code = extractCode(await decodeQr(f));
+                if (!code) throw new Error('No tracking code in QR');
                 await loadBox(code);
             } catch (err) {
                 hideWait();
-                msg.style.color = '#D40511';
-                msg.textContent = err.message || 'Could not read QR.';
-            } finally {
-                e.target.value = '';
+                document.getElementById('boxMsg').style.color = '#D40511';
+                document.getElementById('boxMsg').textContent = err.message || 'QR failed';
             }
-        });
+            e.target.value = '';
+        };
 
         document.getElementById('boxLoadBtn').onclick = () => loadBox(document.getElementById('boxCode').value);
-        document.getElementById('boxCode').addEventListener('keydown', e => {
-            if (e.key === 'Enter') loadBox(document.getElementById('boxCode').value);
-        });
+        document.getElementById('boxCode').onkeydown = (e) => { if (e.key === 'Enter') loadBox(document.getElementById('boxCode').value); };
         document.getElementById('boxPrintBtn').onclick = () => window.print();
 
         const q = new URLSearchParams(location.search).get('code');
-        if (q) {
-            document.getElementById('boxCode').value = q;
-            loadBox(q);
-        }
+        if (q) { document.getElementById('boxCode').value = q; loadBox(q); }
     </script>
 </body>
 
