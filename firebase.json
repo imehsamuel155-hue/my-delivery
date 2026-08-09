@@ -16,10 +16,6 @@
         "destination": "/receipt.html"
       },
       {
-        "source": "/box",
-        "destination": "/box.html"
-      },
-      {
         "source": "/track",
         "destination": "/index.html"
       }

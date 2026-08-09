@@ -1157,9 +1157,9 @@ h4.section-title:first-child {
 }
 
 .progress-bar {
-    height: 8px;
-    background: var(--line);
-    border-radius: 4px;
+    height: 10px;
+    background: #e5e5e5;
+    border-radius: 6px;
     overflow: hidden;
     margin-top: 10px;
     width: 100%;
@@ -1503,4 +1503,421 @@ h4.section-title:first-child {
 .md-please-wait .sub {
     color: #ccc;
     font-size: 13px;
+}
+
+
+.progress-bar {
+    height: 10px;
+    background: #e5e5e5;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-top: 10px;
+    width: 100%;
+    position: relative;
+}
+
+.progress-bar.tall {
+    height: 14px;
+}
+
+.progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #FFCC00, #E6B800);
+    border-radius: 6px;
+    transition: width 0.25s linear;
+    min-width: 0;
+}
+
+.route-progress-wrap {
+    margin: 12px 0 8px;
+    padding: 12px;
+    background: #fafafa;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+}
+
+.route-ends {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+    position: relative;
+}
+
+.route-vehicle-icon {
+    font-size: 18px;
+}
+
+.progress-pct {
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--gray);
+}
+
+.country-pick {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.country-search {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.country-select {
+    width: 100%;
+    min-height: 120px;
+    max-height: 160px;
+    padding: 6px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.ns-t-route {
+    font-size: 13px;
+    margin: 6px 0;
+    color: #FFCC00;
+    font-weight: 600;
+}
+
+@media (max-width: 640px) {
+    .country-select {
+        max-height: 140px;
+    }
+
+    .route-ends {
+        font-size: 12px;
+    }
+
+    #adminDashboard {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+}
+
+
+/* Official-style DHL brand bar */
+.brand-dhl-logo {
+    font-family: Arial Black, 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 28px;
+    letter-spacing: -1px;
+    color: #D40511;
+    background: transparent;
+    text-shadow: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0;
+}
+
+.brand-dhl-logo .bars {
+    display: inline-block;
+    width: 8px;
+    height: 22px;
+    margin-right: 4px;
+    background: repeating-linear-gradient(90deg, #D40511 0 2px, transparent 2px 4px);
+}
+
+header.navbar {
+    background: #FFCC00 !important;
+    border-bottom: none !important;
+}
+
+header.navbar .brand span {
+    color: #D40511 !important;
+}
+
+header.navbar .brand small {
+    color: #333 !important;
+}
+
+header.navbar nav.desktop-links a {
+    color: #111 !important;
+    font-weight: 600;
+}
+
+header.navbar .btn-outline {
+    border-color: #111;
+    color: #111;
+}
+
+.menu-btn {
+    color: #D40511 !important;
+    font-size: 28px;
+}
+
+/* DHL-style tracking timeline */
+.dhl-timeline {
+    margin: 20px 0 8px;
+    padding: 8px 0 8px 4px;
+    border-left: none;
+}
+
+.dhl-tl-item {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 12px;
+    position: relative;
+    padding-bottom: 22px;
+}
+
+.dhl-tl-item:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: 13px;
+    top: 28px;
+    bottom: 0;
+    width: 2px;
+    background: #ddd;
+}
+
+.dhl-tl-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #ccc;
+    background: #fff;
+    font-size: 12px;
+    z-index: 1;
+}
+
+.dhl-tl-item.done .dhl-tl-dot {
+    background: #1F9D55;
+    border-color: #1F9D55;
+    color: #fff;
+}
+
+.dhl-tl-item.current .dhl-tl-dot {
+    background: #fff;
+    border-color: #1F9D55;
+    color: #1F9D55;
+}
+
+.dhl-tl-item.pending .dhl-tl-dot {
+    background: #fff;
+    border-color: #ccc;
+    color: #999;
+}
+
+.dhl-tl-day {
+    font-size: 14px;
+    color: #555;
+}
+
+.dhl-tl-date {
+    font-size: 18px;
+    font-weight: 800;
+    color: #111;
+    letter-spacing: .3px;
+    margin: 2px 0 6px;
+}
+
+.dhl-tl-time {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 4px;
+}
+
+.dhl-tl-status {
+    font-size: 15px;
+    font-weight: 700;
+    color: #111;
+}
+
+.dhl-tl-item.done .dhl-tl-status.delivered {
+    color: #1F9D55;
+}
+
+.dhl-tl-loc {
+    font-size: 13px;
+    color: #444;
+    margin-top: 2px;
+    line-height: 1.4;
+}
+
+.dhl-tl-piece {
+    font-size: 12px;
+    color: #888;
+    margin-top: 4px;
+}
+
+.track-result {
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    padding: 20px 18px 24px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, .04);
+}
+
+.track-qr-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    margin: 16px 0;
+    padding: 14px;
+    background: #fafafa;
+    border: 1px solid #eee;
+    border-radius: 8px;
+}
+
+.track-qr-row img {
+    width: 120px;
+    height: 120px;
+    background: #fff;
+    padding: 6px;
+    border: 1px solid #ddd;
+}
+
+.track-qr-row .qr-info {
+    font-size: 13px;
+    color: #555;
+    line-height: 1.5;
+}
+
+.track-qr-row a {
+    color: #D40511;
+    font-weight: 600;
+}
+
+/* Shipping box page */
+.box-page-wrap {
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 24px 16px 48px;
+}
+
+.dhl-ship-box {
+    background: #FFCC00;
+    border: 3px solid #111;
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+    min-height: 360px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, .18);
+}
+
+.dhl-ship-box .side-brand {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 42px;
+    background: #FFCC00;
+    border-right: 2px solid rgba(0, 0, 0, .08);
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 14px;
+    letter-spacing: 3px;
+    color: #D40511;
+}
+
+.dhl-ship-box .box-inner {
+    margin-left: 48px;
+    padding: 20px 18px 24px;
+}
+
+.dhl-ship-box .box-logo {
+    font-weight: 900;
+    font-size: 36px;
+    color: #D40511;
+    font-family: Arial Black, sans-serif;
+    letter-spacing: -1px;
+    margin-bottom: 14px;
+}
+
+.dhl-label {
+    background: #fff;
+    border: 1px solid #333;
+    border-radius: 2px;
+    padding: 0;
+    overflow: hidden;
+    max-width: 100%;
+}
+
+.dhl-label table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.dhl-label th {
+    background: #f3f3f3;
+    text-align: left;
+    padding: 8px 10px;
+    font-size: 11px;
+    letter-spacing: .5px;
+    border-bottom: 1px solid #ccc;
+}
+
+.dhl-label td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #e5e5e5;
+    vertical-align: top;
+}
+
+.dhl-label td:first-child {
+    width: 38%;
+    color: #555;
+    font-weight: 600;
+}
+
+.dhl-label .qr-cell {
+    text-align: center;
+    padding: 12px;
+    border-bottom: none;
+}
+
+.dhl-label .qr-cell img {
+    margin: 0 auto;
+    width: 110px;
+    height: 110px;
+}
+
+.box-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 16px;
+    align-items: center;
+}
+
+.box-toolbar input {
+    flex: 1;
+    min-width: 140px;
+    padding: 12px 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 15px;
+}
+
+@media print {
+
+    .box-toolbar,
+    header,
+    .no-print {
+        display: none !important;
+    }
+
+    .dhl-ship-box {
+        box-shadow: none;
+    }
 }

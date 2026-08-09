@@ -1,3 +1,53 @@
+
+function dhlParseHistoryDate(h) {
+    const raw = String((h && (h.date || h.createdAt)) || '').trim();
+    let d = raw ? new Date(raw) : new Date();
+    if (isNaN(d.getTime())) d = new Date();
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const months = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mm = String(d.getMinutes()).padStart(2, '0');
+    return {
+        day: days[d.getDay()],
+        dateLine: String(d.getDate()).padStart(2, '0') + ' ' + months[d.getMonth()] + ' ' + d.getFullYear(),
+        timeLine: hh + ':' + mm + ' Local time',
+    };
+}
+function dhlTimelineHtml(history) {
+    const list = Array.isArray(history) ? history.slice() : [];
+    // show newest first like real DHL
+    const ordered = list.slice().reverse();
+    if (!ordered.length) {
+        return '<div class="dhl-timeline"><div class="dhl-tl-item pending"><div class="dhl-tl-dot">△</div><div><div class="dhl-tl-status">Awaiting first scan</div></div></div></div>';
+    }
+    return '<div class="dhl-timeline">' + ordered.map((h, i) => {
+        const label = String(h.label || h.status || 'Update');
+        const loc = String(h.location || '');
+        const isDelivered = /deliver/i.test(label);
+        const isFirst = i === 0;
+        const cls = isDelivered ? 'done' : (isFirst ? 'current' : 'pending');
+        const dot = isDelivered ? '✓' : '△';
+        const t = dhlParseHistoryDate(h);
+        const statusClass = isDelivered ? 'delivered' : '';
+        return `<div class="dhl-tl-item ${cls}">
+      <div class="dhl-tl-dot">${dot}</div>
+      <div>
+        <div class="dhl-tl-day">${esc(t.day)}</div>
+        <div class="dhl-tl-date">${esc(t.dateLine)}</div>
+        <div class="dhl-tl-time">${esc(t.timeLine)}</div>
+        <div class="dhl-tl-status ${statusClass}">${esc(label)}</div>
+        ${loc ? `<div class="dhl-tl-loc">${esc(loc)}</div>` : ''}
+        <div class="dhl-tl-piece">1 Piece ID: ${esc((h.pieceId || ''))}</div>
+      </div>
+    </div>`;
+    }).join('') + '</div>';
+}
+function qrUrlForCode(code) {
+    const origin = (typeof location !== 'undefined' && location.origin) ? location.origin : '';
+    const target = origin + '/box.html?code=' + encodeURIComponent(code);
+    return 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(target);
+}
+
 function generateTrackCode() {
     const n = Math.floor(100000 + Math.random() * 900000);
     return 'DHL' + n;
@@ -139,17 +189,27 @@ async function renderTrackResult(code) {
         <div class="meta-chip">Payment<b>${esc(shipment.payment.status)} · ${esc(shipment.payment.method)}</b></div>
         <div class="meta-chip">Amount<b>${esc(shipment.payment.currency || '')} ${esc(Number(shipment.payment.amount || 0).toFixed(2))}</b></div>
       </div>
-      <div class="timeline">
-        ${shipment.history.map((h, i) => `
-          <div class="tl-step done ${i === shipment.history.length - 1 ? 'current' : ''}">
-            <h5>${esc(h.label)}</h5>
-            <span>${esc(h.date)} — ${esc(h.location)}</span>
-          </div>`).join("")}
+      <div class="track-qr-row">
+        <img src="${qrUrlForCode(shipment.code)}" alt="QR ${esc(shipment.code)}" width="120" height="120">
+        <div class="qr-info">
+          <div><b>Shipment QR code</b></div>
+          <div>Scan to open the shipping box label for this delivery.</div>
+          <div class="mono" style="margin-top:6px;">${esc(shipment.code)}</div>
+          <a href="/box.html?code=${encodeURIComponent(shipment.code)}">Open shipping box →</a>
+        </div>
       </div>
+      ${dhlTimelineHtml(shipment.history)}
       <h4 class="section-title" style="margin-top:26px;">Live Location</h4>
+      <div class="route-progress-wrap">
+        <div class="route-ends">
+          <span>${esc((shipment.route && shipment.route.originCountry) || 'Origin')}</span>
+          <span class="route-vehicle-icon">${(shipment.route && shipment.route.icon === 'plane') ? '✈️' : (shipment.route && shipment.route.icon === 'ship') ? '🚢' : '🚚'}</span>
+          <span>${esc((shipment.route && shipment.route.destCountry) || 'Destination')}</span>
+        </div>
+        <div class="progress-bar tall"><div class="progress-fill" id="publicProgressFill" style="width:${Math.round(computeLiveProgress(shipment.route))}%"></div></div>
+        <p style="font-size:12.5px;color:var(--gray);margin-top:8px;" id="publicProgressNote"></p>
+      </div>
       <div id="publicMapBox"></div>
-      <div class="progress-bar"><div class="progress-fill" id="publicProgressFill" style="width:${Math.round(computeLiveProgress(shipment.route))}%"></div></div>
-      <p style="font-size:12.5px;color:var(--gray);margin-top:8px;" id="publicProgressNote"></p>
     </div>`;
     initPublicMap(shipment);
     nsStartTrackWatch(shipment.code);
@@ -490,20 +550,16 @@ function renderShipDetail(shipment) {
     <p style="font-size:12.5px;color:var(--gray);margin-bottom:6px;">Pick the origin and destination countries, choose a vehicle and speed, then hit Done below to save. Drag the vehicle on the map to fine-tune its exact spot.</p>
     <div class="grid2">
       <div class="field"><label>Origin Country</label>
-        <select id="f_oCountry">
-          ${Object.keys(COUNTRY_COORDS).map(c => `<option ${((s.route && s.route.originCountry) === c) ? 'selected' : ''}>${c}</option>`).join("")}
-        </select>
+        ${countrySelectHtml('f_oCountry', (s.route && s.route.originCountry) || 'Indonesia')}
       </div>
       <div class="field"><label>Destination Country</label>
-        <select id="f_dCountry">
-          ${Object.keys(COUNTRY_COORDS).map(c => `<option ${((s.route && s.route.destCountry) === c) ? 'selected' : ''}>${c}</option>`).join("")}
-        </select>
+        ${countrySelectHtml('f_dCountry', (s.route && s.route.destCountry) || 'United States')}
       </div>
     </div>
-    <div class="field"><label>Vehicle Icon</label>
+    <div class="field"><label>Vehicle</label>
       <select id="f_icon">
+        <option value="plane" ${(s.route && s.route.icon === 'plane') ? 'selected' : ''}>✈️ Plane / Flight</option>
         <option value="truck" ${(!(s.route && s.route.icon) || (s.route && s.route.icon === 'truck')) ? 'selected' : ''}>🚚 Truck</option>
-        <option value="plane" ${(s.route && s.route.icon === 'plane') ? 'selected' : ''}>✈️ Plane</option>
         <option value="ship" ${(s.route && s.route.icon === 'ship') ? 'selected' : ''}>🚢 Ship</option>
       </select>
     </div>
@@ -514,23 +570,33 @@ function renderShipDetail(shipment) {
         <option value="fast" ${(s.route && s.route.speed === 'fast') ? 'selected' : ''}>Fast (2 days)</option>
       </select>
     </div>
-    <div class="field" style="display:flex; align-items:center; gap:8px;">
-      <input type="checkbox" id="f_flip" style="width:auto;" ${(s.route && s.route.flipOverride) ? 'checked' : ''}>
-      <label style="margin:0;">Reverse vehicle direction (+180°)</label>
-    </div>
     <div class="field">
-      <label>Rotation degree (plane faces destination — drag to adjust) <span id="rotLabel">${Math.round((s.route && s.route.rotationDeg != null) ? s.route.rotationDeg : 0)}°</span></label>
-      <input type="range" id="f_rotation" min="0" max="360" step="1" value="${(s.route && s.route.rotationDeg != null) ? s.route.rotationDeg : 0}" oninput="document.getElementById('rotLabel').textContent=this.value+'°'">
-      <p style="font-size:12px;color:var(--gray);margin-top:4px;">Leave at 0 to auto-face destination. Or set exact degree 0–360.</p>
+      <label>Vehicle direction (simple)</label>
+      <select id="f_face">
+        <option value="auto" ${!(s.route && s.route.flipOverride) && !(s.route && s.route.rotationDeg) ? 'selected' : ''}>Auto — face destination</option>
+        <option value="flip" ${(s.route && s.route.flipOverride) ? 'selected' : ''}>Reverse — face opposite way</option>
+        <option value="0" ${(s.route && s.route.rotationDeg === 0 && !s.route.flipOverride) ? 'selected' : ''}>Fixed 0° (east style)</option>
+        <option value="90" ${(s.route && Number(s.route.rotationDeg) === 90) ? 'selected' : ''}>Fixed 90° (north style)</option>
+        <option value="180" ${(s.route && Number(s.route.rotationDeg) === 180) ? 'selected' : ''}>Fixed 180°</option>
+        <option value="270" ${(s.route && Number(s.route.rotationDeg) === 270) ? 'selected' : ''}>Fixed 270°</option>
+      </select>
+      <p style="font-size:12px;color:var(--gray);margin-top:4px;">Use <b>Auto</b> for most routes. Use Reverse if the icon points the wrong way.</p>
     </div>
 
     <div id="adminMapBox"></div>
-    <div class="progress-bar"><div class="progress-fill" id="mapProgressFill" style="width:${Math.round(computeLiveProgress(s.route))}%"></div></div>
+    <div class="route-progress-wrap">
+      <div class="route-ends">
+        <span id="mapOriginLabel">${esc((s.route && s.route.originCountry) || 'Origin')}</span>
+        <span class="route-vehicle-icon" id="mapVehicleIcon">${(s.route && s.route.icon === 'plane') ? '✈️' : (s.route && s.route.icon === 'ship') ? '🚢' : '🚚'}</span>
+        <span id="mapDestLabel">${esc((s.route && s.route.destCountry) || 'Destination')}</span>
+      </div>
+      <div class="progress-bar tall"><div class="progress-fill" id="mapProgressFill" style="width:${Math.round(computeLiveProgress(s.route))}%"></div></div>
+      <div class="progress-pct mono">Progress: <span id="mapProgressLabel">${Math.round(computeLiveProgress(s.route))}%</span></div>
+    </div>
     <div class="map-controls">
       <button class="btn btn-red small-btn" onclick="playRoute('${esc(s.code)}')">▶ Start Moving</button>
       <button class="btn btn-outline small-btn" style="color:var(--ink);border-color:var(--line);" onclick="pauseRoute('${esc(s.code)}')">⏸ Stop</button>
       <button class="btn btn-outline small-btn" style="color:var(--ink);border-color:var(--line);" onclick="resetRoute('${esc(s.code)}')">⟲ Reset</button>
-      <span class="mono" style="font-size:12.5px;color:var(--gray);">Progress: <span id="mapProgressLabel">${Math.round(computeLiveProgress(s.route))}%</span></span>
     </div>
     <button class="btn btn-red" style="width:100%; margin-top:14px; padding:13px;" onclick="saveRoute('${esc(s.code)}')">✓ Done — Save Map Settings</button>
     <p id="routeSaveMsg" style="font-size:12px; color:var(--gray); margin-top:6px; display:none;"></p>
@@ -650,47 +716,168 @@ let publicMap = null, publicMarker = null, publicAnimTimer = null, publicPollTim
 // Country -> approximate coordinates (capital city), so you pick a country
 // instead of typing raw lat/lng numbers. Drag the vehicle on the map afterward
 // to nudge its exact position if the capital isn't quite where you want it.
+
+function countrySelectHtml(id, selected) {
+    const names = Object.keys(COUNTRY_COORDS).sort();
+    const sel = selected && COUNTRY_COORDS[selected] ? selected : (names[0] || '');
+    const opts = names.map(c => `<option value="${c}" ${c === sel ? 'selected' : ''}>${c}</option>`).join('');
+    return `<div class="country-pick">
+    <input type="search" class="country-search" placeholder="Search country…" oninput="filterCountrySelect('${id}', this.value)" autocomplete="off">
+    <select id="${id}" size="6" class="country-select">${opts}</select>
+  </div>`;
+}
+function filterCountrySelect(selectId, q) {
+    const sel = document.getElementById(selectId);
+    if (!sel) return;
+    const query = (q || '').toLowerCase().trim();
+    Array.from(sel.options).forEach(o => {
+        o.hidden = query ? !o.value.toLowerCase().includes(query) : false;
+    });
+}
+
 const COUNTRY_COORDS = {
-    "United States": { lat: 38.9072, lng: -77.0369 },
-    "Canada": { lat: 45.4215, lng: -75.6972 },
-    "United Kingdom": { lat: 51.5074, lng: -0.1278 },
-    "Germany": { lat: 52.5200, lng: 13.4050 },
-    "France": { lat: 48.8566, lng: 2.3522 },
-    "Spain": { lat: 40.4168, lng: -3.7038 },
-    "Italy": { lat: 41.9028, lng: 12.4964 },
-    "Netherlands": { lat: 52.3676, lng: 4.9041 },
-    "Portugal": { lat: 38.7223, lng: -9.1393 },
-    "Ireland": { lat: 53.3498, lng: -6.2603 },
-    "Sweden": { lat: 59.3293, lng: 18.0686 },
-    "Poland": { lat: 52.2297, lng: 21.0122 },
-    "Switzerland": { lat: 46.9480, lng: 7.4474 },
-    "Turkey": { lat: 39.9334, lng: 32.8597 },
-    "Russia": { lat: 55.7558, lng: 37.6173 },
-    "Nigeria": { lat: 6.5244, lng: 3.3792 },
-    "Kenya": { lat: -1.2921, lng: 36.8219 },
-    "Ghana": { lat: 5.6037, lng: -0.1870 },
-    "South Africa": { lat: -25.7479, lng: 28.2293 },
-    "Egypt": { lat: 30.0444, lng: 31.2357 },
-    "Ethiopia": { lat: 9.0250, lng: 38.7469 },
-    "Morocco": { lat: 34.0209, lng: -6.8417 },
-    "United Arab Emirates": { lat: 25.2048, lng: 55.2708 },
-    "Saudi Arabia": { lat: 24.7136, lng: 46.6753 },
-    "India": { lat: 28.6139, lng: 77.2090 },
-    "China": { lat: 39.9042, lng: 116.4074 },
-    "Japan": { lat: 35.6762, lng: 139.6503 },
-    "South Korea": { lat: 37.5665, lng: 126.9780 },
-    "Singapore": { lat: 1.3521, lng: 103.8198 },
-    "Malaysia": { lat: 3.1390, lng: 101.6869 },
-    "Indonesia": { lat: -6.2088, lng: 106.8456 },
-    "Philippines": { lat: 14.5995, lng: 120.9842 },
-    "Vietnam": { lat: 21.0278, lng: 105.8342 },
-    "Thailand": { lat: 13.7563, lng: 100.5018 },
-    "Australia": { lat: -35.2809, lng: 149.1300 },
-    "New Zealand": { lat: -41.2865, lng: 174.7762 },
-    "Brazil": { lat: -15.8267, lng: -47.9218 },
-    "Mexico": { lat: 19.4326, lng: -99.1332 },
+    "Afghanistan": { lat: 34.5553, lng: 69.2075 },
+    "Albania": { lat: 41.3275, lng: 19.8187 },
+    "Algeria": { lat: 36.7538, lng: 3.0588 },
+    "Angola": { lat: -8.839, lng: 13.2894 },
     "Argentina": { lat: -34.6037, lng: -58.3816 },
+    "Armenia": { lat: 40.1792, lng: 44.4991 },
+    "Australia": { lat: -35.2809, lng: 149.13 },
+    "Austria": { lat: 48.2082, lng: 16.3738 },
+    "Azerbaijan": { lat: 40.4093, lng: 49.8671 },
+    "Bahrain": { lat: 26.2285, lng: 50.586 },
+    "Bangladesh": { lat: 23.8103, lng: 90.4125 },
+    "Belarus": { lat: 53.9045, lng: 27.5615 },
+    "Belgium": { lat: 50.8503, lng: 4.3517 },
+    "Benin": { lat: 6.4969, lng: 2.6289 },
+    "Bolivia": { lat: -16.4897, lng: -68.1193 },
+    "Bosnia and Herzegovina": { lat: 43.8563, lng: 18.4131 },
+    "Botswana": { lat: -24.6282, lng: 25.9231 },
+    "Brazil": { lat: -15.8267, lng: -47.9218 },
+    "Bulgaria": { lat: 42.6977, lng: 23.3219 },
+    "Burkina Faso": { lat: 12.3714, lng: -1.5197 },
+    "Cambodia": { lat: 11.5564, lng: 104.9282 },
+    "Cameroon": { lat: 3.848, lng: 11.5021 },
+    "Canada": { lat: 45.4215, lng: -75.6972 },
+    "Chile": { lat: -33.4489, lng: -70.6693 },
+    "China": { lat: 39.9042, lng: 116.4074 },
+    "Colombia": { lat: 4.711, lng: -74.0721 },
+    "Congo": { lat: -4.2634, lng: 15.2429 },
+    "Costa Rica": { lat: 9.9281, lng: -84.0907 },
+    "Croatia": { lat: 45.815, lng: 15.9819 },
+    "Cuba": { lat: 23.1136, lng: -82.3666 },
+    "Cyprus": { lat: 35.1856, lng: 33.3823 },
+    "Czech Republic": { lat: 50.0755, lng: 14.4378 },
+    "Denmark": { lat: 55.6761, lng: 12.5683 },
+    "Dominican Republic": { lat: 18.4861, lng: -69.9312 },
+    "Ecuador": { lat: -0.1807, lng: -78.4678 },
+    "Egypt": { lat: 30.0444, lng: 31.2357 },
+    "El Salvador": { lat: 13.6929, lng: -89.2182 },
+    "Estonia": { lat: 59.437, lng: 24.7536 },
+    "Ethiopia": { lat: 9.025, lng: 38.7469 },
+    "Finland": { lat: 60.1699, lng: 24.9384 },
+    "France": { lat: 48.8566, lng: 2.3522 },
+    "Gabon": { lat: 0.4162, lng: 9.4673 },
+    "Gambia": { lat: 13.4549, lng: -16.579 },
+    "Georgia": { lat: 41.7151, lng: 44.8271 },
+    "Germany": { lat: 52.52, lng: 13.405 },
+    "Ghana": { lat: 5.6037, lng: -0.187 },
+    "Greece": { lat: 37.9838, lng: 23.7275 },
+    "Guatemala": { lat: 14.6349, lng: -90.5069 },
+    "Guinea": { lat: 9.6412, lng: -13.5784 },
+    "Haiti": { lat: 18.5944, lng: -72.3074 },
+    "Honduras": { lat: 14.0723, lng: -87.1921 },
+    "Hungary": { lat: 47.4979, lng: 19.0402 },
+    "Iceland": { lat: 64.1466, lng: -21.9426 },
+    "India": { lat: 28.6139, lng: 77.209 },
+    "Indonesia": { lat: -6.2088, lng: 106.8456 },
+    "Iran": { lat: 35.6892, lng: 51.389 },
+    "Iraq": { lat: 33.3152, lng: 44.3661 },
+    "Ireland": { lat: 53.3498, lng: -6.2603 },
+    "Israel": { lat: 31.7683, lng: 35.2137 },
+    "Italy": { lat: 41.9028, lng: 12.4964 },
+    "Ivory Coast": { lat: 5.36, lng: -4.0083 },
+    "Jamaica": { lat: 18.0179, lng: -76.8099 },
+    "Japan": { lat: 35.6762, lng: 139.6503 },
+    "Jordan": { lat: 31.9454, lng: 35.9284 },
+    "Kazakhstan": { lat: 51.1694, lng: 71.4491 },
+    "Kenya": { lat: -1.2921, lng: 36.8219 },
+    "Kuwait": { lat: 29.3759, lng: 47.9774 },
+    "Latvia": { lat: 56.9496, lng: 24.1052 },
+    "Lebanon": { lat: 33.8938, lng: 35.5018 },
+    "Liberia": { lat: 6.3004, lng: -10.7969 },
+    "Libya": { lat: 32.8872, lng: 13.1913 },
+    "Lithuania": { lat: 54.6872, lng: 25.2797 },
+    "Luxembourg": { lat: 49.6116, lng: 6.1319 },
+    "Madagascar": { lat: -18.8792, lng: 47.5079 },
+    "Malawi": { lat: -13.9626, lng: 33.7741 },
+    "Malaysia": { lat: 3.139, lng: 101.6869 },
+    "Mali": { lat: 12.6392, lng: -8.0029 },
+    "Malta": { lat: 35.8989, lng: 14.5146 },
+    "Mexico": { lat: 19.4326, lng: -99.1332 },
+    "Moldova": { lat: 47.0105, lng: 28.8638 },
+    "Mongolia": { lat: 47.8864, lng: 106.9057 },
+    "Morocco": { lat: 34.0209, lng: -6.8417 },
+    "Mozambique": { lat: -25.9692, lng: 32.5732 },
+    "Myanmar": { lat: 16.8409, lng: 96.1735 },
+    "Namibia": { lat: -22.5609, lng: 17.0658 },
+    "Nepal": { lat: 27.7172, lng: 85.324 },
+    "Netherlands": { lat: 52.3676, lng: 4.9041 },
+    "New Zealand": { lat: -41.2865, lng: 174.7762 },
+    "Nicaragua": { lat: 12.115, lng: -86.2362 },
+    "Niger": { lat: 13.5116, lng: 2.1254 },
+    "Nigeria": { lat: 6.5244, lng: 3.3792 },
+    "North Macedonia": { lat: 41.9981, lng: 21.4254 },
+    "Norway": { lat: 59.9139, lng: 10.7522 },
+    "Oman": { lat: 23.588, lng: 58.3829 },
+    "Pakistan": { lat: 33.6844, lng: 73.0479 },
+    "Panama": { lat: 8.9824, lng: -79.5199 },
+    "Paraguay": { lat: -25.2637, lng: -57.5759 },
+    "Peru": { lat: -12.0464, lng: -77.0428 },
+    "Philippines": { lat: 14.5995, lng: 120.9842 },
+    "Poland": { lat: 52.2297, lng: 21.0122 },
+    "Portugal": { lat: 38.7223, lng: -9.1393 },
+    "Qatar": { lat: 25.2854, lng: 51.531 },
+    "Romania": { lat: 44.4268, lng: 26.1025 },
+    "Russia": { lat: 55.7558, lng: 37.6173 },
+    "Rwanda": { lat: -1.9441, lng: 30.0619 },
+    "Saudi Arabia": { lat: 24.7136, lng: 46.6753 },
+    "Senegal": { lat: 14.7167, lng: -17.4677 },
+    "Serbia": { lat: 44.7866, lng: 20.4489 },
+    "Sierra Leone": { lat: 8.4657, lng: -13.2317 },
+    "Singapore": { lat: 1.3521, lng: 103.8198 },
+    "Slovakia": { lat: 48.1486, lng: 17.1077 },
+    "Slovenia": { lat: 46.0569, lng: 14.5058 },
+    "Somalia": { lat: 2.0469, lng: 45.3182 },
+    "South Africa": { lat: -25.7479, lng: 28.2293 },
+    "South Korea": { lat: 37.5665, lng: 126.978 },
+    "Spain": { lat: 40.4168, lng: -3.7038 },
+    "Sri Lanka": { lat: 6.9271, lng: 79.8612 },
+    "Sudan": { lat: 15.5007, lng: 32.5599 },
+    "Sweden": { lat: 59.3293, lng: 18.0686 },
+    "Switzerland": { lat: 46.948, lng: 7.4474 },
+    "Syria": { lat: 33.5138, lng: 36.2765 },
+    "Taiwan": { lat: 25.033, lng: 121.5654 },
+    "Tanzania": { lat: -6.163, lng: 35.7516 },
+    "Thailand": { lat: 13.7563, lng: 100.5018 },
+    "Togo": { lat: 6.1725, lng: 1.2314 },
+    "Trinidad and Tobago": { lat: 10.6549, lng: -61.5019 },
+    "Tunisia": { lat: 36.8065, lng: 10.1815 },
+    "Turkey": { lat: 39.9334, lng: 32.8597 },
+    "Uganda": { lat: 0.3476, lng: 32.5825 },
+    "Ukraine": { lat: 50.4501, lng: 30.5234 },
+    "United Arab Emirates": { lat: 25.2048, lng: 55.2708 },
+    "United Kingdom": { lat: 51.5074, lng: -0.1278 },
+    "United States": { lat: 38.9072, lng: -77.0369 },
+    "Uruguay": { lat: -34.9011, lng: -56.1645 },
+    "Uzbekistan": { lat: 41.2995, lng: 69.2401 },
+    "Venezuela": { lat: 10.4806, lng: -66.9036 },
+    "Vietnam": { lat: 21.0278, lng: 105.8342 },
+    "Yemen": { lat: 15.3694, lng: 44.191 },
+    "Zambia": { lat: -15.3875, lng: 28.3228 },
+    "Zimbabwe": { lat: -17.8252, lng: 31.0335 },
 };
+
 
 // Speed setting -> % of the route covered per second. This is the single
 // source of truth used both to animate smoothly in the browser AND to
@@ -800,10 +987,13 @@ function initAdminMap(shipment) {
     else { reflectAdminProgress(startProgress); }
 }
 function reflectAdminProgress(progress) {
+    const p = Math.max(0, Math.min(100, Number(progress) || 0));
     const label = document.getElementById('mapProgressLabel');
-    if (label) label.textContent = Math.round(progress) + '%';
+    if (label) label.textContent = Math.round(p) + '%';
     const fill = document.getElementById('mapProgressFill');
-    if (fill) fill.style.width = Math.round(progress) + '%';
+    if (fill) fill.style.width = p + '%';
+    const icon = document.getElementById('mapVehicleIcon');
+    if (icon) icon.style.left = 'calc(' + p + '% - 10px)';
 }
 function startAdminAnimation(shipment) {
     if (adminAnimTimer) clearInterval(adminAnimTimer);
@@ -833,8 +1023,12 @@ async function saveRoute(code) {
         destLat: dCoords.lat, destLng: dCoords.lng,
         icon: document.getElementById('f_icon').value,
         speed: document.getElementById('f_speed').value,
-        flipOverride: document.getElementById('f_flip').checked,
-        rotationDeg: Number(document.getElementById('f_rotation') ? document.getElementById('f_rotation').value : 0),
+        flipOverride: (document.getElementById('f_face') && document.getElementById('f_face').value === 'flip'),
+        rotationDeg: (function () {
+            const v = (document.getElementById('f_face') || {}).value;
+            if (!v || v === 'auto' || v === 'flip') return 0;
+            return Number(v) || 0;
+        })(),
     };
     try {
         const updated = await apiRequest('/shipments/' + encodeURIComponent(code) + '/route', { method: 'PATCH', body: JSON.stringify(payload) });
@@ -938,10 +1132,11 @@ function initPublicMap(shipment) {
     }, 6000);
 }
 function reflectPublicProgress(progress, isMoving) {
+    const p = Math.max(0, Math.min(100, Number(progress) || 0));
     const fill = document.getElementById('publicProgressFill');
-    if (fill) fill.style.width = Math.round(progress) + '%';
+    if (fill) fill.style.width = p + '%';
     const note = document.getElementById('publicProgressNote');
-    if (note) note.textContent = Math.round(progress) + '% of the way there' + (isMoving ? ' — currently moving.' : '.') + ' You can zoom and pan the map to follow along.';
+    if (note) note.textContent = Math.round(p) + '% of the way there' + (isMoving ? ' — currently moving.' : '.') + ' You can zoom and pan the map to follow along.';
 }
 function startPublicAnimation(oLat, oLng, dLat, dLng, route) {
     if (publicAnimTimer) clearInterval(publicAnimTimer);
@@ -976,22 +1171,18 @@ function nsShowToast(n) {
     const host = nsEnsureToastHost();
     const el = document.createElement('div');
     el.className = 'ns-toast ' + (n.type || '');
+    const icon = n.icon === 'plane' ? '✈️' : n.icon === 'ship' ? '🚢' : n.icon === 'truck' ? '🚚' : '📦';
+    const routeLine = (n.origin || n.destination)
+        ? ('<div class="ns-t-route">' + icon + ' ' + esc(n.origin || 'Origin') + ' → ' + esc(n.destination || 'Destination') + '</div>')
+        : '';
     el.innerHTML = '<button type="button" class="ns-t-close" aria-label="Close">&times;</button>' +
         '<div class="ns-t-title">' + esc(n.title || 'Update') + '</div>' +
-        '<div>' + esc(n.message || '') + '</div>' +
-        '<div class="ns-t-code">' + esc(n.code || '') + (n.location ? ' · ' + esc(n.location) : '') + '</div>';
+        routeLine +
+        '<div class="ns-t-msg">' + esc(n.message || '') + '</div>' +
+        (n.code ? '<div class="ns-t-code">' + esc(n.code) + '</div>' : '');
     el.querySelector('.ns-t-close').onclick = () => el.remove();
     host.appendChild(el);
-    setTimeout(() => { if (el.parentNode) el.remove(); }, 9000);
-
-    if (nsBrowserPerm && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-        try {
-            new Notification(n.title || 'Shipment update', {
-                body: (n.code ? n.code + ' — ' : '') + (n.message || ''),
-                tag: String(n._id || n.code || Date.now()),
-            });
-        } catch (e) { }
-    }
+    setTimeout(() => { try { el.remove(); } catch (e) { } }, 8000);
 }
 
 async function nsRequestBrowserNotify() {
@@ -1020,6 +1211,14 @@ async function nsPollTrackNotifications() {
             const id = String(n._id || n.createdAt + n.title);
             if (nsSeenIds.has(id)) return;
             nsSeenIds.add(id);
+            // Enrich toast with route text for user notification bar
+            if (n.location && n.location.includes('→')) {
+                const parts = n.location.split('→').map(s => s.trim());
+                n.origin = parts[0]; n.destination = parts[1];
+                if ((n.title || '').toLowerCase().includes('plane')) n.icon = 'plane';
+                else if ((n.title || '').toLowerCase().includes('ship')) n.icon = 'ship';
+                else n.icon = 'truck';
+            }
             nsShowToast(n);
             // refresh track view so timeline matches
             if (document.getElementById('trackResultBox')) {
@@ -1125,7 +1324,7 @@ function openSettingsProtected() {
 function submitSettingsPin() {
     const pin = (document.getElementById('settingsPinInput') || {}).value || '';
     const err = document.getElementById('settingsPinError');
-    if (String(pin).trim() !== '7711') {
+    if (String(pin).trim() !== '7799') {
         if (err) { err.style.display = 'block'; err.textContent = 'Incorrect PIN.'; }
         return;
     }
