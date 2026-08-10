@@ -306,7 +306,7 @@ async function renderTrackResult(code) {
       <div class="route-progress-wrap">
         <div class="route-ends">
           <span>${esc((shipment.route && shipment.route.originCountry) || 'Origin')}</span>
-          <span class="route-vehicle-icon" id="publicVehicleIcon">${vehicleIconHtml((shipment.route && shipment.route.icon) || 'truck', (shipment.route && shipment.route.vehicleImg) || '', 32)}</span>
+          <span class="route-vehicle-icon" id="publicVehicleIcon" data-icon="${esc((shipment.route && shipment.route.icon) || 'truck')}"><span style="font-size:28px;line-height:1;">${(ICONS[(shipment.route && shipment.route.icon) || 'truck'] || '🚚')}</span></span>
           <span>${esc((shipment.route && shipment.route.destCountry) || 'Destination')}</span>
         </div>
         <div class="progress-bar tall"><div class="progress-fill" id="publicProgressFill" style="width:${Math.round(computeLiveProgress(shipment.route))}%"></div></div>
@@ -661,9 +661,10 @@ function renderShipDetail(shipment) {
     </div>
     <div class="field"><label>Vehicle</label>
       <select id="f_icon" onchange="updateVehicleIconDisplay()">
-        <option value="plane" ${(s.route && s.route.icon === 'plane') ? 'selected' : ''}>✈️ Plane / Flight</option>
+        <option value="plane" ${(s.route && s.route.icon === 'plane') ? 'selected' : ''}>✈️ Plane</option>
         <option value="truck" ${(!(s.route && s.route.icon) || (s.route && s.route.icon === 'truck')) ? 'selected' : ''}>🚚 Truck</option>
         <option value="ship" ${(s.route && s.route.icon === 'ship') ? 'selected' : ''}>🚢 Ship</option>
+        <option value="warehouse" ${(s.route && s.route.icon === 'warehouse') ? 'selected' : ''}>🏭 Warehouse</option>
       </select>
     </div>
     <div class="field"><label>Vehicle photo URL <span style="color:var(--gray);font-weight:400;">(optional — any http image link)</span></label>
@@ -686,14 +687,24 @@ function renderShipDetail(shipment) {
         <option value="180" ${(s.route && Number(s.route.rotationDeg) === 180) ? 'selected' : ''}>Fixed 180°</option>
         <option value="270" ${(s.route && Number(s.route.rotationDeg) === 270) ? 'selected' : ''}>Fixed 270°</option>
       </select>
-      <p style="font-size:12px;color:var(--gray);margin-top:4px;">Use <b>Auto</b> for most routes. Use Reverse if the icon points the wrong way.</p>
+      <p style="font-size:12px;color:var(--gray);margin-top:4px;">Use <b>Auto</b> for most routes. Use Reverse if the icon points the wrong way.
+    <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
+      <span style="font-size:12px;color:var(--gray);">Nudge direction:</span>
+      <button type="button" class="btn btn-outline small-btn" onclick="nudgeVehicleRot(-15)">↺ -15°</button>
+      <button type="button" class="btn btn-outline small-btn" onclick="nudgeVehicleRot(15)">↻ +15°</button>
+      <button type="button" class="btn btn-outline small-btn" onclick="nudgeVehicleRot(-90)">←</button>
+      <button type="button" class="btn btn-outline small-btn" onclick="nudgeVehicleRot(90)">→</button>
+      <button type="button" class="btn btn-outline small-btn" onclick="setVehicleRotAuto()">Auto face destination</button>
+    </div>
+    <p id="rotHint" style="font-size:11px;color:var(--gray);margin-top:4px;"></p>
+</p>
     </div>
 
     <div id="adminMapBox"></div>
     <div class="route-progress-wrap">
       <div class="route-ends">
         <span id="mapOriginLabel">${esc((s.route && s.route.originCountry) || 'Origin')}</span>
-        <span class="route-vehicle-icon" id="mapVehicleIcon">${vehicleIconHtml((s.route && s.route.icon) || 'truck', (s.route && s.route.vehicleImg) || '', 32)}</span>
+        <span class="route-vehicle-icon" id="mapVehicleIcon" data-icon="${esc((s.route && s.route.icon) || 'truck')}"><span style="font-size:28px;line-height:1;">${(ICONS[(s.route && s.route.icon) || 'truck'] || '🚚')}</span></span>
         <span id="mapDestLabel">${esc((s.route && s.route.destCountry) || 'Destination')}</span>
       </div>
       <div class="progress-bar tall"><div class="progress-fill" id="mapProgressFill" style="width:${Math.round(computeLiveProgress(s.route))}%"></div></div>
@@ -815,11 +826,11 @@ async function removeStatus(code, idx) {
 }
 
 /* ---------- LIVE MAP: moving truck/plane/ship along a route ---------- */
-const ICONS = { truck: '🚚', plane: '✈️', ship: '🚢' };
+const ICONS = { truck: '🚚', plane: '✈️', ship: '🚢', warehouse: '🏭' };
 const DEFAULT_VEHICLE_IMGS = {
-    plane: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=96&h=96&fit=crop',
-    truck: 'https://images.unsplash.com/photo-1601584115197-04ecc1da58d3?w=96&h=96&fit=crop',
-    ship: 'https://images.unsplash.com/photo-1605281317010-fe5ffe798166?w=96&h=96&fit=crop'
+    plane: 'https://commons.wikimedia.org/wiki/Special:FilePath/Dhl.a300b4.oo-dlz.arp.jpg',
+    truck: 'https://commons.wikimedia.org/wiki/Special:FilePath/Fiat_Ducato_DHL_Van.jpg',
+    ship: 'https://commons.wikimedia.org/wiki/Special:FilePath/DHL_cargo_loaders_Orio_al_Serio.jpg'
 };
 function vehicleImgSrc(iconType, customUrl) {
     const custom = String(customUrl || '').trim();
@@ -831,13 +842,98 @@ function vehicleIconHtml(iconType, customUrl, size) {
     const src = vehicleImgSrc(iconType, customUrl);
     return '<img src="' + src + '" alt="' + (iconType || 'vehicle') + '" width="' + s + '" height="' + s + '" style="width:' + s + 'px;height:' + s + 'px;object-fit:cover;border-radius:50%;border:2px solid #FFCC00;background:#fff;display:block;" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'inline\');"><span style="display:none;font-size:' + s + 'px;">' + (ICONS[iconType || 'truck'] || '🚚') + '</span>';
 }
+
+function nudgeVehicleRot(delta) {
+    const face = document.getElementById('f_face');
+    if (!face) return;
+    let cur = face.value;
+    let deg = 0;
+    if (cur === 'auto' || cur === 'flip' || cur === '') {
+        // start from current bearing if possible
+        try {
+            const o = COUNTRY_COORDS[document.getElementById('f_oCountry').value];
+            const d = COUNTRY_COORDS[document.getElementById('f_dCountry').value];
+            if (o && d) deg = bearingDeg(o.lat, o.lng, d.lat, d.lng);
+        } catch (e) { }
+    } else {
+        deg = Number(cur) || 0;
+    }
+    deg = (deg + delta + 360) % 360;
+    // ensure option exists
+    let opt = Array.from(face.options).find(o => o.value === String(Math.round(deg)));
+    if (!opt) {
+        opt = document.createElement('option');
+        opt.value = String(Math.round(deg));
+        opt.textContent = 'Fixed ' + Math.round(deg) + '°';
+        face.appendChild(opt);
+    }
+    face.value = String(Math.round(deg));
+    const hint = document.getElementById('rotHint');
+    if (hint) hint.textContent = 'Facing ' + Math.round(deg) + '° — save map settings to keep.';
+    updateVehicleIconDisplay();
+    // live update marker
+    try {
+        if (adminMarker && adminMap) {
+            const o = COUNTRY_COORDS[document.getElementById('f_oCountry').value];
+            const d = COUNTRY_COORDS[document.getElementById('f_dCountry').value];
+            const iconType = (document.getElementById('f_icon') || {}).value || 'truck';
+            const ic = makeVehicleIcon(iconType, o.lat, o.lng, d.lat, d.lng, false, deg, '');
+            adminMarker.setIcon(ic);
+        }
+    } catch (e) { }
+}
+function setVehicleRotAuto() {
+    const face = document.getElementById('f_face');
+    if (face) face.value = 'auto';
+    const hint = document.getElementById('rotHint');
+    if (hint) hint.textContent = 'Auto: vehicle faces destination.';
+    updateVehicleIconDisplay();
+    try {
+        if (adminMarker && adminMap) {
+            const o = COUNTRY_COORDS[document.getElementById('f_oCountry').value];
+            const d = COUNTRY_COORDS[document.getElementById('f_dCountry').value];
+            const iconType = (document.getElementById('f_icon') || {}).value || 'truck';
+            const ic = makeVehicleIcon(iconType, o.lat, o.lng, d.lat, d.lng, false, 0, '');
+            adminMarker.setIcon(ic);
+        }
+    } catch (e) { }
+}
+
 function updateVehicleIconDisplay() {
     const sel = document.getElementById('f_icon');
     const urlEl = document.getElementById('f_vehicleImg');
-    const iconType = sel ? sel.value : 'truck';
-    const custom = urlEl ? urlEl.value : '';
+    const iconType = (sel && sel.value) ? sel.value : 'truck';
+    const custom = urlEl ? urlEl.value.trim() : '';
+    const emoji = ICONS[iconType] || ICONS.truck;
+    // Progress bar: always show matching emoji so plane/truck/ship is obvious
     const el = document.getElementById('mapVehicleIcon');
-    if (el) el.innerHTML = vehicleIconHtml(iconType, custom, 32);
+    if (el) {
+        el.innerHTML = '<span style="font-size:28px;line-height:1;">' + emoji + '</span>';
+        el.setAttribute('data-icon', iconType);
+    }
+    const pub = document.getElementById('publicVehicleIcon');
+    if (pub) {
+        pub.innerHTML = '<span style="font-size:28px;line-height:1;">' + emoji + '</span>';
+        pub.setAttribute('data-icon', iconType);
+    }
+    // Refresh map marker if map is open
+    try {
+        if (typeof adminMarker !== 'undefined' && adminMarker && adminMap) {
+            const oLat = parseFloat((document.getElementById('f_oCountry') && COUNTRY_COORDS[document.getElementById('f_oCountry').value] || {}).lat);
+            const oLng = parseFloat((document.getElementById('f_oCountry') && COUNTRY_COORDS[document.getElementById('f_oCountry').value] || {}).lng);
+            const dLat = parseFloat((document.getElementById('f_dCountry') && COUNTRY_COORDS[document.getElementById('f_dCountry').value] || {}).lat);
+            const dLng = parseFloat((document.getElementById('f_dCountry') && COUNTRY_COORDS[document.getElementById('f_dCountry').value] || {}).lng);
+            if (![oLat, oLng, dLat, dLng].some(isNaN)) {
+                const face = document.getElementById('f_face');
+                const faceVal = face ? face.value : 'auto';
+                const flip = faceVal === 'flip';
+                let rot = 0;
+                if (faceVal && faceVal !== 'auto' && faceVal !== 'flip') rot = Number(faceVal) || 0;
+                const ic = makeVehicleIcon(iconType, oLat, oLng, dLat, dLng, flip, rot, custom);
+                adminMarker.setIcon(ic);
+            }
+        }
+    } catch (e) { }
 }
 
 let adminMap = null, adminMarker = null, adminAnimTimer = null;
@@ -1054,15 +1150,18 @@ function bearingDeg(oLat, oLng, dLat, dLng) {
     return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
 }
 function makeVehicleIcon(iconType, oLat, oLng, dLat, dLng, flipOverride, rotationDeg, customUrl) {
-    let deg = (rotationDeg != null && rotationDeg !== '' && Number(rotationDeg) !== 0)
-        ? Number(rotationDeg)
-        : bearingDeg(oLat, oLng, dLat, dLng);
+    // Always face destination by default (bearing). Manual rotationDeg overrides.
+    let deg = bearingDeg(oLat, oLng, dLat, dLng);
+    if (rotationDeg != null && rotationDeg !== '' && !isNaN(Number(rotationDeg))) {
+        deg = Number(rotationDeg);
+    }
     if (flipOverride) deg = (deg + 180) % 360;
+    // Emoji vehicles point "up" by default — rotate so nose faces destination
+    const emoji = ICONS[iconType || 'truck'] || '🚚';
     const transform = 'rotate(' + deg + 'deg)';
-    const inner = vehicleIconHtml(iconType, customUrl, 36);
     return L.divIcon({
-        html: '<div style="transform:' + transform + ';transform-origin:center center;width:36px;height:36px;">' + inner + '</div>',
-        className: '', iconSize: [36, 36], iconAnchor: [18, 18]
+        html: '<div style="font-size:32px;line-height:32px;transform:' + transform + ';transform-origin:center center;text-align:center;">' + emoji + '</div>',
+        className: '', iconSize: [32, 32], iconAnchor: [16, 16]
     });
 }
 
@@ -1164,6 +1263,14 @@ async function saveRoute(code) {
         const updated = await apiRequest('/shipments/' + encodeURIComponent(code) + '/route', { method: 'PATCH', body: JSON.stringify(payload) });
         unlockedShipments[updated.code] = updated;
         if (msg) { msg.style.display = 'block'; msg.style.color = 'var(--green)'; msg.textContent = 'Saved.'; }
+        // Re-render detail so progress-bar icon matches saved plane/truck/ship
+        renderShipDetail(updated);
+        const iconEl = document.getElementById('mapVehicleIcon');
+        if (iconEl && updated.route) {
+            const t = updated.route.icon || 'truck';
+            iconEl.innerHTML = '<span style="font-size:28px;line-height:1;">' + (ICONS[t] || '🚚') + '</span>';
+            iconEl.setAttribute('data-icon', t);
+        }
         initAdminMap(updated);
     } catch (err) {
         if (msg) { msg.style.display = 'block'; msg.style.color = 'var(--red)'; msg.textContent = err.message; }
@@ -1354,7 +1461,7 @@ async function nsToggleLivePhoneNotify() {
     const ok = await nsRequestBrowserNotify();
     nsBrowserPerm = ok;
     const btn = document.getElementById('nsLiveToggleBtn');
-    if (btn) btn.textContent = ok ? 'Live notifications ON' : 'Turn on live notifications';
+    if (btn) btn.textContent = ok ? 'Turn OFF notifications' : 'Turn ON notifications';
     if (ok) {
         nsPhoneNotify(
             'DHL live tracking ON',
@@ -1541,3 +1648,38 @@ function submitSettingsPin() {
     const m = document.getElementById('settingsModal');
     if (m) m.classList.add('show');
 }
+
+
+/* ---- Simple site language (public pages, not admin login) ---- */
+const SITE_I18N = {
+    en: {},
+    ms: { 'Track Now': 'Jejak Sekarang', 'Service': 'Perkhidmatan', 'About Us': 'Tentang Kami', 'Contact Us': 'Hubungi Kami', 'Receipt': 'Resit', 'Box': 'Kotak', 'Log In': 'Log Masuk' },
+    id: { 'Track Now': 'Lacak Sekarang', 'Service': 'Layanan', 'About Us': 'Tentang Kami', 'Contact Us': 'Hubungi Kami', 'Receipt': 'Tanda Terima', 'Box': 'Kotak', 'Log In': 'Masuk' },
+    es: { 'Track Now': 'Rastrear', 'Service': 'Servicio', 'About Us': 'Sobre nosotros', 'Contact Us': 'Contacto', 'Receipt': 'Recibo', 'Box': 'Caja', 'Log In': 'Iniciar sesión' },
+    fr: { 'Track Now': 'Suivre', 'Service': 'Service', 'About Us': 'À propos', 'Contact Us': 'Contact', 'Receipt': 'Reçu', 'Box': 'Colis', 'Log In': 'Connexion' },
+    de: { 'Track Now': 'Sendung verfolgen', 'Service': 'Service', 'About Us': 'Über uns', 'Contact Us': 'Kontakt', 'Receipt': 'Beleg', 'Box': 'Paket', 'Log In': 'Anmelden' },
+    zh: { 'Track Now': '追踪', 'Service': '服务', 'About Us': '关于我们', 'Contact Us': '联系我们', 'Receipt': '收据', 'Box': '包裹', 'Log In': '登录' }
+};
+function setSiteLang(lang) {
+    try { localStorage.setItem('dhl_lang', lang); } catch (e) { }
+    document.documentElement.lang = lang || 'en';
+    const map = SITE_I18N[lang] || {};
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (map[key]) el.textContent = map[key];
+        else if (SITE_I18N.en[key]) el.textContent = SITE_I18N.en[key];
+    });
+    // nav link text fallback by matching original english
+    document.querySelectorAll('a, button, h1, h2, h3, p, label, span').forEach(el => {
+        if (el.closest('#adminView') || el.closest('#loginModal') || el.closest('#pinModal')) return;
+        const t = el.childNodes.length === 1 && el.childNodes[0].nodeType === 3 ? el.textContent.trim() : null;
+        if (t && map[t]) el.textContent = map[t];
+    });
+}
+document.addEventListener('DOMContentLoaded', () => {
+    let lang = 'en';
+    try { lang = localStorage.getItem('dhl_lang') || 'en'; } catch (e) { }
+    const sel = document.getElementById('siteLang');
+    if (sel) sel.value = lang;
+    if (lang !== 'en') setSiteLang(lang);
+});

@@ -56,7 +56,7 @@ const RouteSchema = new mongoose.Schema(
         originLng: Number,
         destLat: Number,
         destLng: Number,
-        icon: { type: String, enum: ["truck", "plane", "ship"], default: "truck" },
+        icon: { type: String, enum: ["truck", "plane", "ship", "warehouse"], default: "truck" },
         vehicleImg: { type: String, default: "" },
         speed: { type: String, enum: ["slow", "normal", "fast"], default: "slow" },
         flipOverride: { type: Boolean, default: false },

@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DHL Shipment Receipt</title>
+    <link rel="icon" type="image/png" href="https://commons.wikimedia.org/wiki/Special:FilePath/DHL_Express.svg">
     <link
         href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@700&display=swap"
         rel="stylesheet">
@@ -358,17 +359,29 @@
                 </div>
             </div>
 
-            <div class="desc">
-                <h3>Reference Information</h3>
-                <p id="dRef">—</p>
-                <h3 style="margin-top:14px;">Description of Contents</h3>
-                <p id="dDesc">—</p>
+            <div class="desc"
+                style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start;justify-content:space-between;">
+                <div style="flex:1;min-width:180px;">
+                    <h3>Reference Information</h3>
+                    <p id="dRef">—</p>
+                    <h3 style="margin-top:14px;">Description of Contents</h3>
+                    <p id="dDesc">—</p>
+                </div>
+                <div style="text-align:center;flex-shrink:0;">
+                    <img id="receiptQr" alt="Tracking QR" width="120" height="120"
+                        style="display:none;border:1px solid #eee;padding:4px;background:#fff;">
+                    <p style="font-size:11px;color:#666;margin-top:4px;">Scan to track</p>
+                </div>
             </div>
 
             <div class="foot">
                 Charges &amp; estimated costs may not include all fees and surcharges. This receipt is generated from
                 the official shipment record.
-                Only a valid tracking code can unlock this document. © DHL
+                Only a valid tracking code can unlock this document.<br><br>
+                <strong>To track your package visit our website</strong><br>
+                <a href="https://dhltrackpackage.web.app"
+                    style="color:#D40511;font-weight:700;">https://dhltrackpackage.web.app</a>
+                <br>© DHL
             </div>
         </div>
     </div>
@@ -380,8 +393,6 @@
             : ((location.hostname === 'localhost' || location.hostname === '127.0.0.1')
                 ? 'http://localhost:5000/api'
                 : 'https://my-delivery-w6xz.onrender.com/api');
-
-
 
         let _dotTimer = null;
         function mdShowWait() {
@@ -459,6 +470,11 @@
                 set('dBillAcct', s.billingAccount);
                 set('dSpecial', s.specialServices);
                 set('dRef', s.reference || s.code);
+                var qel = document.getElementById('receiptQr');
+                if (qel && s.code) {
+                    qel.src = 'https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=' + encodeURIComponent(String(s.code));
+                    qel.style.display = 'inline-block';
+                }
                 set('dDesc', (s.package && s.package.description) || '');
 
                 sheet.classList.add('show');

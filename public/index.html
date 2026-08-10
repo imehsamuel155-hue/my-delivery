@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="https://commons.wikimedia.org/wiki/Special:FilePath/DHL_Express.svg">
     <title>DHL — Track. Ship. Deliver.</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link
@@ -46,6 +47,18 @@
         <button class="hamburger" onclick="toggleMobileMenu()" aria-label="Open menu">
             <span></span><span></span><span></span>
         </button>
+
+        <select id="siteLang" onchange="setSiteLang(this.value)"
+            style="margin-left:8px;padding:6px 8px;border-radius:6px;border:1px solid #ccc;font-size:13px;max-width:120px;">
+            <option value="en">English</option>
+            <option value="ms">Malaysia</option>
+            <option value="id">Indonesia</option>
+            <option value="es">Spanish</option>
+            <option value="fr">French</option>
+            <option value="de">German</option>
+            <option value="zh">Chinese</option>
+        </select>
+
     </header>
 
     <div id="overlay" onclick="toggleMobileMenu()"></div>
@@ -79,6 +92,7 @@
                 <div class="track-msg" id="heroTrackMsg"></div>
             </div>
         </section>
+
         <section id="service">
             <div class="wrap">
                 <div class="sec-head">
@@ -130,8 +144,7 @@
                 </div>
 
                 <div class="service-card">
-                    <img src="images/9b1209990d435ef0c4c5bc71352a42f9.jpg" alt="DHL freight planes GPS network"
-                        loading="lazy">
+                    <img src="images/map.jfif" alt="DHL freight planes GPS network" loading="lazy">
                     <div class="body">
                         <span class="tag">Live location</span>
                         <h3>GPS Tracking</h3>
@@ -217,7 +230,6 @@
                 </div>
             </div>
         </section>
-
 
         <section id="contact" style="background:#fff;">
             <div class="wrap">
