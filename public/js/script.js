@@ -14,22 +14,27 @@ function dhlParseHistoryDate(h) {
     };
 }
 function dhlTimelineHtml(history) {
-    const list = Array.isArray(history) ? history.slice() : [];
-    // show newest first like real DHL
-    const ordered = list.slice().reverse();
+    // Chronological: first status (e.g. Order Received) at TOP, each new status BELOW
+    const ordered = Array.isArray(history) ? history.slice() : [];
     if (!ordered.length) {
         return '<div class="dhl-timeline"><div class="dhl-tl-item pending"><div class="dhl-tl-dot">△</div><div><div class="dhl-tl-status">Awaiting first scan</div></div></div></div>';
     }
+    const last = ordered.length - 1;
     return '<div class="dhl-timeline">' + ordered.map((h, i) => {
         const label = String(h.label || h.status || 'Update');
         const loc = String(h.location || '');
         const isDelivered = /deliver/i.test(label);
-        const isFirst = i === 0;
-        const cls = isDelivered ? 'done' : (isFirst ? 'current' : 'pending');
-        const dot = isDelivered ? '✓' : '△';
+        const isLatest = i === last;
+        // All past steps = done (green); latest = current (green ring); none pending in between
+        let cls = 'done';
+        if (isLatest && !isDelivered) cls = 'current';
+        if (isDelivered) cls = 'done';
+        const dot = (cls === 'done') ? '✓' : '△';
         const t = dhlParseHistoryDate(h);
         const statusClass = isDelivered ? 'delivered' : '';
-        return `<div class="dhl-tl-item ${cls}">
+        // Line segment below this item is green if this step is done/current (connects to next)
+        const lineCls = (i < last) ? (cls === 'done' || cls === 'current' ? 'line-green' : 'line-gray') : '';
+        return `<div class="dhl-tl-item ${cls} ${lineCls}">
       <div class="dhl-tl-dot">${dot}</div>
       <div>
         <div class="dhl-tl-day">${esc(t.day)}</div>
@@ -43,99 +48,7 @@ function dhlTimelineHtml(history) {
     }).join('') + '</div>';
 }
 
-function downloadTrackQr(code) {
-    const url = qrUrlForCode(code) + '&download=1';
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'DHL-QR-' + code + '.png';
-    a.target = '_blank';
-    a.rel = 'noopener';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    // Also try fetch blob for better mobile save
-    fetch(qrUrlForCode(code)).then(r => r.blob()).then(blob => {
-        const u = URL.createObjectURL(blob);
-        const a2 = document.createElement('a');
-        a2.href = u;
-        a2.download = 'DHL-QR-' + code + '.png';
-        document.body.appendChild(a2);
-        a2.click();
-        a2.remove();
-        URL.revokeObjectURL(u);
-    }).catch(() => { });
-}
 
-let _qrStream = null;
-let _qrTimer = null;
-function stopQrScan() {
-    if (_qrTimer) { clearInterval(_qrTimer); _qrTimer = null; }
-    if (_qrStream) {
-        _qrStream.getTracks().forEach(t => t.stop());
-        _qrStream = null;
-    }
-    const area = document.getElementById('qrScanArea');
-    if (area) area.style.display = 'none';
-    const v = document.getElementById('qrVideo');
-    if (v) v.srcObject = null;
-}
-async function startQrScan() {
-    const area = document.getElementById('qrScanArea');
-    const video = document.getElementById('qrVideo');
-    if (!area || !video) {
-        alert('Track a package first, then use Scan QR.');
-        return;
-    }
-    area.style.display = 'block';
-    try {
-        _qrStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-        video.srcObject = _qrStream;
-        await video.play();
-    } catch (e) {
-        alert('Camera not available. Open the QR image or type the tracking code on Box.');
-        stopQrScan();
-        return;
-    }
-    if (typeof BarcodeDetector === 'undefined') {
-        // Fallback: manual — user can still use downloaded QR which links to box.html
-        return;
-    }
-    const detector = new BarcodeDetector({ formats: ['qr_code'] });
-    if (_qrTimer) clearInterval(_qrTimer);
-    _qrTimer = setInterval(async () => {
-        try {
-            if (video.readyState < 2) return;
-            const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            if (!canvas.width) return;
-            canvas.getContext('2d').drawImage(video, 0, 0);
-            const codes = await detector.detect(canvas);
-            if (!codes || !codes.length) return;
-            const raw = String(codes[0].rawValue || '');
-            let code = '';
-            try {
-                const u = new URL(raw);
-                code = u.searchParams.get('code') || '';
-            } catch (_) {
-                code = raw;
-            }
-            const m = raw.match(/DHL[A-Z0-9]+/i);
-            if (!code && m) code = m[0];
-            if (code) {
-                stopQrScan();
-                location.href = '/box.html?code=' + encodeURIComponent(code.trim());
-            }
-        } catch (_) { }
-    }, 700);
-}
-
-
-function qrUrlForCode(code) {
-    const origin = (typeof location !== 'undefined' && location.origin) ? location.origin : '';
-    const target = origin + '/box.html?code=' + encodeURIComponent(code);
-    return 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(target);
-}
 
 function generateTrackCode() {
     const n = Math.floor(100000 + Math.random() * 900000);
@@ -283,25 +196,7 @@ async function renderTrackResult(code) {
         <div class="meta-chip">Payment<b>${esc(shipment.payment.status)} · ${esc(shipment.payment.method)}</b></div>
         <div class="meta-chip">Amount<b>${esc(shipment.payment.currency || '')} ${esc(Number(shipment.payment.amount || 0).toFixed(2))}</b></div>
       </div>
-      <div class="track-qr-row">
-        <img id="trackQrImg" src="${qrUrlForCode(shipment.code)}" alt="QR ${esc(shipment.code)}" width="140" height="140">
-        <div class="qr-info">
-          <div><b>Shipment QR code</b></div>
-          <div>Save to your phone, then scan later to open this package (receiver details from admin).</div>
-          <div class="mono" style="margin-top:6px;">${esc(shipment.code)}</div>
-          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;">
-            <button type="button" class="btn btn-red small-btn" onclick="downloadTrackQr('${esc(shipment.code)}')">Download QR</button>
-            <a class="btn btn-outline small-btn" href="/box.html?code=${encodeURIComponent(shipment.code)}" style="color:#111;border-color:#ccc;text-decoration:none;">Open package box</a>
-            <button type="button" class="btn btn-outline small-btn" style="color:#111;border-color:#ccc;" onclick="startQrScan()">Scan QR now</button>
-          </div>
-          <div id="qrScanArea" style="display:none;margin-top:12px;">
-            <video id="qrVideo" playsinline style="width:100%;max-width:280px;border-radius:8px;background:#000;"></video>
-            <p style="font-size:12px;color:#666;margin-top:6px;">Point camera at the shipment QR. Correct code opens the package box.</p>
-            <button type="button" class="btn btn-outline small-btn" style="color:#111;border-color:#ccc;" onclick="stopQrScan()">Stop scan</button>
-          </div>
-        </div>
-      </div>
-      ${dhlTimelineHtml(shipment.history)}
+${dhlTimelineHtml(shipment.history)}
       <h4 class="section-title" style="margin-top:26px;">Live Location</h4>
       <div class="route-progress-wrap">
         <div class="route-ends">
@@ -1390,11 +1285,13 @@ function startPublicAnimation(oLat, oLng, dLat, dLng, route) {
             const o = (route && route.originCountry) || 'Origin';
             const d = (route && route.destCountry) || 'Destination';
             const ic = route && route.icon === 'plane' ? '✈️' : route && route.icon === 'ship' ? '🚢' : '🚚';
-            nsPhoneNotify(
-                'Delivery movement ' + Math.round(p) + '%',
-                ic + ' ' + o + ' → ' + d + ' · your package is on the way',
-                'dhl-prog-' + step
-            );
+            if (nsBrowserPerm) {
+                nsPhoneNotify(
+                    o + ' → ' + d,
+                    ic + ' Live location: ' + Math.round(p) + '% of the way · package moving',
+                    'dhl-prog-' + step
+                );
+            }
         }
         if (p >= 100) { clearInterval(publicAnimTimer); publicAnimTimer = null; }
     }, 200);
@@ -1407,6 +1304,8 @@ let nsLastNotifAt = null;
 let nsNotifTimer = null;
 let nsSeenIds = new Set();
 let nsBrowserPerm = false;
+try { nsBrowserPerm = localStorage.getItem('dhl_live_notify') === '1' && typeof Notification !== 'undefined' && Notification.permission === 'granted'; } catch (e) { }
+
 
 function nsEnsureToastHost() {
     let host = document.getElementById('nsToastWrap');
@@ -1451,30 +1350,56 @@ async function nsRequestBrowserNotify() {
     nsBrowserPerm = p === 'granted';
     return nsBrowserPerm;
 }
+
+
 async function nsToggleLivePhoneNotify() {
-    try {
-        if (!_dhlSwReg && navigator.serviceWorker) {
-            _dhlSwReg = await navigator.serviceWorker.register('/sw.js');
-            await navigator.serviceWorker.ready;
-        }
-    } catch (e) { }
-    const ok = await nsRequestBrowserNotify();
-    nsBrowserPerm = ok;
+    // Turn OFF
+    if (nsBrowserPerm) {
+        nsBrowserPerm = false;
+        try { localStorage.setItem('dhl_live_notify', '0'); } catch (e) { }
+        const btn = document.getElementById('nsLiveToggleBtn');
+        if (btn) btn.textContent = 'Turn ON notifications';
+        // Stop further phone notifications for this session
+        return;
+    }
+    // Turn ON
+    if (!('Notification' in window)) {
+        alert('This browser does not support phone notifications.');
+        return;
+    }
+    let perm = Notification.permission;
+    if (perm === 'default') {
+        try { perm = await Notification.requestPermission(); } catch (e) { perm = 'denied'; }
+    }
+    if (perm !== 'granted') {
+        alert('Allow notifications for this site in your browser settings, then tap again.');
+        return;
+    }
+    nsBrowserPerm = true;
+    try { localStorage.setItem('dhl_live_notify', '1'); } catch (e) { }
     const btn = document.getElementById('nsLiveToggleBtn');
-    if (btn) btn.textContent = ok ? 'Turn OFF notifications' : 'Turn ON notifications';
-    if (ok) {
-        nsPhoneNotify(
-            'DHL live tracking ON',
-            nsTrackCode
-                ? ('Movement updates for ' + nsTrackCode + ' will appear on your notification bar.')
-                : 'Live notifications enabled for this site.',
-            'dhl-live-on'
-        );
-    } else {
-        alert('Allow notifications for this site in your phone browser settings, then tap again.');
+    if (btn) btn.textContent = 'Turn OFF notifications';
+    // Immediately show current live location if tracking
+    try {
+        if (nsTrackCode) {
+            const fresh = await apiRequest('/shipments/track/' + encodeURIComponent(nsTrackCode));
+            const r = fresh.route || {};
+            const p = Math.round(computeLiveProgress(r) || 0);
+            const o = r.originCountry || 'Origin';
+            const d = r.destCountry || 'Destination';
+            const ic = ICONS[r.icon || 'truck'] || '🚚';
+            nsPhoneNotify(o + ' → ' + d, ic + ' Live location: ' + p + '% of the way', 'dhl-live-on');
+        } else {
+            nsPhoneNotify('DHL tracking', 'Live notifications are ON for this site.', 'dhl-live-on');
+        }
+    } catch (e) {
+        nsPhoneNotify('DHL tracking', 'Live notifications are ON.', 'dhl-live-on');
     }
 }
+
 function nsPhoneNotify(title, body, tag) {
+    if (!nsBrowserPerm) return; // turned OFF — do not show on notification bar
+
     const payload = {
         title: title || 'DHL update',
         body: body || '',
@@ -1567,7 +1492,8 @@ function nsStopTrackWatch() {
 }
 
 /* Admin notification panel */
-async function nsLoadAdminNotifs() {
+async function nsLoadAdminNotifs() { return; /* alerts removed */ }
+async function _nsLoadAdminNotifs_unused() {
     const panel = document.getElementById('nsNotifPanel');
     const badge = document.getElementById('nsNotifBadge');
     if (!panel || !adminToken) return;

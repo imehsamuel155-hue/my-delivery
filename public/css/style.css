@@ -1678,7 +1678,18 @@ header.navbar .btn-outline {
     left: 13px;
     top: 28px;
     bottom: 0;
-    width: 2px;
+    width: 3px;
+    background: #ddd;
+    z-index: 0;
+}
+
+.dhl-tl-item.line-green:not(:last-child)::before,
+.dhl-tl-item.done:not(:last-child)::before,
+.dhl-tl-item.current:not(:last-child)::before {
+    background: #1F9D55;
+}
+
+.dhl-tl-item.line-gray:not(:last-child)::before {
     background: #ddd;
 }
 
