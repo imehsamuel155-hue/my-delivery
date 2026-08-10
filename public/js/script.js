@@ -1,3 +1,4 @@
+/* CACHE_BUST_TIMELINE_V2 no-qr chronological */
 
 function dhlParseHistoryDate(h) {
     const raw = String((h && (h.date || h.createdAt)) || '').trim();
@@ -14,8 +15,14 @@ function dhlParseHistoryDate(h) {
     };
 }
 function dhlTimelineHtml(history) {
-    // Chronological: first status (e.g. Order Received) at TOP, each new status BELOW
-    const ordered = Array.isArray(history) ? history.slice() : [];
+    // Same order as admin: first status at TOP, each new status BELOW (never reverse)
+    let ordered = Array.isArray(history) ? history.slice() : [];
+    ordered.sort((a, b) => {
+        const da = String((a && a.date) || '');
+        const db = String((b && b.date) || '');
+        if (da && db && da !== db) return da.localeCompare(db);
+        return 0; // keep original array order when same date (push order)
+    });
     if (!ordered.length) {
         return '<div class="dhl-timeline"><div class="dhl-tl-item pending"><div class="dhl-tl-dot">△</div><div><div class="dhl-tl-status">Awaiting first scan</div></div></div></div>';
     }
@@ -1271,29 +1278,40 @@ function reflectPublicProgress(progress, isMoving) {
     if (note) note.textContent = Math.round(p) + '% of the way there' + (isMoving ? ' — currently moving.' : '.') + ' You can zoom and pan the map to follow along.';
 }
 let _lastProgNotif = -1;
+let _lastProgNotifAt = 0;
 function startPublicAnimation(oLat, oLng, dLat, dLng, route) {
     if (publicAnimTimer) clearInterval(publicAnimTimer);
     _lastProgNotif = -1;
+    _lastProgNotifAt = 0;
     publicAnimTimer = setInterval(() => {
         const p = computeLiveProgress(route);
         reflectPublicProgress(p, true);
         if (publicMarker) publicMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, p / 100));
-        // Phone notification on movement milestones (0, 25, 50, 75, 100)
-        const step = Math.floor(p / 25) * 25;
-        if (nsBrowserPerm && step > _lastProgNotif && step >= 25) {
-            _lastProgNotif = step;
+        // Phone bar: origin → destination + % (every 5%, or every 20s while moving)
+        const step = Math.floor(p / 5) * 5;
+        const now = Date.now();
+        const due = (step > _lastProgNotif && step >= 5) || (now - _lastProgNotifAt > 20000 && p > 0);
+        if (nsBrowserPerm && due) {
+            _lastProgNotif = Math.max(_lastProgNotif, step);
+            _lastProgNotifAt = now;
             const o = (route && route.originCountry) || 'Origin';
             const d = (route && route.destCountry) || 'Destination';
-            const ic = route && route.icon === 'plane' ? '✈️' : route && route.icon === 'ship' ? '🚢' : '🚚';
-            if (nsBrowserPerm) {
-                nsPhoneNotify(
-                    o + ' → ' + d,
-                    ic + ' Live location: ' + Math.round(p) + '% of the way · package moving',
-                    'dhl-prog-' + step
-                );
-            }
+            const ic = (route && route.icon === 'plane') ? '✈️' : (route && route.icon === 'ship') ? '🚢' : (route && route.icon === 'warehouse') ? '🏭' : '🚚';
+            const pct = Math.round(p);
+            nsPhoneNotify(
+                o + ' → ' + d,
+                ic + ' ' + pct + '% complete · live location',
+                'dhl-live-progress'
+            );
         }
-        if (p >= 100) { clearInterval(publicAnimTimer); publicAnimTimer = null; }
+        if (p >= 100) {
+            if (nsBrowserPerm) {
+                const o = (route && route.originCountry) || 'Origin';
+                const d = (route && route.destCountry) || 'Destination';
+                nsPhoneNotify(o + ' → ' + d, '100% · arrived / complete', 'dhl-live-progress');
+            }
+            clearInterval(publicAnimTimer); publicAnimTimer = null;
+        }
     }, 200);
 }
 
@@ -1352,6 +1370,58 @@ async function nsRequestBrowserNotify() {
 }
 
 
+
+/* ---- Background push (counts on notification bar even when site is closed) ---- */
+function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const raw = atob(base64);
+    const out = new Uint8Array(raw.length);
+    for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+    return out;
+}
+async function nsSubscribePush(trackCode) {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return false;
+    try {
+        const reg = _dhlSwReg || await navigator.serviceWorker.register('/sw.js');
+        _dhlSwReg = reg;
+        const keyRes = await fetch(API_BASE + '/push/vapid-public-key');
+        const { publicKey } = await keyRes.json();
+        if (!publicKey) return false;
+        let sub = await reg.pushManager.getSubscription();
+        if (!sub) {
+            sub = await reg.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array(publicKey)
+            });
+        }
+        await fetch(API_BASE + '/push/subscribe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ subscription: sub.toJSON(), trackCode: trackCode || nsTrackCode || '' })
+        });
+        return true;
+    } catch (e) {
+        console.warn('push subscribe', e);
+        return false;
+    }
+}
+async function nsUnsubscribePush() {
+    try {
+        const reg = _dhlSwReg || await navigator.serviceWorker.getRegistration();
+        if (!reg) return;
+        const sub = await reg.pushManager.getSubscription();
+        if (sub) {
+            await fetch(API_BASE + '/push/unsubscribe', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ endpoint: sub.endpoint })
+            });
+            // keep browser permission; just disable server pushes
+        }
+    } catch (e) { }
+}
+
 async function nsToggleLivePhoneNotify() {
     // Turn OFF
     if (nsBrowserPerm) {
@@ -1359,7 +1429,7 @@ async function nsToggleLivePhoneNotify() {
         try { localStorage.setItem('dhl_live_notify', '0'); } catch (e) { }
         const btn = document.getElementById('nsLiveToggleBtn');
         if (btn) btn.textContent = 'Turn ON notifications';
-        // Stop further phone notifications for this session
+        await nsUnsubscribePush();
         return;
     }
     // Turn ON
@@ -1379,7 +1449,8 @@ async function nsToggleLivePhoneNotify() {
     try { localStorage.setItem('dhl_live_notify', '1'); } catch (e) { }
     const btn = document.getElementById('nsLiveToggleBtn');
     if (btn) btn.textContent = 'Turn OFF notifications';
-    // Immediately show current live location if tracking
+    // Register for BACKGROUND pushes (counts even when you leave the site)
+    await nsSubscribePush(nsTrackCode);
     try {
         if (nsTrackCode) {
             const fresh = await apiRequest('/shipments/track/' + encodeURIComponent(nsTrackCode));
@@ -1388,12 +1459,16 @@ async function nsToggleLivePhoneNotify() {
             const o = r.originCountry || 'Origin';
             const d = r.destCountry || 'Destination';
             const ic = ICONS[r.icon || 'truck'] || '🚚';
-            nsPhoneNotify(o + ' → ' + d, ic + ' Live location: ' + p + '% of the way', 'dhl-live-on');
+            nsPhoneNotify(
+                o + ' → ' + d,
+                ic + ' ' + p + '% complete · tracking ' + nsTrackCode,
+                'dhl-live-on'
+            );
         } else {
-            nsPhoneNotify('DHL tracking', 'Live notifications are ON for this site.', 'dhl-live-on');
+            nsPhoneNotify('DHL tracking', 'Track a package first, then turn ON to get live % on the notification bar.', 'dhl-live-on');
         }
     } catch (e) {
-        nsPhoneNotify('DHL tracking', 'Live notifications are ON.', 'dhl-live-on');
+        nsPhoneNotify('DHL tracking', 'Live notifications ON.', 'dhl-live-on');
     }
 }
 
@@ -1469,6 +1544,9 @@ async function nsPollTrackNotifications() {
 }
 
 function nsStartTrackWatch(code) {
+    // Keep background push linked to this tracking code
+    if (nsBrowserPerm) { try { nsSubscribePush(arguments[0]); } catch (e) { } }
+
     nsTrackCode = String(code || '').toUpperCase();
     nsLastNotifAt = new Date().toISOString(); // only new events after open
     nsSeenIds = new Set();
@@ -1478,7 +1556,7 @@ function nsStartTrackWatch(code) {
     if (banner) {
         banner.classList.add('show');
         banner.innerHTML = '<span class="ns-live-dot"></span><span>Live tracking on for <b class="mono">' +
-            esc(nsTrackCode) + '</b> — movement updates will appear here.</span>' +
+            esc(nsTrackCode) + '</b> — notifications show origin → destination and %.</span>' +
             '<button type="button" class="btn btn-red small-btn" style="margin-left:auto;" id="nsLiveToggleBtn" onclick="nsToggleLivePhoneNotify()">' +
             (nsBrowserPerm ? 'Live notifications ON' : 'Turn on live notifications') + '</button>';
     }

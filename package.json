@@ -1,7 +1,7 @@
 {
-    "name": "my-delivery-backend",
+    "name": "dhl-backend",
     "version": "1.0.0",
-    "description": "Node.js + Express + MongoDB API for My Delivery",
+    "description": "Node.js + Express + MongoDB API for DHL",
     "main": "server.js",
     "type": "commonjs",
     "scripts": {
@@ -16,7 +16,8 @@
         "express": "^4.22.2",
         "jsonwebtoken": "^9.0.3",
         "mongodb": "^7.5.0",
-        "mongoose": "^8.24.1"
+        "mongoose": "^8.24.1",
+        "web-push": "^3.6.7"
     },
     "devDependencies": {
         "nodemon": "^3.1.4"
