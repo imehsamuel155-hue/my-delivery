@@ -83,6 +83,31 @@ router.put("/credentials", requireAdmin, async (req, res) => {
     }
 });
 
+// Public: is box video service available?
+router.get("/box-service", async (req, res) => {
+    try {
+        const settings = await AdminSettings.findOne();
+        const on = settings ? (settings.boxServiceOn !== false) : true;
+        res.json({ on });
+    } catch (err) {
+        res.json({ on: true });
+    }
+});
+
+// Admin: turn box service on/off
+router.put("/box-service", requireAdmin, async (req, res) => {
+    try {
+        const settings = await getSettings();
+        if (typeof req.body.on === "boolean") {
+            settings.boxServiceOn = req.body.on;
+            await settings.save();
+        }
+        res.json({ on: settings.boxServiceOn !== false });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 router.post("/signup", (req, res) => {
     res.status(500).json({ error: "Server error. Please try again later." });
 });

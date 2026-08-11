@@ -359,11 +359,19 @@
                 </div>
             </div>
 
-            <div class="desc">
-                <h3>Reference Information</h3>
-                <p id="dRef">—</p>
-                <h3 style="margin-top:14px;">Description of Contents</h3>
-                <p id="dDesc">—</p>
+            <div class="desc"
+                style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start;justify-content:space-between;">
+                <div style="flex:1;min-width:180px;">
+                    <h3>Reference Information</h3>
+                    <p id="dRef">—</p>
+                    <h3 style="margin-top:14px;">Description of Contents</h3>
+                    <p id="dDesc">—</p>
+                </div>
+                <div style="text-align:center;flex-shrink:0;">
+                    <img id="receiptQr" alt="Receipt QR" width="130" height="130"
+                        style="display:none;border:1px solid #eee;padding:4px;background:#fff;">
+                    <p style="font-size:11px;color:#666;margin-top:4px;">Scan on Box page</p>
+                </div>
             </div>
 
             <div class="foot">
@@ -462,6 +470,11 @@
                 set('dBillAcct', s.billingAccount);
                 set('dSpecial', s.specialServices);
                 set('dRef', s.reference || s.code);
+                var qel = document.getElementById('receiptQr');
+                if (qel && s.code) {
+                    qel.src = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + encodeURIComponent(String(s.code));
+                    qel.style.display = 'inline-block';
+                }
                 set('dDesc', (s.package && s.package.description) || '');
 
                 sheet.classList.add('show');

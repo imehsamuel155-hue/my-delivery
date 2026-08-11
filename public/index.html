@@ -143,30 +143,28 @@
                     </div>
                 </div>
 
-                <div class="service-card">
+
+            </div>
 
 
+            <div class="stats">
+                <div class="stat">
+                    <h3 data-count="670" data-suffix="+"><span>0</span></h3>
+                    <p>Shipments Handled (K)</p>
                 </div>
-
-
-                <div class="stats">
-                    <div class="stat">
-                        <h3 data-count="670" data-suffix="+"><span>0</span></h3>
-                        <p>Shipments Handled (K)</p>
-                    </div>
-                    <div class="stat">
-                        <h3 data-count="99.9" data-decimal="1" data-suffix="%"><span>0</span></h3>
-                        <p>On-Time Delivery Rate</p>
-                    </div>
-                    <div class="stat">
-                        <h3 data-count="24" data-suffix="/7"><span>0</span></h3>
-                        <p>Customer Support</p>
-                    </div>
-                    <div class="stat">
-                        <h3 data-count="120" data-suffix="+"><span>0</span></h3>
-                        <p>Countries Served</p>
-                    </div>
+                <div class="stat">
+                    <h3 data-count="99.9" data-decimal="1" data-suffix="%"><span>0</span></h3>
+                    <p>On-Time Delivery Rate</p>
                 </div>
+                <div class="stat">
+                    <h3 data-count="24" data-suffix="/7"><span>0</span></h3>
+                    <p>Customer Support</p>
+                </div>
+                <div class="stat">
+                    <h3 data-count="120" data-suffix="+"><span>0</span></h3>
+                    <p>Countries Served</p>
+                </div>
+            </div>
             </div>
         </section>
 
@@ -408,7 +406,7 @@
             <button class="modal-close" onclick="closeModal('settingsModal')">&times;</button>
             <h3>Account Settings</h3>
             <p class="sub">Change admin username, password, or admin login PIN. Current password is required. (Unlocked
-                with settings PIN 7799.)</p>
+                with settings PIN .)</p>
             <form onsubmit="return handleCredentialsSubmit(event)">
                 <div class="field">
                     <label>Current Password</label>
@@ -433,6 +431,14 @@
                 <div class="error-box" id="settingsError"></div>
                 <div class="success-box" id="settingsSuccess">Saved successfully.</div>
             </form>
+            <hr style="margin:18px 0;border:none;border-top:1px solid var(--line);">
+            <div class="field">
+                <label>Box video service</label>
+                <p style="font-size:12.5px;color:var(--gray);margin-bottom:8px;">When OFF, box page shows server
+                    unavailable. When ON, correct receipt QR opens the package video.</p>
+                <button type="button" class="btn btn-outline small-btn" id="boxServiceToggleBtn2"
+                    onclick="toggleBoxService()">Box video: ON</button>
+            </div>
         </div>
     </div>
 
@@ -446,6 +452,8 @@
                         empty.</p>
                 </div>
                 <div class="admin-top-actions" style="position:relative;">
+                    <button type="button" class="btn btn-outline small-btn" id="boxServiceToggleBtn"
+                        onclick="toggleBoxService()" title="Box video server">Box video: ON</button>
                     <button class="btn btn-red small-btn" onclick="startNewShipment()">+ New Shipment</button>
                     <a class="btn btn-outline small-btn" href="/receipt"
                         style="color:var(--ink);border-color:var(--line);text-decoration:none;">Receipt</a>

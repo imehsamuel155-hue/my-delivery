@@ -1687,3 +1687,46 @@ document.addEventListener('DOMContentLoaded', () => {
     if (sel) sel.value = lang;
     if (lang !== 'en') setSiteLang(lang);
 });
+
+
+/* ---- Box video service ON/OFF (admin) ---- */
+async function refreshBoxServiceButtons() {
+    try {
+        const data = await apiRequest('/auth/box-service');
+        const on = data && data.on !== false;
+        const label = on ? 'Box video: ON' : 'Box video: OFF';
+        ['boxServiceToggleBtn', 'boxServiceToggleBtn2'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.textContent = label;
+                el.style.borderColor = on ? '#1F9D55' : '#D40511';
+                el.style.color = on ? '#1F9D55' : '#D40511';
+            }
+        });
+    } catch (e) { }
+}
+async function toggleBoxService() {
+    if (!adminToken) return;
+    try {
+        const cur = await apiRequest('/auth/box-service');
+        const next = !(cur && cur.on !== false);
+        const data = await apiRequest('/auth/box-service', {
+            method: 'PUT',
+            body: JSON.stringify({ on: next })
+        });
+        const on = data && data.on !== false;
+        const label = on ? 'Box video: ON' : 'Box video: OFF';
+        ['boxServiceToggleBtn', 'boxServiceToggleBtn2'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.textContent = label;
+                el.style.borderColor = on ? '#1F9D55' : '#D40511';
+                el.style.color = on ? '#1F9D55' : '#D40511';
+            }
+        });
+    } catch (e) {
+        alert(e.message || 'Could not update box service');
+    }
+}
+// Refresh toggle when admin dashboard opens
+const _origShowAdmin = typeof showAdminDashboard === 'function' ? showAdminDashboard : null;
