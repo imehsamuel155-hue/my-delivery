@@ -211,7 +211,7 @@ ${dhlTimelineHtml(shipment.history)}
           <span class="route-vehicle-icon" id="publicVehicleIcon" data-icon="${esc((shipment.route && shipment.route.icon) || 'truck')}"><span style="font-size:28px;line-height:1;">${(ICONS[(shipment.route && shipment.route.icon) || 'truck'] || '🚚')}</span></span>
           <span>${esc((shipment.route && shipment.route.destCountry) || 'Destination')}</span>
         </div>
-        <div class="progress-bar tall" title="Drag with finger"><div class="progress-fill" id="publicProgressFill" style="width:${Math.round(computeLiveProgress(shipment.route))}%"></div></div>
+        <div class="progress-bar tall"><div class="progress-fill" id="publicProgressFill" style="width:${Math.round(computeLiveProgress(shipment.route))}%"></div></div>
         <p style="font-size:12.5px;color:var(--gray);margin-top:8px;" id="publicProgressNote"></p>
       </div>
       <div id="publicMapBox"></div>
@@ -1488,66 +1488,13 @@ function initPublicMap(shipment) {
     const icon = makeVehicleIcon(r.icon, oLat, oLng, dLat, dLng, r.flipOverride, r.rotationDeg, r.vehicleImg);
     const startProgress = computeLiveProgress(r);
     const pos = pointAlong(oLat, oLng, dLat, dLng, startProgress / 100);
-    publicMarker = L.marker(pos, { icon, draggable: true, interactive: true }).addTo(publicMap).bindPopup('Drag me with your finger');
+    publicMarker = L.marker(pos, { icon, draggable: false, interactive: false }).addTo(publicMap).bindPopup('Current location');
 
-    // Hand-drag plane on map → moves along route line
-    publicMarker.on('drag', e => {
-        if (publicAnimTimer) { clearInterval(publicAnimTimer); publicAnimTimer = null; }
-        const ll = e.target.getLatLng();
-        const t = projectT(oLat, oLng, dLat, dLng, ll.lat, ll.lng);
-        reflectPublicProgress(t * 100, false);
-    });
-    publicMarker.on('dragend', e => {
-        const ll = e.target.getLatLng();
-        const t = projectT(oLat, oLng, dLat, dLng, ll.lat, ll.lng);
-        e.target.setLatLng(pointAlong(oLat, oLng, dLat, dLng, t));
-        reflectPublicProgress(t * 100, false);
-    });
 
     reflectPublicProgress(startProgress, r.isMoving);
     if (r.isMoving) startPublicAnimation(oLat, oLng, dLat, dLng, r);
 
-    // Hand-push progress bar on track page
-    bindProgressBarDrag('publicProgressFill', {
-        onStart: function () {
-            if (publicAnimTimer) { clearInterval(publicAnimTimer); publicAnimTimer = null; }
-        },
-        onMove: function (p) {
-            reflectPublicProgress(p, false);
-            if (publicMarker) publicMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, p / 100));
-        },
-        onEnd: function (p) {
-            reflectPublicProgress(p, false);
-            if (publicMarker) publicMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, p / 100));
-        }
-    });
 
-    // Hand-rotate public plane icon on progress row
-    const pv = document.getElementById('publicVehicleIcon');
-    if (pv && pv.dataset.rotBound !== '1') {
-        pv.dataset.rotBound = '1';
-        let startX = null, startRot = bearingDeg(oLat, oLng, dLat, dLng);
-        function pubRot(deg) {
-            deg = (deg % 360 + 360) % 360;
-            const iconType = (r.icon || 'truck');
-            if (publicMarker) {
-                publicMarker.setIcon(makeVehicleIcon(iconType, oLat, oLng, dLat, dLng, false, deg, ''));
-            }
-        }
-        pv.addEventListener('mousedown', e => { startX = e.clientX; e.preventDefault(); e.stopPropagation(); });
-        pv.addEventListener('touchstart', e => { startX = e.touches[0].clientX; e.preventDefault(); e.stopPropagation(); }, { passive: false });
-        window.addEventListener('mousemove', e => {
-            if (startX == null) return;
-            pubRot(startRot + (e.clientX - startX) * 0.5);
-        });
-        window.addEventListener('touchmove', e => {
-            if (startX == null || !e.touches[0]) return;
-            pubRot(startRot + (e.touches[0].clientX - startX) * 0.5);
-            e.preventDefault();
-        }, { passive: false });
-        window.addEventListener('mouseup', () => { startX = null; });
-        window.addEventListener('touchend', () => { startX = null; });
-    }
 
 
     // Re-check the backend every few seconds in case the admin starts, stops,
@@ -1565,14 +1512,12 @@ function initPublicMap(shipment) {
     }, 6000);
 }
 function reflectPublicProgress(progress, isMoving) {
-    const p = setProgressBarUI('publicProgressFill', progress);
-    const icon = document.getElementById('publicVehicleIcon');
-    if (icon) {
-        icon.style.position = 'absolute';
-        icon.style.left = 'calc(' + p + '% - 14px)';
-    }
+    const p = Math.max(0, Math.min(100, Number(progress) || 0));
+    const fill = document.getElementById('publicProgressFill');
+    if (fill) fill.style.width = p + '%';
+    // No knob / hand drag on public track page — view only
     const note = document.getElementById('publicProgressNote');
-    if (note) note.textContent = Math.round(p) + '% of the way there' + (isMoving ? ' — currently moving. Drag the bar or plane with your finger to adjust.' : '. Drag the bar or plane with your finger to set position.') + ' Pinch-rotate the plane to set direction.';
+    if (note) note.textContent = Math.round(p) + '% of the way there' + (isMoving ? ' — currently moving.' : '.') + ' You can zoom and pan the map to follow along.';
 }
 let _lastProgNotif = -1;
 let _lastProgNotifAt = 0;
@@ -1989,7 +1934,7 @@ document.addEventListener('DOMContentLoaded', () => {
 /* ---- Box video service ON/OFF (admin) ---- */
 async function refreshBoxServiceButtons() {
     try {
-        const data = await apiRequest('/auth/box-service');
+        const data = await apiRequest('/shipments/box-service');
         const on = data && data.on !== false;
         const label = on ? 'Box video: ON' : 'Box video: OFF';
         ['boxServiceToggleBtn', 'boxServiceToggleBtn2'].forEach(id => {
@@ -2005,9 +1950,9 @@ async function refreshBoxServiceButtons() {
 async function toggleBoxService() {
     if (!adminToken) return;
     try {
-        const cur = await apiRequest('/auth/box-service');
+        const cur = await apiRequest('/shipments/box-service');
         const next = !(cur && cur.on !== false);
-        const data = await apiRequest('/auth/box-service', {
+        const data = await apiRequest('/shipments/box-service', {
             method: 'PUT',
             body: JSON.stringify({ on: next })
         });
