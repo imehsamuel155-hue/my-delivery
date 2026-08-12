@@ -581,14 +581,24 @@ function renderShipDetail(shipment) {
     </div>
     <div class="field">
       <label>Vehicle direction (simple)</label>
-      <select id="f_face">
-        <option value="auto" ${!(s.route && s.route.flipOverride) && !(s.route && s.route.rotationDeg) ? 'selected' : ''}>Auto — face destination</option>
-        <option value="flip" ${(s.route && s.route.flipOverride) ? 'selected' : ''}>Reverse — face opposite way</option>
-        <option value="0" ${(s.route && s.route.rotationDeg === 0 && !s.route.flipOverride) ? 'selected' : ''}>Fixed 0° (east style)</option>
-        <option value="90" ${(s.route && Number(s.route.rotationDeg) === 90) ? 'selected' : ''}>Fixed 90° (north style)</option>
-        <option value="180" ${(s.route && Number(s.route.rotationDeg) === 180) ? 'selected' : ''}>Fixed 180°</option>
-        <option value="270" ${(s.route && Number(s.route.rotationDeg) === 270) ? 'selected' : ''}>Fixed 270°</option>
+      <p style="font-size:13px;color:var(--gray);line-height:1.45;margin:8px 0;">
+        <b>Use your hands:</b> drag the plane/truck/ship on the map to move it.
+        Drag left/right on the vehicle to turn it any direction.
+        Push the yellow progress bar to set how far it is.
+        Then tap <b>Done — Save Map Settings</b> so tracking matches.
+      </p>
+      <select id="f_face" style="display:none;">
+        <option value="auto">auto</option>
+        <option value="manual" selected>manual</option>
+        <option value="flip">flip</option>
       </select>
+      <input type="hidden" id="f_rotSlider" value="${(s.route && s.route.rotationDeg != null) ? Number(s.route.rotationDeg) : ''}">
+      <p id="rotHint" style="font-size:12px;color:var(--gray);margin-top:4px;"></p>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
+        <button type="button" class="btn btn-outline small-btn" onclick="nudgeVehicleRot(-15)">Turn left</button>
+        <button type="button" class="btn btn-outline small-btn" onclick="nudgeVehicleRot(15)">Turn right</button>
+        <button type="button" class="btn btn-outline small-btn" onclick="setVehicleRotAuto()">Auto face</button>
+      </div>
       <p style="font-size:12px;color:var(--gray);margin-top:4px;">Use <b>Auto</b> for most routes. Use Reverse if the icon points the wrong way.
     <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
       <span style="font-size:12px;color:var(--gray);">Nudge direction:</span>
@@ -598,8 +608,7 @@ function renderShipDetail(shipment) {
       <button type="button" class="btn btn-outline small-btn" onclick="nudgeVehicleRot(90)">→</button>
       <button type="button" class="btn btn-outline small-btn" onclick="setVehicleRotAuto()">Auto face destination</button>
     </div>
-    <p id="rotHint" style="font-size:11px;color:var(--gray);margin-top:4px;"></p>
-</p>
+    <p id="rotHint" style="font-size:11px;color:var(--gray);margin-top:4px;">Drag the plane on the map, push the progress bar, or turn with the slider. Then tap Done — Save.</p>
     </div>
 
     <div id="adminMapBox"></div>
@@ -745,33 +754,53 @@ function vehicleIconHtml(iconType, customUrl, size) {
     return '<img src="' + src + '" alt="' + (iconType || 'vehicle') + '" width="' + s + '" height="' + s + '" style="width:' + s + 'px;height:' + s + 'px;object-fit:cover;border-radius:50%;border:2px solid #FFCC00;background:#fff;display:block;" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'inline\');"><span style="display:none;font-size:' + s + 'px;">' + (ICONS[iconType || 'truck'] || '🚚') + '</span>';
 }
 
+
+function onFaceModeChange() {
+    const face = document.getElementById('f_face');
+    if (face && face.value === 'manual') {
+        const sl = document.getElementById('f_rotSlider');
+        if (sl) onRotSliderInput(sl.value);
+    } else if (face && face.value === 'auto') {
+        setVehicleRotAuto();
+    }
+}
+function onRotSliderInput(val) {
+    const deg = Math.round(Number(val) || 0);
+    const lab = document.getElementById('rotDegLabel');
+    if (lab) lab.textContent = deg + '°';
+    const face = document.getElementById('f_face');
+    if (face) {
+        face.value = 'manual';
+    }
+    // live update map marker
+    try {
+        if (adminMarker && adminMap) {
+            const o = COUNTRY_COORDS[document.getElementById('f_oCountry').value];
+            const d = COUNTRY_COORDS[document.getElementById('f_dCountry').value];
+            if (!o || !d) return;
+            const iconType = (document.getElementById('f_icon') || {}).value || 'truck';
+            adminMarker.setIcon(makeVehicleIcon(iconType, o.lat, o.lng, d.lat, d.lng, false, deg, ''));
+        }
+    } catch (e) { }
+    const hint = document.getElementById('rotHint');
+    if (hint) hint.textContent = 'Facing ' + deg + '° — tap Done — Save Map Settings so track page matches.';
+}
+
 function nudgeVehicleRot(delta) {
     const face = document.getElementById('f_face');
-    if (!face) return;
-    let cur = face.value;
-    let deg = 0;
-    if (cur === 'auto' || cur === 'flip' || cur === '') {
-        // start from current bearing if possible
+    const slider = document.getElementById('f_rotSlider');
+    let deg = slider ? Number(slider.value) || 0 : 0;
+    if (face && (face.value === 'auto' || face.value === 'flip')) {
         try {
             const o = COUNTRY_COORDS[document.getElementById('f_oCountry').value];
             const d = COUNTRY_COORDS[document.getElementById('f_dCountry').value];
             if (o && d) deg = bearingDeg(o.lat, o.lng, d.lat, d.lng);
         } catch (e) { }
-    } else {
-        deg = Number(cur) || 0;
     }
     deg = (deg + delta + 360) % 360;
-    // ensure option exists
-    let opt = Array.from(face.options).find(o => o.value === String(Math.round(deg)));
-    if (!opt) {
-        opt = document.createElement('option');
-        opt.value = String(Math.round(deg));
-        opt.textContent = 'Fixed ' + Math.round(deg) + '°';
-        face.appendChild(opt);
-    }
-    face.value = String(Math.round(deg));
-    const hint = document.getElementById('rotHint');
-    if (hint) hint.textContent = 'Facing ' + Math.round(deg) + '° — save map settings to keep.';
+    if (slider) slider.value = String(Math.round(deg));
+    if (face) face.value = 'manual';
+    onRotSliderInput(deg);
     updateVehicleIconDisplay();
     // live update marker
     try {
@@ -787,8 +816,10 @@ function nudgeVehicleRot(delta) {
 function setVehicleRotAuto() {
     const face = document.getElementById('f_face');
     if (face) face.value = 'auto';
+    const sl = document.getElementById('f_rotSlider');
+    if (sl) sl.value = '';
     const hint = document.getElementById('rotHint');
-    if (hint) hint.textContent = 'Auto: vehicle faces destination.';
+    if (hint) hint.textContent = 'Auto: vehicle faces destination. Save to apply.';
     updateVehicleIconDisplay();
     try {
         if (adminMarker && adminMap) {
@@ -1054,18 +1085,16 @@ function bearingDeg(oLat, oLng, dLat, dLng) {
     return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
 }
 function makeVehicleIcon(iconType, oLat, oLng, dLat, dLng, flipOverride, rotationDeg, customUrl) {
-    // Always face destination by default (bearing). Manual rotationDeg overrides.
+    // Auto: face destination. Manual: use rotationDeg. Flip: opposite of bearing.
     let deg = bearingDeg(oLat, oLng, dLat, dLng);
-    if (rotationDeg != null && rotationDeg !== '' && !isNaN(Number(rotationDeg))) {
-        deg = Number(rotationDeg);
-    }
-    if (flipOverride) deg = (deg + 180) % 360;
-    // Emoji vehicles point "up" by default — rotate so nose faces destination
+    const manual = rotationDeg !== null && rotationDeg !== undefined && rotationDeg !== '' && !isNaN(Number(rotationDeg));
+    if (manual) deg = Number(rotationDeg);
+    if (flipOverride && !manual) deg = (deg + 180) % 360;
     const emoji = ICONS[iconType || 'truck'] || '🚚';
     const transform = 'rotate(' + deg + 'deg)';
     return L.divIcon({
-        html: '<div style="font-size:32px;line-height:32px;transform:' + transform + ';transform-origin:center center;text-align:center;">' + emoji + '</div>',
-        className: '', iconSize: [32, 32], iconAnchor: [16, 16]
+        html: '<div style="font-size:34px;line-height:34px;transform:' + transform + ';transform-origin:center center;text-align:center;cursor:grab;">' + emoji + '</div>',
+        className: 'vehicle-dir-icon', iconSize: [34, 34], iconAnchor: [17, 17]
     });
 }
 
@@ -1174,14 +1203,58 @@ function initAdminMap(shipment) {
         const ll = e.target.getLatLng();
         const t = projectT(oLat, oLng, dLat, dLng, ll.lat, ll.lng);
         e.target.setLatLng(pointAlong(oLat, oLng, dLat, dLng, t));
-        // Manually dragging always stops automatic movement and freezes it here.
         stopAdminAnimation();
+        // Keep current facing when only moving position
+        const face = document.getElementById('f_face');
+        if (face) face.value = 'manual';
+        const sl = document.getElementById('f_rotSlider');
+        let rot = sl && sl.value !== '' && !isNaN(Number(sl.value)) ? Number(sl.value) : null;
         try {
             await apiRequest('/shipments/' + encodeURIComponent(shipment.code) + '/route', {
-                method: 'PATCH', body: JSON.stringify({ isMoving: false, movingSince: null, progress: t * 100 })
+                method: 'PATCH', body: JSON.stringify({
+                    isMoving: false, movingSince: null, progress: t * 100,
+                    rotationDeg: rot, flipOverride: false
+                })
             });
-        } catch (err) { /* keep the visual position even if the save fails */ }
+        } catch (err) { }
     });
+
+    // Hand-turn: drag LEFT/RIGHT on the plane icon (map marker) to set direction
+    setTimeout(function () {
+        try {
+            const el = adminMarker.getElement();
+            if (!el || el.dataset.turnBound === '1') return;
+            el.dataset.turnBound = '1';
+            let sx = null, base = Number((document.getElementById('f_rotSlider') || {}).value);
+            if (isNaN(base)) base = bearingDeg(oLat, oLng, dLat, dLng);
+            function turnTo(deg) {
+                deg = (deg % 360 + 360) % 360;
+                const iconType = (document.getElementById('f_icon') || {}).value || r.icon || 'truck';
+                adminMarker.setIcon(makeVehicleIcon(iconType, oLat, oLng, dLat, dLng, false, deg, ''));
+                const face = document.getElementById('f_face');
+                if (face) face.value = 'manual';
+                const sl = document.getElementById('f_rotSlider');
+                if (sl) sl.value = String(Math.round(deg));
+                const hint = document.getElementById('rotHint');
+                if (hint) hint.textContent = 'Facing ' + Math.round(deg) + '° — save when done.';
+            }
+            el.addEventListener('touchstart', function (ev) {
+                if (ev.touches.length !== 1) return;
+                sx = ev.touches[0].clientX;
+                base = Number((document.getElementById('f_rotSlider') || {}).value);
+                if (isNaN(base) || (document.getElementById('f_rotSlider') || {}).value === '') base = bearingDeg(oLat, oLng, dLat, dLng);
+            }, { passive: true });
+            el.addEventListener('touchmove', function (ev) {
+                if (sx == null || !ev.touches[0]) return;
+                // Horizontal swipe turns; don't prevent drag-move unless mostly horizontal
+                const dx = ev.touches[0].clientX - sx;
+                if (Math.abs(dx) > 8) {
+                    turnTo(base + dx * 0.6);
+                }
+            }, { passive: true });
+            el.addEventListener('touchend', function () { sx = null; });
+        } catch (e) { }
+    }, 200);
 
     if (r.isMoving) { startAdminAnimation(shipment); }
     else { reflectAdminProgress(startProgress); }
@@ -1196,10 +1269,14 @@ function initAdminMap(shipment) {
         onEnd: async function (p) {
             reflectAdminProgress(p);
             if (adminMarker) adminMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, p / 100));
+            const sl = document.getElementById('f_rotSlider');
+            let rot = sl && sl.value !== '' && !isNaN(Number(sl.value)) ? Number(sl.value) : null;
+            const face = document.getElementById('f_face');
+            if (face && rot != null) face.value = 'manual';
             try {
                 await apiRequest('/shipments/' + encodeURIComponent(shipment.code) + '/route', {
                     method: 'PATCH',
-                    body: JSON.stringify({ isMoving: false, movingSince: null, progress: p })
+                    body: JSON.stringify({ isMoving: false, movingSince: null, progress: p, rotationDeg: rot, flipOverride: false })
                 });
             } catch (err) { }
         }
@@ -1218,18 +1295,13 @@ function initAdminMap(shipment) {
                 adminMarker.setIcon(makeVehicleIcon(iconType, oLat, oLng, dLat, dLng, false, deg, ''));
             }
             const face = document.getElementById('f_face');
-            if (face) {
-                let opt = Array.from(face.options).find(o => o.value === String(Math.round(deg)));
-                if (!opt) {
-                    opt = document.createElement('option');
-                    opt.value = String(Math.round(deg));
-                    opt.textContent = 'Fixed ' + Math.round(deg) + '°';
-                    face.appendChild(opt);
-                }
-                face.value = String(Math.round(deg));
-            }
+            if (face) face.value = 'manual';
+            const slider = document.getElementById('f_rotSlider');
+            if (slider) slider.value = String(Math.round(deg));
+            const lab = document.getElementById('rotDegLabel');
+            if (lab) lab.textContent = Math.round(deg) + '°';
             const hint = document.getElementById('rotHint');
-            if (hint) hint.textContent = 'Facing ' + Math.round(deg) + '° — drag plane icon left/right to turn. Save map settings to keep.';
+            if (hint) hint.textContent = 'Facing ' + Math.round(deg) + '° — tap Done — Save so tracking shows this direction.';
         }
         function down(e) {
             startX = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
@@ -1288,6 +1360,31 @@ async function saveRoute(code) {
     const destCountry = document.getElementById('f_dCountry').value;
     const oCoords = COUNTRY_COORDS[originCountry];
     const dCoords = COUNTRY_COORDS[destCountry];
+    const faceVal = (document.getElementById('f_face') || {}).value || 'auto';
+    const slider = document.getElementById('f_rotSlider');
+    let rotationDeg = null;
+    let flipOverride = false;
+    if (faceVal === 'flip') {
+        flipOverride = true;
+        rotationDeg = null;
+    } else if (faceVal === 'auto') {
+        rotationDeg = null;
+    } else if (faceVal === 'manual' || (slider && faceVal === 'slider')) {
+        rotationDeg = Number(slider && slider.value != null ? slider.value : faceVal);
+        if (isNaN(rotationDeg)) rotationDeg = null;
+    } else {
+        rotationDeg = Number(faceVal);
+        if (isNaN(rotationDeg)) rotationDeg = null;
+    }
+    // Current progress from bar (hand-pushed position)
+    let progress = 0;
+    const fill = document.getElementById('mapProgressFill');
+    if (fill && fill.style.width) progress = parseFloat(fill.style.width) || 0;
+    const label = document.getElementById('mapProgressLabel');
+    if (label) {
+        const n = parseFloat(String(label.textContent).replace('%', ''));
+        if (!isNaN(n)) progress = n;
+    }
     const payload = {
         originCountry, destCountry,
         originLat: oCoords.lat, originLng: oCoords.lng,
@@ -1295,12 +1392,11 @@ async function saveRoute(code) {
         icon: document.getElementById('f_icon').value,
         vehicleImg: (document.getElementById('f_vehicleImg') && document.getElementById('f_vehicleImg').value.trim()) || '',
         speed: document.getElementById('f_speed').value,
-        flipOverride: (document.getElementById('f_face') && document.getElementById('f_face').value === 'flip'),
-        rotationDeg: (function () {
-            const v = (document.getElementById('f_face') || {}).value;
-            if (!v || v === 'auto' || v === 'flip') return 0;
-            return Number(v) || 0;
-        })(),
+        flipOverride,
+        rotationDeg,
+        progress,
+        isMoving: false,
+        movingSince: null,
     };
     try {
         const updated = await apiRequest('/shipments/' + encodeURIComponent(code) + '/route', { method: 'PATCH', body: JSON.stringify(payload) });

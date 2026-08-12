@@ -60,7 +60,7 @@ const RouteSchema = new mongoose.Schema(
         vehicleImg: { type: String, default: "" },
         speed: { type: String, enum: ["slow", "normal", "fast"], default: "slow" },
         flipOverride: { type: Boolean, default: false },
-        rotationDeg: { type: Number, default: 0 },
+        rotationDeg: { type: Number, default: null },
         progress: { type: Number, default: 0, min: 0, max: 100 }, // frozen progress when not moving
         isMoving: { type: Boolean, default: false },
         movingSince: { type: Date, default: null }, // when isMoving is true, progress is computed live from this

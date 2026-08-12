@@ -1,4 +1,3 @@
-
 const express = require("express");
 const Shipment = require("../models/Shipment");
 const Notification = require("../models/Notification");
@@ -218,22 +217,33 @@ router.patch("/:code/route", requireAdmin, async (req, res) => {
     if (!shipment) return res.status(404).json({ error: "Shipment not found." });
     const prev = shipment.route ? (shipment.route.toObject ? shipment.route.toObject() : { ...shipment.route }) : {};
     shipment.route = { ...prev, ...req.body };
+    // Allow clearing rotation (null = auto face destination)
+    if (Object.prototype.hasOwnProperty.call(req.body, 'rotationDeg')) {
+        shipment.route.rotationDeg = req.body.rotationDeg;
+    }
     await shipment.save();
     if (req.body.isMoving === true && !prev.isMoving) {
+        const o = shipment.route.originCountry || "Origin";
+        const d = shipment.route.destCountry || "Destination";
+        const ic = shipment.route.icon || "truck";
+        const iconLabel = ic === "plane" ? "Plane" : ic === "ship" ? "Ship" : "Truck";
         await pushNotify({
             code: shipment.code,
-            title: "In motion",
-            message: `${shipment.code} is moving toward destination (${shipment.route.speed || "normal"} speed).`,
+            title: `${iconLabel} in motion: ${o} → ${d}`,
+            message: `${shipment.code} is moving from ${o} to ${d} (${shipment.route.speed || "normal"} speed).`,
             type: "route",
-            location: shipment.route.destCountry || "",
+            location: `${o} → ${d}`,
         });
     }
     if (req.body.isMoving === false && prev.isMoving) {
+        const o = shipment.route.originCountry || "Origin";
+        const d = shipment.route.destCountry || "Destination";
         await pushNotify({
             code: shipment.code,
             title: "Movement paused",
-            message: `${shipment.code} progress frozen at ${Math.round(shipment.route.progress || 0)}%.`,
+            message: `${shipment.code} ${o} → ${d} frozen at ${Math.round(shipment.route.progress || 0)}%.`,
             type: "route",
+            location: `${o} → ${d}`,
         });
     }
     res.json(shipment);
