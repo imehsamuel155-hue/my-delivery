@@ -211,7 +211,7 @@ ${dhlTimelineHtml(shipment.history)}
           <span class="route-vehicle-icon" id="publicVehicleIcon" data-icon="${esc((shipment.route && shipment.route.icon) || 'truck')}"><span style="font-size:28px;line-height:1;">${(ICONS[(shipment.route && shipment.route.icon) || 'truck'] || '🚚')}</span></span>
           <span>${esc((shipment.route && shipment.route.destCountry) || 'Destination')}</span>
         </div>
-        <div class="progress-bar tall"><div class="progress-fill" id="publicProgressFill" style="width:${Math.round(computeLiveProgress(shipment.route))}%"></div></div>
+        <div class="progress-bar tall" title="Drag with finger"><div class="progress-fill" id="publicProgressFill" style="width:${Math.round(computeLiveProgress(shipment.route))}%"></div></div>
         <p style="font-size:12.5px;color:var(--gray);margin-top:8px;" id="publicProgressNote"></p>
       </div>
       <div id="publicMapBox"></div>
@@ -609,7 +609,7 @@ function renderShipDetail(shipment) {
         <span class="route-vehicle-icon" id="mapVehicleIcon" data-icon="${esc((s.route && s.route.icon) || 'truck')}"><span style="font-size:28px;line-height:1;">${(ICONS[(s.route && s.route.icon) || 'truck'] || '🚚')}</span></span>
         <span id="mapDestLabel">${esc((s.route && s.route.destCountry) || 'Destination')}</span>
       </div>
-      <div class="progress-bar tall"><div class="progress-fill" id="mapProgressFill" style="width:${Math.round(computeLiveProgress(s.route))}%"></div></div>
+      <div class="progress-bar tall" title="Drag with finger to push vehicle"><div class="progress-fill" id="mapProgressFill" style="width:${Math.round(computeLiveProgress(s.route))}%"></div></div>
       <div class="progress-pct mono">Progress: <span id="mapProgressLabel">${Math.round(computeLiveProgress(s.route))}%</span></div>
     </div>
     <div class="map-controls">
@@ -915,6 +915,7 @@ const COUNTRY_COORDS = {
     "Guinea": { lat: 9.6412, lng: -13.5784 },
     "Haiti": { lat: 18.5944, lng: -72.3074 },
     "Honduras": { lat: 14.0723, lng: -87.1921 },
+    "Hong Kong": { lat: 22.3193, lng: 114.1694 },
     "Hungary": { lat: 47.4979, lng: 19.0402 },
     "Iceland": { lat: 64.1466, lng: -21.9426 },
     "India": { lat: 28.6139, lng: 77.209 },
@@ -937,6 +938,7 @@ const COUNTRY_COORDS = {
     "Libya": { lat: 32.8872, lng: 13.1913 },
     "Lithuania": { lat: 54.6872, lng: 25.2797 },
     "Luxembourg": { lat: 49.6116, lng: 6.1319 },
+    "Macau": { lat: 22.1987, lng: 113.5439 },
     "Madagascar": { lat: -18.8792, lng: 47.5079 },
     "Malawi": { lat: -13.9626, lng: 33.7741 },
     "Malaysia": { lat: 3.139, lng: 101.6869 },
@@ -1067,6 +1069,74 @@ function makeVehicleIcon(iconType, oLat, oLng, dLat, dLng, flipOverride, rotatio
     });
 }
 
+
+/* ---- Hand push: progress bar + map vehicle (keep auto when moving) ---- */
+function ensureProgressKnob(bar) {
+    if (!bar) return null;
+    let knob = bar.querySelector('.progress-knob');
+    if (!knob) {
+        knob = document.createElement('div');
+        knob.className = 'progress-knob';
+        bar.appendChild(knob);
+    }
+    return knob;
+}
+function setProgressBarUI(fillId, percent) {
+    const p = Math.max(0, Math.min(100, Number(percent) || 0));
+    const fill = document.getElementById(fillId);
+    if (fill) {
+        fill.style.width = p + '%';
+        const bar = fill.parentElement;
+        const knob = ensureProgressKnob(bar);
+        if (knob) knob.style.left = p + '%';
+    }
+    return p;
+}
+function bindProgressBarDrag(fillId, opts) {
+    const fill = document.getElementById(fillId);
+    if (!fill) return;
+    const bar = fill.parentElement;
+    if (!bar || bar.dataset.handBound === '1') return;
+    bar.dataset.handBound = '1';
+    ensureProgressKnob(bar);
+
+    function pctFromEvent(e) {
+        const rect = bar.getBoundingClientRect();
+        const clientX = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
+        const x = clientX - rect.left;
+        return Math.max(0, Math.min(100, (x / rect.width) * 100));
+    }
+    let dragging = false;
+    function onStart(e) {
+        dragging = true;
+        if (opts && opts.onStart) opts.onStart();
+        const p = pctFromEvent(e);
+        setProgressBarUI(fillId, p);
+        if (opts && opts.onMove) opts.onMove(p);
+        e.preventDefault();
+    }
+    function onMove(e) {
+        if (!dragging) return;
+        const p = pctFromEvent(e);
+        setProgressBarUI(fillId, p);
+        if (opts && opts.onMove) opts.onMove(p);
+        e.preventDefault();
+    }
+    function onEnd(e) {
+        if (!dragging) return;
+        dragging = false;
+        const p = pctFromEvent(e.changedTouches ? e.changedTouches[0] : e);
+        setProgressBarUI(fillId, p);
+        if (opts && opts.onEnd) opts.onEnd(p);
+    }
+    bar.addEventListener('mousedown', onStart);
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onEnd);
+    bar.addEventListener('touchstart', onStart, { passive: false });
+    window.addEventListener('touchmove', onMove, { passive: false });
+    window.addEventListener('touchend', onEnd);
+}
+
 /* ----- ADMIN MAP ----- */
 function destroyAdminMap() {
     if (adminAnimTimer) { clearInterval(adminAnimTimer); adminAnimTimer = null; }
@@ -1115,15 +1185,86 @@ function initAdminMap(shipment) {
 
     if (r.isMoving) { startAdminAnimation(shipment); }
     else { reflectAdminProgress(startProgress); }
+
+    // Hand-push progress bar (same as dragging plane on map)
+    bindProgressBarDrag('mapProgressFill', {
+        onStart: function () { stopAdminAnimation(); },
+        onMove: function (p) {
+            reflectAdminProgress(p);
+            if (adminMarker) adminMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, p / 100));
+        },
+        onEnd: async function (p) {
+            reflectAdminProgress(p);
+            if (adminMarker) adminMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, p / 100));
+            try {
+                await apiRequest('/shipments/' + encodeURIComponent(shipment.code) + '/route', {
+                    method: 'PATCH',
+                    body: JSON.stringify({ isMoving: false, movingSince: null, progress: p })
+                });
+            } catch (err) { }
+        }
+    });
+
+    // Hand-rotate direction: drag left/right on the vehicle emoji above the bar
+    const vIcon = document.getElementById('mapVehicleIcon');
+    if (vIcon && vIcon.dataset.rotBound !== '1') {
+        vIcon.dataset.rotBound = '1';
+        let rot0 = Number(r.rotationDeg) || bearingDeg(oLat, oLng, dLat, dLng);
+        let startX = 0, startRot = rot0;
+        function applyRot(deg) {
+            deg = (deg % 360 + 360) % 360;
+            const iconType = (document.getElementById('f_icon') || {}).value || r.icon || 'truck';
+            if (adminMarker) {
+                adminMarker.setIcon(makeVehicleIcon(iconType, oLat, oLng, dLat, dLng, false, deg, ''));
+            }
+            const face = document.getElementById('f_face');
+            if (face) {
+                let opt = Array.from(face.options).find(o => o.value === String(Math.round(deg)));
+                if (!opt) {
+                    opt = document.createElement('option');
+                    opt.value = String(Math.round(deg));
+                    opt.textContent = 'Fixed ' + Math.round(deg) + '°';
+                    face.appendChild(opt);
+                }
+                face.value = String(Math.round(deg));
+            }
+            const hint = document.getElementById('rotHint');
+            if (hint) hint.textContent = 'Facing ' + Math.round(deg) + '° — drag plane icon left/right to turn. Save map settings to keep.';
+        }
+        function down(e) {
+            startX = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
+            startRot = Number((document.getElementById('f_face') || {}).value) || rot0;
+            if (isNaN(startRot)) startRot = bearingDeg(oLat, oLng, dLat, dLng);
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        function move(e) {
+            if (startX == null) return;
+            const x = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
+            if (x == null) return;
+            const deg = startRot + (x - startX) * 0.5;
+            applyRot(deg);
+            e.preventDefault();
+        }
+        function up() { startX = null; }
+        vIcon.addEventListener('mousedown', down);
+        window.addEventListener('mousemove', move);
+        window.addEventListener('mouseup', up);
+        vIcon.addEventListener('touchstart', down, { passive: false });
+        window.addEventListener('touchmove', move, { passive: false });
+        window.addEventListener('touchend', up);
+    }
 }
 function reflectAdminProgress(progress) {
-    const p = Math.max(0, Math.min(100, Number(progress) || 0));
+    const p = setProgressBarUI('mapProgressFill', progress);
     const label = document.getElementById('mapProgressLabel');
     if (label) label.textContent = Math.round(p) + '%';
-    const fill = document.getElementById('mapProgressFill');
-    if (fill) fill.style.width = p + '%';
     const icon = document.getElementById('mapVehicleIcon');
-    if (icon) icon.style.left = 'calc(' + p + '% - 10px)';
+    if (icon) {
+        icon.style.position = 'absolute';
+        icon.style.left = 'calc(' + p + '% - 14px)';
+        icon.style.top = '0';
+    }
 }
 function startAdminAnimation(shipment) {
     if (adminAnimTimer) clearInterval(adminAnimTimer);
@@ -1251,10 +1392,67 @@ function initPublicMap(shipment) {
     const icon = makeVehicleIcon(r.icon, oLat, oLng, dLat, dLng, r.flipOverride, r.rotationDeg, r.vehicleImg);
     const startProgress = computeLiveProgress(r);
     const pos = pointAlong(oLat, oLng, dLat, dLng, startProgress / 100);
-    publicMarker = L.marker(pos, { icon, draggable: false, interactive: false }).addTo(publicMap).bindPopup('Current location');
+    publicMarker = L.marker(pos, { icon, draggable: true, interactive: true }).addTo(publicMap).bindPopup('Drag me with your finger');
+
+    // Hand-drag plane on map → moves along route line
+    publicMarker.on('drag', e => {
+        if (publicAnimTimer) { clearInterval(publicAnimTimer); publicAnimTimer = null; }
+        const ll = e.target.getLatLng();
+        const t = projectT(oLat, oLng, dLat, dLng, ll.lat, ll.lng);
+        reflectPublicProgress(t * 100, false);
+    });
+    publicMarker.on('dragend', e => {
+        const ll = e.target.getLatLng();
+        const t = projectT(oLat, oLng, dLat, dLng, ll.lat, ll.lng);
+        e.target.setLatLng(pointAlong(oLat, oLng, dLat, dLng, t));
+        reflectPublicProgress(t * 100, false);
+    });
 
     reflectPublicProgress(startProgress, r.isMoving);
     if (r.isMoving) startPublicAnimation(oLat, oLng, dLat, dLng, r);
+
+    // Hand-push progress bar on track page
+    bindProgressBarDrag('publicProgressFill', {
+        onStart: function () {
+            if (publicAnimTimer) { clearInterval(publicAnimTimer); publicAnimTimer = null; }
+        },
+        onMove: function (p) {
+            reflectPublicProgress(p, false);
+            if (publicMarker) publicMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, p / 100));
+        },
+        onEnd: function (p) {
+            reflectPublicProgress(p, false);
+            if (publicMarker) publicMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, p / 100));
+        }
+    });
+
+    // Hand-rotate public plane icon on progress row
+    const pv = document.getElementById('publicVehicleIcon');
+    if (pv && pv.dataset.rotBound !== '1') {
+        pv.dataset.rotBound = '1';
+        let startX = null, startRot = bearingDeg(oLat, oLng, dLat, dLng);
+        function pubRot(deg) {
+            deg = (deg % 360 + 360) % 360;
+            const iconType = (r.icon || 'truck');
+            if (publicMarker) {
+                publicMarker.setIcon(makeVehicleIcon(iconType, oLat, oLng, dLat, dLng, false, deg, ''));
+            }
+        }
+        pv.addEventListener('mousedown', e => { startX = e.clientX; e.preventDefault(); e.stopPropagation(); });
+        pv.addEventListener('touchstart', e => { startX = e.touches[0].clientX; e.preventDefault(); e.stopPropagation(); }, { passive: false });
+        window.addEventListener('mousemove', e => {
+            if (startX == null) return;
+            pubRot(startRot + (e.clientX - startX) * 0.5);
+        });
+        window.addEventListener('touchmove', e => {
+            if (startX == null || !e.touches[0]) return;
+            pubRot(startRot + (e.touches[0].clientX - startX) * 0.5);
+            e.preventDefault();
+        }, { passive: false });
+        window.addEventListener('mouseup', () => { startX = null; });
+        window.addEventListener('touchend', () => { startX = null; });
+    }
+
 
     // Re-check the backend every few seconds in case the admin starts, stops,
     // or changes the speed while this page is open.
@@ -1271,11 +1469,14 @@ function initPublicMap(shipment) {
     }, 6000);
 }
 function reflectPublicProgress(progress, isMoving) {
-    const p = Math.max(0, Math.min(100, Number(progress) || 0));
-    const fill = document.getElementById('publicProgressFill');
-    if (fill) fill.style.width = p + '%';
+    const p = setProgressBarUI('publicProgressFill', progress);
+    const icon = document.getElementById('publicVehicleIcon');
+    if (icon) {
+        icon.style.position = 'absolute';
+        icon.style.left = 'calc(' + p + '% - 14px)';
+    }
     const note = document.getElementById('publicProgressNote');
-    if (note) note.textContent = Math.round(p) + '% of the way there' + (isMoving ? ' — currently moving.' : '.') + ' You can zoom and pan the map to follow along.';
+    if (note) note.textContent = Math.round(p) + '% of the way there' + (isMoving ? ' — currently moving. Drag the bar or plane with your finger to adjust.' : '. Drag the bar or plane with your finger to set position.') + ' Pinch-rotate the plane to set direction.';
 }
 let _lastProgNotif = -1;
 let _lastProgNotifAt = 0;
@@ -1725,8 +1926,12 @@ async function toggleBoxService() {
             }
         });
     } catch (e) {
-        alert(e.message || 'Could not update box service');
+        const m = (e && e.message) ? String(e.message) : '';
+        if (/404/.test(m)) {
+            alert('Box ON/OFF API not on server yet (404). Push routes/auth.js + models/AdminSettings.js to GitHub and wait for Render to redeploy.');
+        } else {
+            alert(m || 'Could not update box service');
+        }
     }
 }
-// Refresh toggle when admin dashboard opens
-const _origShowAdmin = typeof showAdminDashboard === 'function' ? showAdminDashboard : null;
+

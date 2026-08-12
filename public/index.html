@@ -12,7 +12,7 @@
         rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link rel="stylesheet" href="/css/style.css?v=20260810d">
+    <link rel="stylesheet" href="/css/style.css?v=20260812a">
 </head>
 
 <body>
@@ -48,7 +48,16 @@
             <span></span><span></span><span></span>
         </button>
 
-
+        <select id="siteLang" onchange="setSiteLang(this.value)"
+            style="margin-left:8px;padding:6px 8px;border-radius:6px;border:1px solid #ccc;font-size:13px;max-width:120px;">
+            <option value="en">English</option>
+            <option value="ms">Malaysia</option>
+            <option value="id">Indonesia</option>
+            <option value="es">Spanish</option>
+            <option value="fr">French</option>
+            <option value="de">German</option>
+            <option value="zh">Chinese</option>
+        </select>
 
     </header>
 
@@ -92,6 +101,7 @@
                     <p>Pick the lane that fits your shipment we handle documentation, customs and last mile delivery
                         on all three.</p>
                 </div>
+
                 <div class="service-grid">
                     <div class="service-card">
                         <img src="images/49cb3e63e475d5811c992103c4941d03.jpg" alt="DHL cargo plane" loading="lazy">
@@ -214,6 +224,7 @@
                 </div>
             </div>
         </section>
+
 
         <section id="contact" style="background:#fff;">
             <div class="wrap">
@@ -397,7 +408,7 @@
             <button class="modal-close" onclick="closeModal('settingsModal')">&times;</button>
             <h3>Account Settings</h3>
             <p class="sub">Change admin username, password, or admin login PIN. Current password is required. (Unlocked
-                with settings PIN .)</p>
+                with settings PIN 7799.)</p>
             <form onsubmit="return handleCredentialsSubmit(event)">
                 <div class="field">
                     <label>Current Password</label>
@@ -467,7 +478,7 @@
         </div>
     </div>
 
-    <script src="/js/script.js?v=20260810d"></script>
+    <script src="/js/script.js?v=20260812a"></script>
 </body>
 
 </html>

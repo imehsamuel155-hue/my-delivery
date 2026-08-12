@@ -1538,6 +1538,8 @@ h4.section-title:first-child {
 }
 
 .route-ends {
+    position: relative;
+    min-height: 36px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -1931,4 +1933,50 @@ header.navbar .btn-outline {
     .dhl-ship-box {
         box-shadow: none;
     }
+}
+
+/* Hand-draggable progress bar */
+.progress-bar {
+    position: relative;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+}
+
+.progress-bar:active {
+    cursor: grabbing;
+}
+
+.progress-bar .progress-knob {
+    position: absolute;
+    top: 50%;
+    width: 22px;
+    height: 22px;
+    margin-top: -11px;
+    margin-left: -11px;
+    border-radius: 50%;
+    background: #FFCC00;
+    border: 2px solid #D40511;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, .25);
+    z-index: 2;
+    pointer-events: none;
+}
+
+.route-vehicle-icon {
+    position: relative;
+    transition: left 0.05s linear;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+    display: inline-block;
+}
+
+.route-progress-wrap {
+    position: relative;
+}
+
+.hand-hint {
+    font-size: 11px;
+    color: #888;
+    margin-top: 6px;
 }
