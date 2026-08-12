@@ -820,15 +820,18 @@ function setVehicleRotAuto() {
     if (face) face.value = 'auto';
     const sl = document.getElementById('f_rotSlider');
     if (sl) sl.value = '';
+    window._lastAdminRotation = null;
     const hint = document.getElementById('rotHint');
-    if (hint) hint.textContent = 'Auto: vehicle faces destination. Save to apply.';
+    if (hint) hint.textContent = 'Auto: nose points to DESTINATION (not origin). Save to apply on track.';
     updateVehicleIconDisplay();
     try {
         if (adminMarker && adminMap) {
             const o = COUNTRY_COORDS[document.getElementById('f_oCountry').value];
             const d = COUNTRY_COORDS[document.getElementById('f_dCountry').value];
+            if (!o || !d) return;
             const iconType = (document.getElementById('f_icon') || {}).value || 'truck';
-            const ic = makeVehicleIcon(iconType, o.lat, o.lng, d.lat, d.lng, false, 0, '');
+            // null = auto face DESTINATION
+            const ic = makeVehicleIcon(iconType, o.lat, o.lng, d.lat, d.lng, false, null, '');
             adminMarker.setIcon(ic);
         }
     } catch (e) { }
@@ -862,8 +865,13 @@ function updateVehicleIconDisplay() {
                 const face = document.getElementById('f_face');
                 const faceVal = face ? face.value : 'auto';
                 const flip = faceVal === 'flip';
-                let rot = 0;
-                if (faceVal && faceVal !== 'auto' && faceVal !== 'flip') rot = Number(faceVal) || 0;
+                let rot = null; // auto → face destination
+                if (faceVal === 'manual') {
+                    rot = getAdminRotationFromUI();
+                } else if (faceVal && faceVal !== 'auto' && faceVal !== 'flip') {
+                    rot = Number(faceVal);
+                    if (isNaN(rot)) rot = null;
+                }
                 const ic = makeVehicleIcon(iconType, oLat, oLng, dLat, dLng, flip, rot, custom);
                 adminMarker.setIcon(ic);
             }
@@ -1086,12 +1094,28 @@ function bearingDeg(oLat, oLng, dLat, dLng) {
         Math.sin(oLat * toRad) * Math.cos(dLat * toRad) * Math.cos((dLng - oLng) * toRad);
     return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
 }
+function emojiNoseOffset(iconType) {
+    // Emoji art faces a default way: plane/ship usually point RIGHT (east),
+    // truck usually points UP (north). CSS rotate(0) keeps that default.
+    // Geographic bearing is 0=north, 90=east — convert so the NOSE points
+    // toward the destination, not back toward origin.
+    const t = (iconType || 'truck').toLowerCase();
+    if (t === 'plane' || t === 'ship') return -90;
+    return 0;
+}
 function makeVehicleIcon(iconType, oLat, oLng, dLat, dLng, flipOverride, rotationDeg, customUrl) {
-    // Auto: face destination. Manual: use rotationDeg. Flip: opposite of bearing.
-    let deg = bearingDeg(oLat, oLng, dLat, dLng);
+    // Auto: nose points TO destination (never back to origin).
+    // Manual: exact rotationDeg. Flip: opposite of destination bearing.
     const manual = rotationDeg !== null && rotationDeg !== undefined && rotationDeg !== '' && !isNaN(Number(rotationDeg));
-    if (manual) deg = Number(rotationDeg);
-    if (flipOverride && !manual) deg = (deg + 180) % 360;
+    let deg;
+    if (manual) {
+        deg = Number(rotationDeg);
+    } else {
+        // Bearing from origin → destination, adjusted for emoji default face
+        deg = bearingDeg(oLat, oLng, dLat, dLng) + emojiNoseOffset(iconType);
+        if (flipOverride) deg += 180;
+        deg = (deg % 360 + 360) % 360;
+    }
     const emoji = ICONS[iconType || 'truck'] || '🚚';
     const transform = 'rotate(' + deg + 'deg)';
     return L.divIcon({
