@@ -622,9 +622,10 @@ function renderShipDetail(shipment) {
       <div class="progress-pct mono">Progress: <span id="mapProgressLabel">${Math.round(computeLiveProgress(s.route))}%</span></div>
     </div>
     <div class="map-controls">
-      <button class="btn btn-red small-btn" onclick="playRoute('${esc(s.code)}')">▶ Start Moving</button>
-      <button class="btn btn-outline small-btn" style="color:var(--ink);border-color:var(--line);" onclick="pauseRoute('${esc(s.code)}')">⏸ Stop</button>
-      <button class="btn btn-outline small-btn" style="color:var(--ink);border-color:var(--line);" onclick="resetRoute('${esc(s.code)}')">⟲ Reset</button>
+      <button type="button" class="btn btn-red small-btn" id="btnPlayRoute" onclick="playRoute('${esc(s.code)}')">▶ Start Moving</button>
+      <button type="button" class="btn btn-outline small-btn" id="btnPauseRoute" style="color:var(--ink);border-color:var(--line);" onclick="pauseRoute('${esc(s.code)}')">⏸ Pause</button>
+      <button type="button" class="btn btn-outline small-btn" id="btnResetRoute" style="color:var(--ink);border-color:var(--line);" onclick="resetRoute('${esc(s.code)}')">⟲ Restart</button>
+      <p style="font-size:11px;color:var(--gray);margin-top:6px;">Start / Pause / Restart save by themselves. Done — Save is for countries, vehicle type &amp; hand position/direction.</p>
     </div>
     <button class="btn btn-red" style="width:100%; margin-top:14px; padding:13px;" onclick="saveRoute('${esc(s.code)}')">✓ Done — Save Map Settings</button>
     <p id="routeSaveMsg" style="font-size:12px; color:var(--gray); margin-top:6px; display:none;"></p>
@@ -782,8 +783,9 @@ function onRotSliderInput(val) {
             adminMarker.setIcon(makeVehicleIcon(iconType, o.lat, o.lng, d.lat, d.lng, false, deg, ''));
         }
     } catch (e) { }
+    window._lastAdminRotation = deg;
     const hint = document.getElementById('rotHint');
-    if (hint) hint.textContent = 'Facing ' + deg + '° — tap Done — Save Map Settings so track page matches.';
+    if (hint) hint.textContent = 'Facing ' + deg + '° — Pause or Done to lock direction.';
 }
 
 function nudgeVehicleRot(delta) {
@@ -1195,8 +1197,11 @@ function initAdminMap(shipment) {
     adminMarker = L.marker(pos, { icon, draggable: true }).addTo(adminMap);
 
     adminMarker.on('drag', e => {
+        // Always snap to the origin→destination line — never leave the route
         const ll = e.target.getLatLng();
         const t = projectT(oLat, oLng, dLat, dLng, ll.lat, ll.lng);
+        const snapped = pointAlong(oLat, oLng, dLat, dLng, t);
+        e.target.setLatLng(snapped);
         reflectAdminProgress(t * 100);
     });
     adminMarker.on('dragend', async e => {
@@ -1235,8 +1240,9 @@ function initAdminMap(shipment) {
                 if (face) face.value = 'manual';
                 const sl = document.getElementById('f_rotSlider');
                 if (sl) sl.value = String(Math.round(deg));
+                window._lastAdminRotation = Math.round(deg);
                 const hint = document.getElementById('rotHint');
-                if (hint) hint.textContent = 'Facing ' + Math.round(deg) + '° — save when done.';
+                if (hint) hint.textContent = 'Facing ' + Math.round(deg) + '° — Pause or Done to lock it.';
             }
             el.addEventListener('touchstart', function (ev) {
                 if (ev.touches.length !== 1) return;
@@ -1401,63 +1407,162 @@ async function saveRoute(code) {
     try {
         const updated = await apiRequest('/shipments/' + encodeURIComponent(code) + '/route', { method: 'PATCH', body: JSON.stringify(payload) });
         unlockedShipments[updated.code] = updated;
-        if (msg) { msg.style.display = 'block'; msg.style.color = 'var(--green)'; msg.textContent = 'Saved.'; }
-        // Re-render detail so progress-bar icon matches saved plane/truck/ship
-        renderShipDetail(updated);
+        if (msg) { msg.style.display = 'block'; msg.style.color = 'var(--green)'; msg.textContent = 'Saved — position & direction locked.'; }
+        // Keep marker exactly where you placed it (no jump)
+        if (adminMarker && updated.route) {
+            const r = updated.route;
+            const oLat = parseFloat(r.originLat), oLng = parseFloat(r.originLng);
+            const dLat = parseFloat(r.destLat), dLng = parseFloat(r.destLng);
+            const p = Number(r.progress) || 0;
+            if (![oLat, oLng, dLat, dLng].some(isNaN)) {
+                adminMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, p / 100));
+                adminMarker.setIcon(makeVehicleIcon(r.icon, oLat, oLng, dLat, dLng, r.flipOverride, r.rotationDeg, r.vehicleImg));
+                reflectAdminProgress(p);
+            }
+        }
         const iconEl = document.getElementById('mapVehicleIcon');
         if (iconEl && updated.route) {
             const t = updated.route.icon || 'truck';
             iconEl.innerHTML = '<span style="font-size:28px;line-height:1;">' + (ICONS[t] || '🚚') + '</span>';
             iconEl.setAttribute('data-icon', t);
         }
-        initAdminMap(updated);
     } catch (err) {
         if (msg) { msg.style.display = 'block'; msg.style.color = 'var(--red)'; msg.textContent = err.message; }
     }
 }
+
+function getAdminProgressFromUI() {
+    const label = document.getElementById('mapProgressLabel');
+    if (label) {
+        const n = parseFloat(String(label.textContent).replace('%', ''));
+        if (!isNaN(n)) return Math.max(0, Math.min(100, n));
+    }
+    const fill = document.getElementById('mapProgressFill');
+    if (fill && fill.style.width) {
+        const n = parseFloat(fill.style.width);
+        if (!isNaN(n)) return Math.max(0, Math.min(100, n));
+    }
+    return 0;
+}
+function getAdminRotationFromUI() {
+    const sl = document.getElementById('f_rotSlider');
+    if (sl && sl.value !== '' && !isNaN(Number(sl.value))) return Number(sl.value);
+    if (typeof window._lastAdminRotation === 'number' && !isNaN(window._lastAdminRotation)) {
+        return window._lastAdminRotation;
+    }
+    return null; // auto
+}
+function setRouteActionLoading(on) {
+    const ids = ['btnPlayRoute', 'btnPauseRoute', 'btnResetRoute'];
+    ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (on) {
+            if (!el.dataset.label) el.dataset.label = el.textContent;
+            el.disabled = true;
+            el.textContent = '......';
+        } else {
+            el.disabled = false;
+            if (el.dataset.label) el.textContent = el.dataset.label;
+        }
+    });
+    const msg = document.getElementById('routeSaveMsg');
+    if (msg && on) {
+        msg.style.display = 'block';
+        msg.style.color = 'var(--gray)';
+        msg.textContent = 'Please wait……';
+    }
+}
+
 async function playRoute(code) {
+    setRouteActionLoading(true);
     try {
-        // Uses the cached full shipment (from unlocking or a non-protected fetch) -
-        // shipmentsCache alone doesn't have route data for PIN-protected shipments.
         const s = unlockedShipments[code];
         if (!s || !s.route || [s.route.originLat, s.route.originLng, s.route.destLat, s.route.destLng].some(v => v === undefined || v === null)) {
-            alert('Pick origin & destination countries and click "Done" first.');
+            alert('Pick origin & destination countries and click "Done — Save Map Settings" first.');
             return;
         }
-        const currentProgress = computeLiveProgress(s.route);
+        // Keep the position & facing you set by hand — only start moving from here
+        const progress = getAdminProgressFromUI();
+        const rotationDeg = getAdminRotationFromUI();
+        const body = {
+            isMoving: true,
+            movingSince: new Date().toISOString(),
+            progress
+        };
+        if (rotationDeg != null) { body.rotationDeg = rotationDeg; body.flipOverride = false; }
         const updated = await apiRequest('/shipments/' + encodeURIComponent(code) + '/route', {
-            method: 'PATCH', body: JSON.stringify({ isMoving: true, movingSince: new Date().toISOString(), progress: currentProgress })
+            method: 'PATCH', body: JSON.stringify(body)
         });
         unlockedShipments[updated.code] = updated;
-        initAdminMap(updated);
+        // Soft update: don't wipe hand-set direction
+        if (updated.route) {
+            s.route = updated.route;
+            startAdminAnimation(updated);
+            reflectAdminProgress(computeLiveProgress(updated.route));
+        }
+        const msg = document.getElementById('routeSaveMsg');
+        if (msg) { msg.style.display = 'block'; msg.style.color = 'var(--green)'; msg.textContent = 'Moving — saved.'; }
     } catch (err) {
         alert("Couldn't start movement: " + err.message);
+    } finally {
+        setRouteActionLoading(false);
     }
 }
 async function pauseRoute(code) {
+    setRouteActionLoading(true);
     try {
-        const s = unlockedShipments[code];
-        const frozenProgress = s ? computeLiveProgress(s.route) : 0;
         stopAdminAnimation();
+        const progress = getAdminProgressFromUI();
+        const rotationDeg = getAdminRotationFromUI();
+        const body = { isMoving: false, movingSince: null, progress };
+        if (rotationDeg != null) { body.rotationDeg = rotationDeg; body.flipOverride = false; }
         const updated = await apiRequest('/shipments/' + encodeURIComponent(code) + '/route', {
-            method: 'PATCH', body: JSON.stringify({ isMoving: false, movingSince: null, progress: frozenProgress })
+            method: 'PATCH', body: JSON.stringify(body)
         });
         unlockedShipments[updated.code] = updated;
-        initAdminMap(updated);
+        if (adminMarker && updated.route) {
+            const r = updated.route;
+            const oLat = parseFloat(r.originLat), oLng = parseFloat(r.originLng);
+            const dLat = parseFloat(r.destLat), dLng = parseFloat(r.destLng);
+            const p = Number(r.progress) || 0;
+            adminMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, p / 100));
+            adminMarker.setIcon(makeVehicleIcon(r.icon, oLat, oLng, dLat, dLng, r.flipOverride, r.rotationDeg, r.vehicleImg));
+            reflectAdminProgress(p);
+        }
+        const msg = document.getElementById('routeSaveMsg');
+        if (msg) { msg.style.display = 'block'; msg.style.color = 'var(--green)'; msg.textContent = 'Paused — position & direction saved.'; }
     } catch (err) {
         alert("Couldn't stop movement: " + err.message);
+    } finally {
+        setRouteActionLoading(false);
     }
 }
 async function resetRoute(code) {
+    setRouteActionLoading(true);
     try {
         stopAdminAnimation();
+        const rotationDeg = getAdminRotationFromUI();
+        const body = { isMoving: false, movingSince: null, progress: 0 };
+        if (rotationDeg != null) { body.rotationDeg = rotationDeg; body.flipOverride = false; }
         const updated = await apiRequest('/shipments/' + encodeURIComponent(code) + '/route', {
-            method: 'PATCH', body: JSON.stringify({ isMoving: false, movingSince: null, progress: 0 })
+            method: 'PATCH', body: JSON.stringify(body)
         });
         unlockedShipments[updated.code] = updated;
-        initAdminMap(updated);
+        if (adminMarker && updated.route) {
+            const r = updated.route;
+            const oLat = parseFloat(r.originLat), oLng = parseFloat(r.originLng);
+            const dLat = parseFloat(r.destLat), dLng = parseFloat(r.destLng);
+            adminMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, 0));
+            adminMarker.setIcon(makeVehicleIcon(r.icon, oLat, oLng, dLat, dLng, r.flipOverride, r.rotationDeg, r.vehicleImg));
+            reflectAdminProgress(0);
+        }
+        const msg = document.getElementById('routeSaveMsg');
+        if (msg) { msg.style.display = 'block'; msg.style.color = 'var(--green)'; msg.textContent = 'Reset to start — direction kept.'; }
     } catch (err) {
         alert("Couldn't reset: " + err.message);
+    } finally {
+        setRouteActionLoading(false);
     }
 }
 
