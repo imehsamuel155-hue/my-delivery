@@ -196,19 +196,19 @@ async function renderTrackResult(code) {
       </div>
       <div class="pkg-meta">
         <div class="meta-chip">Shipment Date<b>${esc(shipment.shipmentDate || (shipment.history && shipment.history[0] && shipment.history[0].date) || (shipment.createdAt ? new Date(shipment.createdAt).toISOString().slice(0, 10) : '—'))}</b></div>
-        <div class="meta-chip">Waybill<b>${esc(shipment.waybillNumber || shipment.code)}</b></div>
+        
         <div class="meta-chip">Service<b>${esc(shipment.serviceType || '—')}</b></div>
-        <div class="meta-chip">Terms<b>${esc(shipment.termsOfTrade || '—')}</b></div>
+        
         <div class="meta-chip">Weight<b>${esc((shipment.package && shipment.package.weightKg) != null ? shipment.package.weightKg : '—')} kg</b></div>
         <div class="meta-chip">Dimensions<b>${esc(shipment.package ? [shipment.package.length, shipment.package.width, shipment.package.height].filter(v => v != null && v !== '').join('×') : '—')} cm</b></div>
-        <div class="meta-chip">Pieces<b>${esc(shipment.pieces != null ? shipment.pieces : 1)}</b></div>
+        
         <div class="meta-chip">Mode<b>${esc(shipment.mode || '—')}</b></div>
         <div class="meta-chip">Carrier<b>${esc(shipment.carrier || '—')}</b></div>
         <div class="meta-chip">Est. Delivery<b>${esc(shipment.estimatedDelivery || 'TBD')}</b></div>
         <div class="meta-chip">Payment<b>${esc(shipment.payment.status)} · ${esc(shipment.payment.method)}</b></div>
         <div class="meta-chip">Amount<b>${esc(shipment.payment.currency || '')} ${esc(Number(shipment.payment.amount || 0).toFixed(2))}</b></div>
-        <div class="meta-chip">Reference<b>${esc(shipment.reference || '—')}</b></div>
-        <div class="meta-chip">Declared Value<b>${esc(shipment.declaredValue || '—')}</b></div>
+        
+        
       </div>
 ${dhlTimelineHtml(shipment.history)}
       <h4 class="section-title" style="margin-top:26px;" data-i18n="Live Location">Live Location</h4>
@@ -1231,9 +1231,20 @@ function initAdminMap(shipment) {
         // Always snap to the origin→destination line — never leave the route
         const ll = e.target.getLatLng();
         const t = projectT(oLat, oLng, dLat, dLng, ll.lat, ll.lng);
-        const snapped = pointAlong(oLat, oLng, dLat, dLng, t);
+        const snapped = L.latLng(pointAlong(oLat, oLng, dLat, dLng, t));
         e.target.setLatLng(snapped);
         reflectAdminProgress(t * 100);
+    });
+    // Extra lock: if Leaflet drifts off-line, pull back next frame
+    adminMarker.on('move', e => {
+        const ll = e.target.getLatLng();
+        const t = projectT(oLat, oLng, dLat, dLng, ll.lat, ll.lng);
+        const snapped = pointAlong(oLat, oLng, dLat, dLng, t);
+        const dlat = Math.abs(ll.lat - snapped[0]);
+        const dlng = Math.abs(ll.lng - snapped[1]);
+        if (dlat > 0.00001 || dlng > 0.00001) {
+            e.target.setLatLng(snapped);
+        }
     });
     adminMarker.on('dragend', async e => {
         const ll = e.target.getLatLng();
@@ -2105,7 +2116,7 @@ function setSiteLang(lang) {
         if (map[key]) el.textContent = map[key];
     });
     document.querySelectorAll('a, button, h1, h2, h3, h4, p, label, span, .eyebrow').forEach(el => {
-        if (el.closest('#adminDashboard') || el.closest('#adminView') || el.closest('.modal-overlay') || el.closest('#langStrip')) return;
+        if (el.closest('#adminDashboard') || el.closest('#adminView') || el.closest('.modal-overlay') || el.closest('#langStrip') || el.closest('#heroLang')) return;
         if (el.querySelector('input,button,select,img,svg')) return;
         if (el.childNodes.length === 1 && el.childNodes[0].nodeType === 3) {
             const t = el.textContent.trim();

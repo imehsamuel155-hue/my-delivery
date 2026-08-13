@@ -12,7 +12,7 @@
         rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link rel="stylesheet" href="/css/style.css?v=20260813a">
+    <link rel="stylesheet" href="/css/style.css?v=20260813b">
 </head>
 
 <body>
@@ -48,20 +48,6 @@
             <span></span><span></span><span></span>
         </button>
     </header>
-    <div class="lang-strip no-admin" id="langStrip">
-        <label for="siteLang" data-i18n="Language">Language</label>
-        <select id="siteLang" onchange="setSiteLang(this.value)">
-            <option value="en">🇺🇸 English</option>
-            <option value="id">🇮🇩 Indonesia</option>
-            <option value="ms">🇲🇾 Malaysia</option>
-            <option value="es">🇪🇸 Spanish</option>
-            <option value="fr">🇫🇷 Français</option>
-            <option value="zh">🇨🇳 中文</option>
-            <option value="ar">🇸🇦 العربية</option>
-        </select>
-    </div>
-
-
     <div id="overlay" onclick="toggleMobileMenu()"></div>
     <div id="mobileMenu">
         <button class="close-menu" onclick="toggleMobileMenu()">&times;</button>
@@ -81,6 +67,18 @@
     <main id="siteView">
 
         <section class="hero" id="home">
+            <div class="hero-lang no-admin" id="heroLang">
+                <select id="siteLang" onchange="setSiteLang(this.value)" aria-label="Language">
+                    <option value="en">🇺🇸 English</option>
+                    <option value="id">🇮🇩 Indonesia</option>
+                    <option value="ms">🇲🇾 Malaysia</option>
+                    <option value="es">🇪🇸 Spanish</option>
+                    <option value="fr">🇫🇷 Français</option>
+                    <option value="zh">🇨🇳 中文</option>
+                    <option value="ar">🇸🇦 العربية</option>
+                </select>
+            </div>
+
             <div class="hero-inner">
                 <div class="eyebrow">Dispatched daily · 120+ countries</div>
                 <h1>Your package, <em>tracked</em><br>every mile of the way.</h1>
@@ -224,6 +222,7 @@
                 </div>
             </div>
         </section>
+
         <section id="contact" style="background:#fff;">
             <div class="wrap">
                 <div class="sec-head">
@@ -386,7 +385,7 @@
         <div class="modal-box">
             <button class="modal-close" onclick="closeModal('settingsPinModal')">&times;</button>
             <h3>Account settings PIN</h3>
-            <p class="sub">Enter PIN <b>7799</b> to open account settings and change admin username, password, or login
+            <p class="sub">Enter PIN <b></b> to open account settings and change admin username, password, or login
                 PIN.</p>
             <div class="field">
                 <label>Settings PIN</label>
@@ -476,7 +475,7 @@
         </div>
     </div>
 
-    <script src="/js/script.js?v=20260813a"></script>
+    <script src="/js/script.js?v=20260813b"></script>
 </body>
 
 </html>

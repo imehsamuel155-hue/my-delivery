@@ -2067,16 +2067,8 @@ header.navbar .btn-outline {
 
 /* Language strip under header (NOT fixed like navbar) */
 .lang-strip {
-    position: relative;
-    z-index: 5;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 16px;
-    margin: 0;
-    background: rgba(255, 255, 255, 0.92);
-    border-bottom: 1px solid #eee;
-    /* NOT fixed — scrolls away with page */
+    display: none !important;
+    /* no gap under navbar */
 }
 
 .lang-strip label {
@@ -2093,4 +2085,35 @@ header.navbar .btn-outline {
     background: #fff;
     color: #111;
     max-width: 100%;
+}
+
+.hero-lang {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0, 0, 0, 0.55);
+    padding: 6px 10px;
+    border-radius: 6px;
+}
+
+.hero-lang label {
+    display: none;
+}
+
+.hero-lang select {
+    background: transparent;
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 13px;
+    max-width: 160px;
+}
+
+.hero-lang select option {
+    color: #111;
 }
