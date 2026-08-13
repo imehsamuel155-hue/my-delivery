@@ -195,27 +195,46 @@ async function renderTrackResult(code) {
         <div class="party"><h4>Receiver</h4><p><strong>${esc(shipment.receiver.name)}</strong><br>${esc(shipment.receiver.address)}<br>${esc(shipment.receiver.phone || '')}${shipment.receiver.email ? '<br>' + esc(shipment.receiver.email) : ''}</p></div>
       </div>
       <div class="pkg-meta">
-        <div class="meta-chip">Weight<b>${esc(shipment.package.weightKg)} kg</b></div>
-        <div class="meta-chip">Dimensions<b>${esc(shipment.package.length)}×${esc(shipment.package.width)}×${esc(shipment.package.height)} cm</b></div>
+        <div class="meta-chip">Shipment Date<b>${esc(shipment.shipmentDate || (shipment.history && shipment.history[0] && shipment.history[0].date) || (shipment.createdAt ? new Date(shipment.createdAt).toISOString().slice(0, 10) : '—'))}</b></div>
+        <div class="meta-chip">Waybill<b>${esc(shipment.waybillNumber || shipment.code)}</b></div>
+        <div class="meta-chip">Service<b>${esc(shipment.serviceType || '—')}</b></div>
+        <div class="meta-chip">Terms<b>${esc(shipment.termsOfTrade || '—')}</b></div>
+        <div class="meta-chip">Weight<b>${esc((shipment.package && shipment.package.weightKg) != null ? shipment.package.weightKg : '—')} kg</b></div>
+        <div class="meta-chip">Dimensions<b>${esc(shipment.package ? [shipment.package.length, shipment.package.width, shipment.package.height].filter(v => v != null && v !== '').join('×') : '—')} cm</b></div>
+        <div class="meta-chip">Pieces<b>${esc(shipment.pieces != null ? shipment.pieces : 1)}</b></div>
         <div class="meta-chip">Mode<b>${esc(shipment.mode || '—')}</b></div>
         <div class="meta-chip">Carrier<b>${esc(shipment.carrier || '—')}</b></div>
         <div class="meta-chip">Est. Delivery<b>${esc(shipment.estimatedDelivery || 'TBD')}</b></div>
         <div class="meta-chip">Payment<b>${esc(shipment.payment.status)} · ${esc(shipment.payment.method)}</b></div>
         <div class="meta-chip">Amount<b>${esc(shipment.payment.currency || '')} ${esc(Number(shipment.payment.amount || 0).toFixed(2))}</b></div>
+        <div class="meta-chip">Reference<b>${esc(shipment.reference || '—')}</b></div>
+        <div class="meta-chip">Declared Value<b>${esc(shipment.declaredValue || '—')}</b></div>
       </div>
 ${dhlTimelineHtml(shipment.history)}
-      <h4 class="section-title" style="margin-top:26px;">Live Location</h4>
+      <h4 class="section-title" style="margin-top:26px;" data-i18n="Live Location">Live Location</h4>
       <div class="route-progress-wrap">
-        <div class="route-ends">
-          <span>${esc((shipment.route && shipment.route.originCountry) || 'Origin')}</span>
+        <div class="route-ends" style="font-weight:700;font-size:16px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span style="color:#D40511;">${esc((shipment.route && shipment.route.originCountry) || 'Origin')}</span>
           <span class="route-vehicle-icon" id="publicVehicleIcon" data-icon="${esc((shipment.route && shipment.route.icon) || 'truck')}"><span style="font-size:28px;line-height:1;">${(ICONS[(shipment.route && shipment.route.icon) || 'truck'] || '🚚')}</span></span>
-          <span>${esc((shipment.route && shipment.route.destCountry) || 'Destination')}</span>
+          <span style="color:#D40511;">${esc((shipment.route && shipment.route.destCountry) || 'Destination')}</span>
         </div>
+        <p style="font-size:13px;font-weight:600;margin:8px 0 4px;color:#111;">
+          Origin: ${esc((shipment.route && shipment.route.originCountry) || '—')}
+          &nbsp;→&nbsp;
+          Destination: ${esc((shipment.route && shipment.route.destCountry) || '—')}
+        </p>
         <div class="progress-bar tall"><div class="progress-fill" id="publicProgressFill" style="width:${Math.round(computeLiveProgress(shipment.route))}%"></div></div>
         <p style="font-size:12.5px;color:var(--gray);margin-top:8px;" id="publicProgressNote"></p>
       </div>
+    </div>
+    <div class="public-map-full">
+      <div class="map-route-label" style="display:flex;justify-content:space-between;padding:8px 4px;font-weight:700;font-size:14px;">
+        <span style="color:#D40511;">From: ${esc((shipment.route && shipment.route.originCountry) || 'Origin')}</span>
+        <span style="color:#D40511;">To: ${esc((shipment.route && shipment.route.destCountry) || 'Destination')}</span>
+      </div>
       <div id="publicMapBox"></div>
     </div>`;
+
     initPublicMap(shipment);
     nsStartTrackWatch(shipment.code);
     const rl = document.getElementById('receiptLink');
@@ -304,7 +323,7 @@ async function handlePinSubmit(e) {
     } finally { mdHideWait(); }
     return false;
 }
-function logoutAdmin() { destroyAdminMap(); adminToken = null; unlockedShipments = {}; showSite(); window.scrollTo(0, 0); }
+function logoutAdmin() { destroyAdminMap(); adminToken = null; unlockedShipments = {}; showSite(); window.scrollTo(0, 0); const ls = document.getElementById('langStrip'); if (ls) ls.style.display = ''; }
 
 /* ---------- ACCOUNT SETTINGS: change admin username/password/PIN ---------- */
 async function handleCredentialsSubmit(e) {
@@ -497,7 +516,7 @@ function renderShipDetail(shipment) {
       <div class="field"><label>Pieces</label><input id="f_pieces" type="number" value="${esc(s.pieces != null ? s.pieces : 1)}"></div>
     </div>
     <div class="grid2">
-      <div class="field"><label>Terms of Trade</label><input id="f_terms" value="${esc(s.termsOfTrade || 'DDP')}"></div>
+      <div class="field"><label>Terms of Trade</label><input id="f_terms" value="${esc(s.termsOfTrade || '')}" placeholder="e.g. DDP, DAP, EXW"></div>
       <div class="field"><label>Billing Account</label><input id="f_billAcct" value="${esc(s.billingAccount || '')}"></div>
     </div>
     <div class="grid2">
@@ -581,11 +600,9 @@ function renderShipDetail(shipment) {
     </div>
     <div class="field">
       <label>Vehicle direction (simple)</label>
-      <p style="font-size:13px;color:var(--gray);line-height:1.45;margin:8px 0;">
-        <b>Use your hands:</b> drag the plane/truck/ship on the map to move it.
-        Drag left/right on the vehicle to turn it any direction.
-        Push the yellow progress bar to set how far it is.
-        Then tap <b>Done — Save Map Settings</b> so tracking matches.
+      <p style="font-size:13px;color:#333;line-height:1.45;margin:8px 0;">
+        <b>Use your hands:</b> drag the plane/truck/ship on the map (stays on the line).
+        Swipe left/right on it to turn. Push the yellow progress bar. Then <b>Pause</b> or <b>Done — Save</b>.
       </p>
       <select id="f_face" style="display:none;">
         <option value="auto">auto</option>
@@ -593,22 +610,12 @@ function renderShipDetail(shipment) {
         <option value="flip">flip</option>
       </select>
       <input type="hidden" id="f_rotSlider" value="${(s.route && s.route.rotationDeg != null) ? Number(s.route.rotationDeg) : ''}">
-      <p id="rotHint" style="font-size:12px;color:var(--gray);margin-top:4px;"></p>
+      <p id="rotHint" style="font-size:12px;color:#333;margin-top:4px;min-height:18px;"></p>
       <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
-        <button type="button" class="btn btn-outline small-btn" onclick="nudgeVehicleRot(-15)">Turn left</button>
-        <button type="button" class="btn btn-outline small-btn" onclick="nudgeVehicleRot(15)">Turn right</button>
-        <button type="button" class="btn btn-outline small-btn" onclick="setVehicleRotAuto()">Auto face</button>
+        <button type="button" class="btn btn-outline small-btn" style="background:#fff;color:#111;border:1px solid #999;" onclick="nudgeVehicleRot(-15)">Turn left</button>
+        <button type="button" class="btn btn-outline small-btn" style="background:#fff;color:#111;border:1px solid #999;" onclick="nudgeVehicleRot(15)">Turn right</button>
+        <button type="button" class="btn btn-outline small-btn" style="background:#fff;color:#111;border:1px solid #999;" onclick="setVehicleRotAuto()">Auto face destination</button>
       </div>
-      <p style="font-size:12px;color:var(--gray);margin-top:4px;">Use <b>Auto</b> for most routes. Use Reverse if the icon points the wrong way.
-    <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
-      <span style="font-size:12px;color:var(--gray);">Nudge direction:</span>
-      <button type="button" class="btn btn-outline small-btn" onclick="nudgeVehicleRot(-15)">↺ -15°</button>
-      <button type="button" class="btn btn-outline small-btn" onclick="nudgeVehicleRot(15)">↻ +15°</button>
-      <button type="button" class="btn btn-outline small-btn" onclick="nudgeVehicleRot(-90)">←</button>
-      <button type="button" class="btn btn-outline small-btn" onclick="nudgeVehicleRot(90)">→</button>
-      <button type="button" class="btn btn-outline small-btn" onclick="setVehicleRotAuto()">Auto face destination</button>
-    </div>
-    <p id="rotHint" style="font-size:11px;color:var(--gray);margin-top:4px;">Drag the plane on the map, push the progress bar, or turn with the slider. Then tap Done — Save.</p>
     </div>
 
     <div id="adminMapBox"></div>
@@ -1608,17 +1615,29 @@ function initPublicMap(shipment) {
         return;
     }
     box.innerHTML = '';
-    publicMap = L.map(box).setView([(oLat + dLat) / 2, (oLng + dLng) / 2], 4);
+    publicMap = L.map(box, { scrollWheelZoom: true });
+    try {
+        publicMap.fitBounds([[oLat, oLng], [dLat, dLng]], { padding: [40, 40], maxZoom: 5 });
+    } catch (e) {
+        publicMap.setView([(oLat + dLat) / 2, (oLng + dLng) / 2], 3);
+    }
+    setTimeout(function () { try { publicMap.invalidateSize(); } catch (e) { } }, 200);
+    setTimeout(function () { try { publicMap.invalidateSize(); } catch (e) { } }, 600);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors' }).addTo(publicMap);
-    L.marker([oLat, oLng]).addTo(publicMap).bindPopup('Origin' + (r.originCountry ? ': ' + r.originCountry : ''));
-    L.marker([dLat, dLng]).addTo(publicMap).bindPopup('Destination' + (r.destCountry ? ': ' + r.destCountry : ''));
-    const line = L.polyline([[oLat, oLng], [dLat, dLng]], { color: '#FFCC00', weight: 3, dashArray: '6,8' }).addTo(publicMap);
-    publicMap.fitBounds(line.getBounds(), { padding: [30, 30] });
+    const oName = r.originCountry || 'Origin';
+    const dName = r.destCountry || 'Destination';
+    L.marker([oLat, oLng]).addTo(publicMap).bindPopup('<b>Origin</b><br>' + oName).openPopup();
+    L.marker([dLat, dLng]).addTo(publicMap).bindPopup('<b>Destination</b><br>' + dName);
+    const line = L.polyline([[oLat, oLng], [dLat, dLng]], { color: '#D40511', weight: 4, dashArray: '8,10' }).addTo(publicMap);
+    publicMap.fitBounds(line.getBounds(), { padding: [48, 48], maxZoom: 6 });
     const icon = makeVehicleIcon(r.icon, oLat, oLng, dLat, dLng, r.flipOverride, r.rotationDeg, r.vehicleImg);
     const startProgress = computeLiveProgress(r);
     const pos = pointAlong(oLat, oLng, dLat, dLng, startProgress / 100);
     publicMarker = L.marker(pos, { icon, draggable: false, interactive: false }).addTo(publicMap).bindPopup('Current location');
-
+    setTimeout(function () {
+        try { publicMap.invalidateSize(true); publicMap.fitBounds(line.getBounds(), { padding: [48, 48], maxZoom: 6 }); } catch (e) { }
+    }, 200);
+    setTimeout(function () { try { publicMap.invalidateSize(true); } catch (e) { } }, 600);
 
     reflectPublicProgress(startProgress, r.isMoving);
     if (r.isMoving) startPublicAnimation(oLat, oLng, dLat, dLng, r);
@@ -2025,57 +2044,90 @@ function submitSettingsPin() {
 }
 
 
-/* ---- Simple site language (public pages, not admin login) ---- */
+/* ---- Site language (public pages + receipt; not admin login) ---- */
 const SITE_I18N = {
-    en: {},
-    ms: { 'Track Now': 'Jejak Sekarang', 'Service': 'Perkhidmatan', 'About Us': 'Tentang Kami', 'Contact Us': 'Hubungi Kami', 'Receipt': 'Resit', 'Box': 'Kotak', 'Log In': 'Log Masuk' },
-    id: { 'Track Now': 'Lacak Sekarang', 'Service': 'Layanan', 'About Us': 'Tentang Kami', 'Contact Us': 'Hubungi Kami', 'Receipt': 'Tanda Terima', 'Box': 'Kotak', 'Log In': 'Masuk' },
-    es: { 'Track Now': 'Rastrear', 'Service': 'Servicio', 'About Us': 'Sobre nosotros', 'Contact Us': 'Contacto', 'Receipt': 'Recibo', 'Box': 'Caja', 'Log In': 'Iniciar sesión' },
-    fr: { 'Track Now': 'Suivre', 'Service': 'Service', 'About Us': 'À propos', 'Contact Us': 'Contact', 'Receipt': 'Reçu', 'Box': 'Colis', 'Log In': 'Connexion' },
-    de: { 'Track Now': 'Sendung verfolgen', 'Service': 'Service', 'About Us': 'Über uns', 'Contact Us': 'Kontakt', 'Receipt': 'Beleg', 'Box': 'Paket', 'Log In': 'Anmelden' },
-    zh: { 'Track Now': '追踪', 'Service': '服务', 'About Us': '关于我们', 'Contact Us': '联系我们', 'Receipt': '收据', 'Box': '包裹', 'Log In': '登录' }
+    en: {
+        'Track Now': 'Track Now', 'Service': 'Service', 'About Us': 'About Us', 'Contact Us': 'Contact Us',
+        'Receipt': 'Receipt', 'Box': 'Box', 'Log In': 'Log In', 'Track Package': 'Track Package',
+        'Live Location': 'Live Location', 'Sender': 'Sender', 'Receiver': 'Receiver',
+        'Shipment Date': 'Shipment Date', 'Est. Delivery': 'Est. Delivery', 'Language': 'Language',
+        'Your package, tracked': 'Your package, tracked', 'Home': 'Home', 'Testimonials': 'Testimonials'
+    },
+    id: {
+        'Track Now': 'Lacak Sekarang', 'Service': 'Layanan', 'About Us': 'Tentang Kami', 'Contact Us': 'Hubungi Kami',
+        'Receipt': 'Tanda Terima', 'Box': 'Kotak', 'Log In': 'Masuk', 'Track Package': 'Lacak Paket',
+        'Live Location': 'Lokasi Langsung', 'Sender': 'Pengirim', 'Receiver': 'Penerima',
+        'Shipment Date': 'Tanggal Pengiriman', 'Est. Delivery': 'Perkiraan Tiba', 'Language': 'Bahasa',
+        'Home': 'Beranda', 'Testimonials': 'Testimoni'
+    },
+    ms: {
+        'Track Now': 'Jejak Sekarang', 'Service': 'Perkhidmatan', 'About Us': 'Tentang Kami', 'Contact Us': 'Hubungi Kami',
+        'Receipt': 'Resit', 'Box': 'Kotak', 'Log In': 'Log Masuk', 'Track Package': 'Jejak Pakej',
+        'Live Location': 'Lokasi Langsung', 'Sender': 'Pengirim', 'Receiver': 'Penerima',
+        'Shipment Date': 'Tarikh Penghantaran', 'Est. Delivery': 'Anggaran Sampai', 'Language': 'Bahasa',
+        'Home': 'Laman Utama', 'Testimonials': 'Testimoni'
+    },
+    es: {
+        'Track Now': 'Rastrear', 'Service': 'Servicio', 'About Us': 'Sobre nosotros', 'Contact Us': 'Contacto',
+        'Receipt': 'Recibo', 'Box': 'Caja', 'Log In': 'Iniciar sesión', 'Track Package': 'Rastrear paquete',
+        'Live Location': 'Ubicación en vivo', 'Sender': 'Remitente', 'Receiver': 'Destinatario',
+        'Shipment Date': 'Fecha de envío', 'Est. Delivery': 'Entrega est.', 'Language': 'Idioma',
+        'Home': 'Inicio', 'Testimonials': 'Testimonios'
+    },
+    fr: {
+        'Track Now': 'Suivre', 'Service': 'Service', 'About Us': 'À propos', 'Contact Us': 'Contact',
+        'Receipt': 'Reçu', 'Box': 'Colis', 'Log In': 'Connexion', 'Track Package': 'Suivre le colis',
+        'Live Location': 'Localisation', 'Sender': 'Expéditeur', 'Receiver': 'Destinataire',
+        'Shipment Date': "Date d'envoi", 'Est. Delivery': 'Livraison est.', 'Language': 'Langue',
+        'Home': 'Accueil', 'Testimonials': 'Témoignages'
+    },
+    de: {
+        'Track Now': 'Sendung verfolgen', 'Service': 'Service', 'About Us': 'Über uns', 'Contact Us': 'Kontakt',
+        'Receipt': 'Beleg', 'Box': 'Paket', 'Log In': 'Anmelden', 'Track Package': 'Paket verfolgen',
+        'Live Location': 'Live-Standort', 'Sender': 'Absender', 'Receiver': 'Empfänger',
+        'Shipment Date': 'Versanddatum', 'Est. Delivery': 'Vorauss. Lieferung', 'Language': 'Sprache',
+        'Home': 'Start', 'Testimonials': 'Meinungen'
+    },
+    zh: {
+        'Track Now': '追踪', 'Service': '服务', 'About Us': '关于我们', 'Contact Us': '联系我们',
+        'Receipt': '收据', 'Box': '包裹', 'Log In': '登录', 'Track Package': '追踪包裹',
+        'Live Location': '实时位置', 'Sender': '寄件人', 'Receiver': '收件人',
+        'Shipment Date': '发货日期', 'Est. Delivery': '预计送达', 'Language': '语言',
+        'Home': '首页', 'Testimonials': '评价'
+    }
 };
 function setSiteLang(lang) {
     try { localStorage.setItem('dhl_lang', lang); } catch (e) { }
     document.documentElement.lang = lang || 'en';
-    const map = SITE_I18N[lang] || {};
+    const map = SITE_I18N[lang] || SITE_I18N.en;
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
         if (map[key]) el.textContent = map[key];
-        else if (SITE_I18N.en[key]) el.textContent = SITE_I18N.en[key];
     });
-    // nav link text fallback by matching original english
-    document.querySelectorAll('a, button, h1, h2, h3, p, label, span').forEach(el => {
-        if (el.closest('#adminView') || el.closest('#loginModal') || el.closest('#pinModal')) return;
-        const t = el.childNodes.length === 1 && el.childNodes[0].nodeType === 3 ? el.textContent.trim() : null;
-        if (t && map[t]) el.textContent = map[t];
+    document.querySelectorAll('a, button, h1, h2, h3, h4, p, label, span, .eyebrow').forEach(el => {
+        if (el.closest('#adminDashboard') || el.closest('#adminView') || el.closest('.modal-overlay') || el.closest('#langStrip')) return;
+        if (el.querySelector('input,button,select,img,svg')) return;
+        if (el.childNodes.length === 1 && el.childNodes[0].nodeType === 3) {
+            const t = el.textContent.trim();
+            if (map[t]) el.textContent = map[t];
+            else {
+                // restore from data-en if stored
+                const en = el.getAttribute('data-en');
+                if (en && map[en]) el.textContent = map[en];
+                if (!en && t) el.setAttribute('data-en', t);
+            }
+        }
     });
-}
-document.addEventListener('DOMContentLoaded', () => {
-    let lang = 'en';
-    try { lang = localStorage.getItem('dhl_lang') || 'en'; } catch (e) { }
     const sel = document.getElementById('siteLang');
     if (sel) sel.value = lang;
-    if (lang !== 'en') setSiteLang(lang);
-});
-
-
-/* ---- Box video service ON/OFF (admin) ---- */
-async function refreshBoxServiceButtons() {
-    try {
-        const data = await apiRequest('/shipments/box-service');
-        const on = data && data.on !== false;
-        const label = on ? 'Box video: ON' : 'Box video: OFF';
-        ['boxServiceToggleBtn', 'boxServiceToggleBtn2'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) {
-                el.textContent = label;
-                el.style.borderColor = on ? '#1F9D55' : '#D40511';
-                el.style.color = on ? '#1F9D55' : '#D40511';
-            }
-        });
-    } catch (e) { }
 }
+(function initLang() {
+    try {
+        const L = localStorage.getItem('dhl_lang') || 'en';
+        setTimeout(function () { setSiteLang(L); }, 50);
+    } catch (e) { }
+})();
+
 async function toggleBoxService() {
     if (!adminToken) return;
     try {

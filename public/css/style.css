@@ -152,14 +152,38 @@ nav.desktop-links a:hover {
 }
 
 .btn-outline {
+    background: #fff;
+    color: #111;
+    border: 1px solid #ccc;
+}
+
+.btn-outline:hover {
+    border-color: var(--dhl-red);
+    color: var(--dhl-red);
+    background: #fff;
+}
+
+/* Dark header / mobile menu still need light outline buttons */
+header.navbar .btn-outline,
+#mobileMenu .btn-outline {
     background: transparent;
     color: #fff;
     border: 1px solid #57534A;
 }
 
-.btn-outline:hover {
+header.navbar .btn-outline:hover,
+#mobileMenu .btn-outline:hover {
     border-color: var(--dhl-yellow);
     color: var(--dhl-yellow);
+    background: transparent;
+}
+
+.admin-wrap .btn-outline,
+.ship-detail .btn-outline,
+.modal-box .btn-outline {
+    background: #fff;
+    color: #111;
+    border: 1px solid #bbb;
 }
 
 .hamburger {
@@ -1124,22 +1148,34 @@ h4.section-title:first-child {
     cursor: pointer;
 }
 
-#adminMapBox,
-#publicMapBox {
+#adminMapBox {
     height: 280px;
-    max-width: 100%;
-    border-radius: 8px;
-    margin-top: 12px;
+    border-radius: 10px;
+    overflow: hidden;
     border: 1px solid var(--line);
-    background: var(--paper);
+}
+
+#publicMapBox {
+    width: 100% !important;
+    height: min(70vh, 520px) !important;
+    min-height: 320px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #ddd;
+    box-sizing: border-box;
+}
+
+#publicMapBox .leaflet-container {
+    width: 100% !important;
+    height: 100% !important;
 }
 
 @media(max-width:560px) {
-
-    #adminMapBox,
-    #publicMapBox {
-        height: 220px;
+    #adminMapBox {
+        height: 240px;
     }
+
+    /* public map uses .public-map-full rules — do not force 220px */
 }
 
 .map-controls {
@@ -1979,4 +2015,82 @@ header.navbar .btn-outline {
     font-size: 11px;
     color: #888;
     margin-top: 6px;
+}
+
+/* Full-width live map BELOW track details — large country view */
+.public-map-full {
+    width: 100%;
+    max-width: 100%;
+    margin: 20px 0 28px;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.public-map-full .map-route-label {
+    position: absolute;
+    z-index: 500;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    pointer-events: none;
+}
+
+.public-map-full .map-route-label span {
+    background: rgba(255, 255, 255, .95);
+    color: #111;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .12);
+    max-width: 46%;
+    word-break: break-word;
+}
+
+#publicMapBox {
+    width: 100% !important;
+    height: min(70vh, 640px) !important;
+    min-height: 320px !important;
+    max-height: 75vh;
+}
+
+@media (max-width: 640px) {
+    #publicMapBox {
+        height: min(55vh, 380px) !important;
+        min-height: 260px;
+    }
+}
+
+
+/* Language strip under header (NOT fixed like navbar) */
+.lang-strip {
+    position: relative;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    margin: 0;
+    background: rgba(255, 255, 255, 0.92);
+    border-bottom: 1px solid #eee;
+    /* NOT fixed — scrolls away with page */
+}
+
+.lang-strip label {
+    font-size: 13px;
+    color: #555;
+    font-weight: 600;
+}
+
+.lang-strip select {
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 14px;
+    background: #fff;
+    color: #111;
+    max-width: 100%;
 }

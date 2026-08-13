@@ -12,7 +12,7 @@
         rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link rel="stylesheet" href="/css/style.css?v=20260812b">
+    <link rel="stylesheet" href="/css/style.css?v=20260813a">
 </head>
 
 <body>
@@ -47,10 +47,20 @@
         <button class="hamburger" onclick="toggleMobileMenu()" aria-label="Open menu">
             <span></span><span></span><span></span>
         </button>
-
-
-
     </header>
+    <div class="lang-strip no-admin" id="langStrip">
+        <label for="siteLang" data-i18n="Language">Language</label>
+        <select id="siteLang" onchange="setSiteLang(this.value)">
+            <option value="en">🇺🇸 English</option>
+            <option value="id">🇮🇩 Indonesia</option>
+            <option value="ms">🇲🇾 Malaysia</option>
+            <option value="es">🇪🇸 Spanish</option>
+            <option value="fr">🇫🇷 Français</option>
+            <option value="zh">🇨🇳 中文</option>
+            <option value="ar">🇸🇦 العربية</option>
+        </select>
+    </div>
+
 
     <div id="overlay" onclick="toggleMobileMenu()"></div>
     <div id="mobileMenu">
@@ -214,7 +224,6 @@
                 </div>
             </div>
         </section>
-
         <section id="contact" style="background:#fff;">
             <div class="wrap">
                 <div class="sec-head">
@@ -467,7 +476,7 @@
         </div>
     </div>
 
-    <script src="/js/script.js?v=20260812g"></script>
+    <script src="/js/script.js?v=20260813a"></script>
 </body>
 
 </html>
