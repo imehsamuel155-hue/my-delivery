@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DHL Shipment Receipt</title>
     <link rel="icon" type="image/png" href="https://commons.wikimedia.org/wiki/Special:FilePath/DHL_Express.svg">
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <link
         href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@700&display=swap"
         rel="stylesheet">
@@ -262,20 +263,91 @@
         }
 
         @media print {
-            body {
-                background: #fff;
+            @page {
+                size: A4;
+                margin: 8mm;
             }
 
-            .toolbar,
-            .msg,
-            #mdPleaseWait {
-                display: none !important;
+            html,
+            body {
+                height: auto !important;
             }
 
             .sheet {
-                display: block !important;
-                box-shadow: none;
-                border: none;
+                box-shadow: none !important;
+                transform: scale(0.92);
+                transform-origin: top center;
+                page-break-after: avoid !important;
+                page-break-inside: avoid !important;
+            }
+
+            @page {
+                size: A4 portrait;
+                margin: 8mm;
+            }
+
+            html,
+            body {
+                margin: 0 !important;
+                padding: 0 !important;
+                background: #fff !important;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            #sheet,
+            .sheet {
+                box-shadow: none !important;
+                border: none !important;
+                margin: 0 !important;
+                padding: 4mm !important;
+                max-width: 100% !important;
+                width: 100% !important;
+                font-size: 9.5px !important;
+                line-height: 1.25 !important;
+                transform-origin: top left;
+            }
+
+            #sheet h1,
+            .sheet h1 {
+                font-size: 16px !important;
+                margin: 2px 0 !important;
+            }
+
+            #sheet h3,
+            .sheet h3 {
+                font-size: 11px !important;
+                margin: 4px 0 2px !important;
+            }
+
+            #sheet .row,
+            .sheet .row {
+                margin: 1px 0 !important;
+                padding: 0 !important;
+            }
+
+            #sheet .grid,
+            .sheet .grid,
+            #sheet .cols,
+            .sheet .cols {
+                gap: 4px !important;
+            }
+
+            #receiptQr {
+                width: 72px !important;
+                height: 72px !important;
+            }
+
+            .foot {
+                font-size: 8px !important;
+                margin-top: 4px !important;
+            }
+
+            * {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
             }
         }
     </style>
@@ -289,9 +361,23 @@
     </div>
 
     <div class="toolbar no-print">
+        <select id="siteLangReceipt" onchange="setReceiptLang(this.value)"
+            style="padding:10px;border-radius:6px;border:1px solid #ccc;">
+            <option value="en">🇺🇸 English</option>
+            <option value="id">🇮🇩 Indonesia</option>
+            <option value="ms">🇲🇾 Malaysia</option>
+            <option value="es">🇪🇸 Spanish</option>
+            <option value="fr">🇫🇷 French</option>
+            <option value="de">🇩🇪 German</option>
+            <option value="zh">🇨🇳 Chinese</option>
+        </select>
+
         <input id="code" class="mono" placeholder="Enter tracking / delivery code" autocomplete="off">
         <button type="button" class="btn-y" id="btnLoad">Show receipt</button>
         <button type="button" class="btn-g" id="btnDl" disabled>Download / Print PDF</button>
+        <button type="button" class="btn no-print" id="btnJpg" disabled
+            style="margin-left:8px;background:#111;color:#fff;border:none;padding:10px 14px;border-radius:6px;font-weight:600;">Save
+            JPG photo</button>
     </div>
     <p class="msg no-print" id="msg">Enter the exact tracking code. Receipt unlocks only when the code is correct.</p>
 
@@ -458,7 +544,7 @@
                 set('dDim', dims);
                 set('dCharge', s.chargeableWeight || w);
                 set('dInsure', s.insuredAmount);
-                set('dTerms', s.termsOfTrade);
+                set('dTerms', (s.termsOfTrade != null && String(s.termsOfTrade).trim() !== '') ? s.termsOfTrade : '—'); /* admin value only — never force DDP */
                 set('dDecl', (s.declaredValue ? ((s.declaredCurrency || '') + ' ' + s.declaredValue) : ''));
                 set('dDuties', s.dutiesTaxesAccount || s.dutiable);
                 set('dEtd', s.estimatedDelivery);
@@ -479,6 +565,7 @@
 
                 sheet.classList.add('show');
                 btnDl.disabled = false;
+                var bj = document.getElementById('btnJpg'); if (bj) bj.disabled = false;
                 msg.className = 'msg no-print';
                 msg.textContent = 'Receipt unlocked. You can download / print as PDF.';
                 history.replaceState(null, '', '/receipt?code=' + encodeURIComponent(s.code));
@@ -493,9 +580,56 @@
         document.getElementById('btnLoad').onclick = load;
         document.getElementById('code').addEventListener('keydown', function (e) { if (e.key === 'Enter') load(); });
         document.getElementById('btnDl').onclick = function () { window.print(); };
+        var btnJpg = document.getElementById('btnJpg');
+        if (btnJpg) btnJpg.onclick = async function () {
+            var sheet = document.getElementById('sheet');
+            if (!sheet || !sheet.classList.contains('show')) return;
+            btnJpg.disabled = true;
+            btnJpg.textContent = '......';
+            try {
+                if (typeof html2canvas !== 'function') throw new Error('Image tool not loaded');
+                var canvas = await html2canvas(sheet, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+                var a = document.createElement('a');
+                a.download = (document.getElementById('rCode') || {}).textContent || 'receipt';
+                a.download = String(a.download).replace(/\s+/g, '_') + '.jpg';
+                a.href = canvas.toDataURL('image/jpeg', 0.92);
+                a.click();
+            } catch (e) {
+                alert(e.message || 'Could not save JPG');
+            } finally {
+                btnJpg.disabled = false;
+                btnJpg.textContent = 'Save JPG photo';
+            }
+        };
 
         var q = new URLSearchParams(location.search).get('code');
         if (q) { document.getElementById('code').value = q; load(); }
+    </script>
+    <script>
+        function setReceiptLang(lang) {
+            try { localStorage.setItem('dhl_lang', lang); } catch (e) { }
+            var map = {
+                en: {},
+                id: { 'Shipment Receipt': 'Tanda Terima Pengiriman', 'Sender': 'Pengirim', 'Receiver': 'Penerima', 'Reference Information': 'Informasi Referensi', 'Description of Contents': 'Deskripsi Isi' },
+                ms: { 'Shipment Receipt': 'Resit Penghantaran', 'Sender': 'Pengirim', 'Receiver': 'Penerima' },
+                es: { 'Shipment Receipt': 'Recibo de envío', 'Sender': 'Remitente', 'Receiver': 'Destinatario' },
+                fr: { 'Shipment Receipt': 'Reçu d\'expédition', 'Sender': 'Expéditeur', 'Receiver': 'Destinataire' },
+                de: { 'Shipment Receipt': 'Sendungsbeleg', 'Sender': 'Absender', 'Receiver': 'Empfänger' },
+                zh: { 'Shipment Receipt': '运单收据', 'Sender': '寄件人', 'Receiver': '收件人' }
+            };
+            var m = map[lang] || {};
+            document.querySelectorAll('h1,h3').forEach(function (el) {
+                var t = el.getAttribute('data-en') || el.textContent.trim();
+                if (!el.getAttribute('data-en')) el.setAttribute('data-en', t);
+                if (m[t]) el.textContent = m[t];
+                else el.textContent = el.getAttribute('data-en');
+            });
+        }
+        try {
+            var L = localStorage.getItem('dhl_lang') || 'en';
+            var s = document.getElementById('siteLangReceipt');
+            if (s) { s.value = L; setReceiptLang(L); }
+        } catch (e) { }
     </script>
 </body>
 

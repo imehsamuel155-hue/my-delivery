@@ -84,7 +84,7 @@ const ShipmentSchema = new mongoose.Schema(
         dimensionalWeight: { type: String, default: '' },
         chargeableWeight: { type: String, default: '' },
         insuredAmount: { type: String, default: '' },
-        termsOfTrade: { type: String, default: 'DDP' },
+        termsOfTrade: { type: String, default: '' },
         billingAccount: { type: String, default: '' },
         dutiesTaxesAccount: { type: String, default: '' },
         declaredValue: { type: String, default: '' },
