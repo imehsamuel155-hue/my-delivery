@@ -98,8 +98,14 @@ function mdHideWait() {
    For it to work, that backend needs to be running.
    ========================================================= */
 
-// Change this once your backend is deployed somewhere real.
-const API_BASE = "https://my-delivery-w6xz.onrender.com/api";
+// Localhost → same origin /api. Online → Render backend.
+const API_BASE = (function () {
+    try {
+        const h = location.hostname;
+        if (h === "localhost" || h === "127.0.0.1" || h === "") return "/api";
+    } catch (e) { }
+    return "https://my-delivery-w6xz.onrender.com/api";
+})();
 
 // Admin login token — kept in a plain JS variable only (no localStorage),
 // so you'll need to log in again after refreshing the page. That's expected.
@@ -317,6 +323,7 @@ async function handlePinSubmit(e) {
         document.getElementById('siteView').classList.add('hidden');
         document.getElementById('trackPage').classList.add('hidden');
         document.getElementById('adminDashboard').classList.remove('hidden');
+        if (typeof setAdminMode === 'function') setAdminMode(true);
         await renderShipList();
         nsLoadAdminNotifs();
         if (window._nsAdminNotifTimer) clearInterval(window._nsAdminNotifTimer);
@@ -2321,9 +2328,12 @@ function adminToggleChatPanel() {
     if (!p) return;
     p.classList.toggle('hidden');
     if (!p.classList.contains('hidden')) {
+        document.body.classList.add('admin-chat-open');
         adminLoadThreads();
         if (window._adminChatPoll) clearInterval(window._adminChatPoll);
         window._adminChatPoll = setInterval(adminLoadThreads, 5000);
+    } else {
+        document.body.classList.remove('admin-chat-open');
     }
 }
 
@@ -2423,6 +2433,14 @@ function adminChatPickImage(ev) {
 }
 
 /* Bootstrap admin from /admin login (sessionStorage) or ?admin=1 */
+function setAdminMode(on) {
+    document.body.classList.toggle('admin-mode', !!on);
+    const fab = document.getElementById('chatFab');
+    if (fab) fab.style.display = on ? 'none' : '';
+    const gp = document.getElementById('guestChatPanel');
+    if (gp && on) gp.classList.add('hidden');
+}
+
 (function bootstrapAdminFromOffice() {
     try {
         const params = new URLSearchParams(location.search);
@@ -2433,6 +2451,7 @@ function adminChatPickImage(ev) {
             const tp = document.getElementById('trackPage');
             if (tp) tp.classList.add('hidden');
             document.getElementById('adminDashboard').classList.remove('hidden');
+            setAdminMode(true);
             if (typeof renderShipList === 'function') renderShipList();
             if (typeof nsLoadAdminNotifs === 'function') nsLoadAdminNotifs();
             adminLoadThreads();
@@ -2452,6 +2471,10 @@ const _logoutAdminOrig = logoutAdmin;
 logoutAdmin = function () {
     sessionStorage.removeItem('dhlAdminToken');
     adminToken = null;
+    setAdminMode(false);
+    document.body.classList.remove('admin-chat-open');
+    const ac = document.getElementById('adminChatPanel');
+    if (ac) ac.classList.add('hidden');
     if (window._adminChatPoll) clearInterval(window._adminChatPoll);
     if (typeof _logoutAdminOrig === 'function') _logoutAdminOrig();
     else showSite();

@@ -27,6 +27,7 @@
             border-radius: 12px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, .1);
             overflow: hidden;
+            position: relative;
         }
 
         .al-head {
@@ -79,6 +80,11 @@
             cursor: pointer;
         }
 
+        .al-body .btn:disabled {
+            opacity: 0.75;
+            cursor: wait;
+        }
+
         .al-err {
             color: #D40511;
             font-size: 13px;
@@ -100,11 +106,55 @@
         #pinStep {
             display: none;
         }
+
+        /* Full-card please wait ...... */
+        .al-wait {
+            display: none;
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, .92);
+            z-index: 10;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .al-wait.show {
+            display: flex;
+        }
+
+        .al-wait .dots {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 4px;
+            color: #D40511;
+            min-width: 4ch;
+        }
+
+        .al-wait .txt {
+            margin-top: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .al-wait .sub {
+            margin-top: 4px;
+            font-size: 13px;
+            color: #666;
+        }
     </style>
 </head>
 
 <body class="admin-login-page">
     <div class="al-card">
+        <div class="al-wait" id="alWait" aria-live="polite">
+            <div class="dots" id="alDots">......</div>
+            <div class="txt">Please wait</div>
+            <div class="sub" id="alWaitSub">Signing in…</div>
+        </div>
         <div class="al-head">
             <img src="/images/dhl-logo-header.png" alt="DHL"
                 onerror="this.outerHTML='<strong style=color:#D40511;font-size:28px>DHL</strong>'">
@@ -117,26 +167,60 @@
                 <input type="text" id="alUser" autocomplete="username">
                 <label>Password</label>
                 <input type="password" id="alPass" autocomplete="current-password">
-                <button type="button" class="btn" onclick="doLogin()">Continue</button>
+                <button type="button" class="btn" id="alLoginBtn" onclick="doLogin()">Continue</button>
             </div>
             <div id="pinStep">
                 <p class="al-err" id="pinErr"></p>
                 <p style="font-size:14px;color:#555;margin:0 0 12px;">Enter your admin PIN to continue.</p>
                 <label>Admin PIN</label>
                 <input type="password" id="alPin" inputmode="numeric" maxlength="8" autocomplete="one-time-code">
-                <button type="button" class="btn" onclick="doPin()">Enter office</button>
+                <button type="button" class="btn" id="alPinBtn" onclick="doPin()">Enter office</button>
             </div>
             <p class="al-note"><a href="/">← Back to DHL home</a></p>
         </div>
     </div>
     <script>
         let loginTicket = null;
+        let waitTimer = null;
+
+        function showWait(sub) {
+            const w = document.getElementById('alWait');
+            const dots = document.getElementById('alDots');
+            const subEl = document.getElementById('alWaitSub');
+            if (subEl) subEl.textContent = sub || 'Please wait…';
+            if (w) w.classList.add('show');
+            let n = 1;
+            if (waitTimer) clearInterval(waitTimer);
+            waitTimer = setInterval(function () {
+                n = n >= 6 ? 1 : n + 1;
+                if (dots) dots.textContent = '.'.repeat(n);
+            }, 280);
+            var btn1 = document.getElementById('alLoginBtn');
+            var btn2 = document.getElementById('alPinBtn');
+            if (btn1) { btn1.disabled = true; btn1.textContent = '......'; }
+            if (btn2) { btn2.disabled = true; btn2.textContent = '......'; }
+        }
+
+        function hideWait() {
+            const w = document.getElementById('alWait');
+            if (w) w.classList.remove('show');
+            if (waitTimer) { clearInterval(waitTimer); waitTimer = null; }
+            var btn1 = document.getElementById('alLoginBtn');
+            var btn2 = document.getElementById('alPinBtn');
+            if (btn1) { btn1.disabled = false; btn1.textContent = 'Continue'; }
+            if (btn2) { btn2.disabled = false; btn2.textContent = 'Enter office'; }
+        }
 
         async function doLogin() {
             const err = document.getElementById('loginErr');
             err.textContent = '';
             const username = document.getElementById('alUser').value.trim();
             const password = document.getElementById('alPass').value;
+            if (!username || !password) {
+                err.textContent = 'Enter username and password.';
+                return;
+            }
+            showWait('Signing in…');
             try {
                 const r = await fetch('/api/auth/login', {
                     method: 'POST',
@@ -149,12 +233,16 @@
                     loginTicket = data.loginTicket;
                     document.getElementById('loginStep').style.display = 'none';
                     document.getElementById('pinStep').style.display = 'block';
+                    hideWait();
                     document.getElementById('alPin').focus();
                 } else if (data.token) {
                     sessionStorage.setItem('dhlAdminToken', data.token);
                     location.href = '/?admin=1';
+                } else {
+                    hideWait();
                 }
             } catch (e) {
+                hideWait();
                 err.textContent = e.message;
             }
         }
@@ -163,6 +251,11 @@
             const err = document.getElementById('pinErr');
             err.textContent = '';
             const pin = document.getElementById('alPin').value.trim();
+            if (!pin) {
+                err.textContent = 'Enter admin PIN.';
+                return;
+            }
+            showWait('Verifying PIN…');
             try {
                 const r = await fetch('/api/auth/verify-pin', {
                     method: 'POST',
@@ -174,6 +267,7 @@
                 sessionStorage.setItem('dhlAdminToken', data.token);
                 location.href = '/?admin=1';
             } catch (e) {
+                hideWait();
                 err.textContent = e.message;
             }
         }

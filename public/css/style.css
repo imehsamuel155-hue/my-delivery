@@ -4428,13 +4428,24 @@ body.guest-chat-open {
     display: block;
 }
 
-/* Admin chat panel */
+/* Hide public chat FAB on admin board */
+body.admin-mode .chat-fab,
+body.admin-mode #guestChatPanel {
+    display: none !important;
+}
+
+/* Admin chat — full page when open */
 .admin-chat-panel {
-    margin: 12px 0 16px;
-    border: 1px solid #ddd;
-    border-radius: 12px;
+    position: fixed;
+    inset: 0;
+    z-index: 1400;
+    margin: 0;
+    border: none;
+    border-radius: 0;
     background: #fff;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 .admin-chat-panel.hidden {
@@ -4445,19 +4456,22 @@ body.guest-chat-open {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 10px 12px;
+    padding: 12px 14px;
     background: #FFCC00;
     flex-wrap: wrap;
+    flex-shrink: 0;
 }
 
 .admin-chat-body {
     display: flex;
-    min-height: 320px;
-    max-height: 480px;
+    flex: 1;
+    min-height: 0;
+    max-height: none;
+    height: 100%;
 }
 
 .admin-chat-nav {
-    width: 220px;
+    width: min(280px, 40vw);
     border-right: 1px solid #eee;
     overflow-y: auto;
     background: #fafafa;
@@ -4472,7 +4486,7 @@ body.guest-chat-open {
     display: block;
     width: 100%;
     text-align: left;
-    padding: 10px 12px;
+    padding: 12px 14px;
     border: none;
     border-bottom: 1px solid #eee;
     background: transparent;
@@ -4511,6 +4525,12 @@ body.guest-chat-open {
     display: flex;
     flex-direction: column;
     min-width: 0;
+    min-height: 0;
+}
+
+.admin-chat-messages {
+    flex: 1;
+    min-height: 0;
 }
 
 @media (max-width: 720px) {
@@ -4520,7 +4540,7 @@ body.guest-chat-open {
 
     .admin-chat-nav {
         width: 100%;
-        max-height: 160px;
+        max-height: 35%;
         border-right: none;
         border-bottom: 1px solid #eee;
         display: none;
