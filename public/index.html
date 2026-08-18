@@ -10,7 +10,7 @@
     <link rel="icon" href="https://www.dhl.com/favicon.ico">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link rel="stylesheet" href="/css/style.css?v=20260818chat3">
+    <link rel="stylesheet" href="/css/style.css?v=20260818homenav">
 </head>
 
 <body>
@@ -50,13 +50,13 @@
                 <a href="/receipt">Receipt</a>
                 <a href="/box.html">Box</a>
             </nav>
-            <button type="button" class="hamburger" onclick="toggleMobileMenu()" aria-label="Open menu">
+            <button type="button" class="hamburger" onclick="return toggleMobileMenu(event);" aria-label="Open menu">
                 <span></span><span></span><span></span>
             </button>
         </div>
     </header>
 
-    <div id="overlay" onclick="toggleMobileMenu()"></div>
+    <div id="overlay" onclick="return toggleMobileMenu(event);"></div>
     <!-- Right-side drawer only when hamburger is tapped -->
     <div id="mobileMenu" role="dialog" aria-label="Menu">
         <div class="mm-head">
@@ -76,7 +76,8 @@
                     </svg>
                 </span>
             </a>
-            <button type="button" class="close-menu" onclick="toggleMobileMenu()" aria-label="Close">&times;</button>
+            <button type="button" class="close-menu" onclick="return toggleMobileMenu(event);"
+                aria-label="Close">&times;</button>
         </div>
         <a href="#" onclick="goTrack();toggleMobileMenu();return false;">Track</a>
         <button type="button" class="mm-toggle"
@@ -96,8 +97,8 @@
         <a href="#customer-service" onclick="showSite();toggleMobileMenu()">Customer Service</a>
         <a href="#customer-service" onclick="showSite();toggleMobileMenu()">Customer Portal Logins</a>
         <a href="#customer-service" onclick="showSite();toggleMobileMenu()">Find a Service Point</a>
-        <a href="/receipt" onclick="toggleMobileMenu()">Receipt</a>
-        <a href="/box.html" onclick="toggleMobileMenu()">Box</a>
+        <a href="/receipt" onclick="return toggleMobileMenu(event);">Receipt</a>
+        <a href="/box.html" onclick="return toggleMobileMenu(event);">Box</a>
     </div>
 
     <main id="siteView">
@@ -182,7 +183,7 @@
                     Shipment</button>
                 <form id="quoteForm" class="quote-form"
                     onsubmit="event.preventDefault();alert('Quote request received. Our team will contact you.');">
-                    <label>From country<input type="text" placeholder="e.g. Nigeria"></label>
+                    <label>From country<input type="text" placeholder="e.g. Canada"></label>
                     <label>To country<input type="text" placeholder="e.g. United States"></label>
                     <label>Weight (kg)<input type="number" min="0.1" step="0.1" placeholder="1.0"></label>
                     <label>Package type
@@ -685,7 +686,7 @@
         </div>
         <div class="guest-chat-setup" id="guestChatSetup">
             <p>Enter your <b>tracking code</b> to open a private chat. Labeled as shipment <b>Sender / Receiver</b>.
-                Only you and DHL support can see it — admin replies from the office dashboard.</p>
+                Only you and DHL support can see it.</p>
             <label>Tracking code <input type="text" id="guestChatTrack" placeholder="e.g. DHL123456" class="mono"
                     autocomplete="off" required></label>
             <p class="guest-chat-err" id="guestChatErr"
@@ -706,7 +707,7 @@
         </div>
     </div>
 
-    <script src="/js/script.js?v=20260818adminui"></script>
+    <script src="/js/script.js?v=20260818homenav"></script>
 </body>
 
 </html>

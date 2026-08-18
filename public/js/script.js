@@ -134,15 +134,27 @@ async function apiRequest(path, options = {}) {
 const STATUS_LIBRARY = ["Order Received", "Dispatched", "Picked Up", "In Transit", "Arrived At Hub", "Customs Clearance", "Out For Delivery", "Delivered", "On Hold"];
 
 /* ---------- NAV / VIEW SWITCHING ---------- */
-function toggleMobileMenu() {
-    const menu = document.getElementById('mobileMenu');
-    const overlay = document.getElementById('overlay');
-    if (!menu) return;
-    const open = !menu.classList.contains('open');
-    menu.classList.toggle('open', open);
-    if (overlay) overlay.classList.toggle('show', open);
-    document.body.classList.toggle('menu-open', open);
+function toggleMobileMenu(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    var menu = document.getElementById('mobileMenu');
+    var overlay = document.getElementById('overlay');
+    if (!menu) {
+        console.warn('mobileMenu not found');
+        return false;
+    }
+    var open = !menu.classList.contains('open');
+    if (open) {
+        menu.classList.add('open');
+        document.body.classList.add('menu-open');
+        if (overlay) overlay.classList.add('show');
+    } else {
+        menu.classList.remove('open');
+        document.body.classList.remove('menu-open');
+        if (overlay) overlay.classList.remove('show');
+    }
+    return false;
 }
+window.toggleMobileMenu = toggleMobileMenu;
 function showSite() {
     destroyPublicMap();
     nsStopTrackWatch();
@@ -517,7 +529,7 @@ function renderShipDetail(shipment) {
     <h4 class="section-title">Payment &amp; Delivery</h4>
     <div class="grid2">
       <div class="field"><label>Amount</label><input id="f_amount" type="number" step="0.01" value="${esc(s.payment.amount)}"></div>
-      <div class="field"><label>Currency</label><input id="f_currency" value="${esc(s.payment.currency || 'USD')}" placeholder="e.g. USD, NGN, KES"></div>
+      <div class="field"><label>Currency</label><input id="f_currency" value="${esc(s.payment.currency || 'USD')}" placeholder="e.g. USD, CAD, EUR"></div>
     <h4 class="section-title">Receipt template (DHL-style)</h4>
     <div class="grid2">
       <div class="field"><label>Waybill Number</label><input id="f_waybill" value="${esc(s.waybillNumber || '')}"></div>
@@ -2182,18 +2194,8 @@ async function toggleBoxService() {
 
 
 
-/* mobile menu open class for dhl.com layout */
-(function () {
-    var orig = window.toggleMobileMenu;
-    window.toggleMobileMenu = function () {
-        document.body.classList.toggle("menu-open");
-        var m = document.getElementById("mobileMenu");
-        if (m) m.classList.toggle("open");
-        if (typeof orig === "function") {
-            try { orig(); } catch (e) { }
-        }
-    };
-})();
+/* mobile menu: single toggle only (double-toggle wrapper removed) */
+
 
 /* ========== LIVE CUSTOMER CHAT (guest + admin, separate threads) ========== */
 function dhlGuestId() {

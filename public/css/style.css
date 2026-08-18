@@ -186,91 +186,7 @@ header.navbar .btn-outline:hover,
     border: 1px solid #bbb;
 }
 
-.hamburger {
-    display: none;
-    flex-direction: column;
-    gap: 5px;
-    background: none;
-    border: none;
-    padding: 8px;
-    flex: none;
-}
-
-.hamburger span {
-    width: 26px;
-    height: 2px;
-    background: #fff;
-}
-
-#mobileMenu {
-    position: fixed;
-    top: 0;
-    right: -320px;
-    width: 290px;
-    max-width: 82vw;
-    height: 100%;
-    background: var(--ink);
-    z-index: 600;
-    transition: right .3s ease;
-    padding: 90px 26px 26px;
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-    overflow-y: auto;
-}
-
-#mobileMenu.open {
-    right: 0;
-}
-
-#mobileMenu a {
-    color: #EDEAE3;
-    font-size: 17px;
-    font-weight: 500;
-}
-
-#mobileMenu .btn {
-    width: 100%;
-    text-align: center;
-}
-
-#overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, .5);
-    z-index: 550;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity .3s;
-}
-
-#overlay.show {
-    opacity: 1;
-    pointer-events: auto;
-}
-
-.close-menu {
-    align-self: flex-end;
-    background: none;
-    border: none;
-    color: #fff;
-    font-size: 28px;
-    position: absolute;
-    top: 20px;
-    right: 20px;
-}
-
-@media (max-width:860px) {
-
-    nav.desktop-links,
-    .nav-btns {
-        display: none;
-    }
-
-    .hamburger {
-        display: flex;
-    }
-}
+/* legacy dark mobileMenu rules removed */
 
 main {
     padding-top: 72px;
@@ -4083,7 +3999,7 @@ body.menu-open #overlay {
 
 @media (min-width: 768px) {
     .dhl-header .hamburger {
-        display: none !important;
+        display: flex !important;
     }
 
     .desktop-nav {
@@ -4553,4 +4469,100 @@ body.admin-mode #guestChatPanel {
     .chat-fab {
         bottom: 80px;
     }
+}
+
+
+/* ===== FORCE mobile drawer (fix broken nav) ===== */
+#mobileMenu {
+    position: fixed !important;
+    top: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    left: auto !important;
+    width: min(320px, 86vw) !important;
+    height: 100% !important;
+    background: #fff !important;
+    z-index: 1100 !important;
+    transform: translateX(100%) !important;
+    transition: transform .28s ease !important;
+    overflow-y: auto !important;
+    padding: 0 0 40px !important;
+    display: block !important;
+    box-shadow: -8px 0 24px rgba(0, 0, 0, .18) !important;
+}
+
+#mobileMenu.open,
+body.menu-open #mobileMenu {
+    transform: translateX(0) !important;
+}
+
+#overlay {
+    position: fixed !important;
+    inset: 0 !important;
+    background: rgba(0, 0, 0, .4) !important;
+    z-index: 1050 !important;
+    display: none !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+#overlay.show,
+body.menu-open #overlay {
+    display: block !important;
+}
+
+#mobileMenu>a,
+#mobileMenu .mm-toggle {
+    color: #1a1a1a !important;
+}
+
+.dhl-header .hamburger {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    z-index: 1200 !important;
+    position: relative !important;
+}
+
+/* Keep hamburger on all screen sizes so home nav always works */
+
+
+/* ===== HOME NAV MUST WORK ===== */
+.dhl-header {
+    z-index: 2000 !important;
+    position: sticky !important;
+    top: 0 !important;
+}
+
+.dhl-header .header-bar {
+    position: relative;
+    z-index: 2001;
+}
+
+.dhl-header .hamburger {
+    display: flex !important;
+    visibility: visible !important;
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    z-index: 2002 !important;
+    pointer-events: auto !important;
+    cursor: pointer !important;
+}
+
+#mobileMenu {
+    z-index: 3000 !important;
+}
+
+#mobileMenu.open {
+    transform: translateX(0) !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+}
+
+#overlay.show,
+body.menu-open #overlay {
+    display: block !important;
+    z-index: 2990 !important;
 }
