@@ -4,15 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="https://commons.wikimedia.org/wiki/Special:FilePath/DHL_Express.svg">
-    <title>DHL — Track. Ship. Deliver.</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap"
-        rel="stylesheet">
+    <title>DHL Home - Global Logistics and International Shipping</title>
+    <meta name="description"
+        content="DHL — Track your shipment, ship documents and parcels, get a quote. Global logistics and international shipping.">
+    <link rel="icon" href="https://www.dhl.com/favicon.ico">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link rel="stylesheet" href="/css/style.css?v=20260813b">
+    <link rel="stylesheet" href="/css/style.css?v=20260818chat2">
 </head>
 
 <body>
@@ -22,273 +20,452 @@
         <div class="sub">Loading…</div>
     </div>
 
-
-    <!-- ===================== NAVBAR ===================== -->
-    <header class="navbar">
-        <div class="brand">
-            <div>
-                <span class="brand-dhl-logo">DHL</span>
-                <small>Global Freight &amp; Courier</small>
-            </div>
+    <!-- Yellow header — desktop links on right + mobile hamburger (drawer from right) -->
+    <header class="dhl-header">
+        <div class="header-bar">
+            <a class="dhl-logo" href="/" onclick="showSite(); return true;" aria-label="DHL Home">
+                <img src="/images/dhl-logo-header.png" alt="DHL" class="logo-img"
+                    onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';">
+                <span class="logo-fallback" style="display:none;" aria-hidden="true">
+                    <svg class="dhl-logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 40" role="img"
+                        aria-label="DHL">
+                        <rect x="0" y="12" width="22" height="3.2" fill="#D40511" />
+                        <rect x="0" y="18.4" width="28" height="3.2" fill="#D40511" />
+                        <rect x="0" y="24.8" width="22" height="3.2" fill="#D40511" />
+                        <text x="34" y="30" font-family="Arial Black,Impact,Arial,sans-serif" font-size="30"
+                            font-weight="900" fill="#D40511" letter-spacing="-1.5">DHL</text>
+                        <rect x="128" y="12" width="22" height="3.2" fill="#D40511" />
+                        <rect x="122" y="18.4" width="28" height="3.2" fill="#D40511" />
+                        <rect x="128" y="24.8" width="22" height="3.2" fill="#D40511" />
+                    </svg>
+                </span>
+            </a>
+            <!-- Desktop / PC nav (right side) -->
+            <nav class="desktop-nav" aria-label="Main">
+                <a href="#" onclick="goTrack();return false;">Track</a>
+                <a href="#express" onclick="showSite()">Ship</a>
+                <a href="#quote" onclick="showSite()">Get a Quote</a>
+                <a href="#services" onclick="showSite()">Our Services</a>
+                <a href="#customer-service" onclick="showSite()">Customer Service</a>
+                <a href="/receipt">Receipt</a>
+                <a href="/box.html">Box</a>
+            </nav>
+            <button type="button" class="hamburger" onclick="toggleMobileMenu()" aria-label="Open menu">
+                <span></span><span></span><span></span>
+            </button>
         </div>
-        <nav class="desktop-links">
-            <a href="#home" onclick="showSite()">Home</a>
-            <a href="#service" onclick="showSite()">Service</a>
-            <a href="#" onclick="goTrack()">Track Now</a>
-            <a href="#testimonials" onclick="showSite()">Testimonials</a>
-            <a href="#about" onclick="showSite()">About Us</a>
-            <a href="#contact" onclick="showSite()">Contact Us</a>
-            <a href="/box.html">Box</a>
-            <a href="/receipt">Receipt</a>
-        </nav>
-        <div class="nav-btns" style="display:flex;">
-            <button class="btn btn-outline" onclick="openModal('loginModal')">Log In</button>
-        </div>
-        <button class="hamburger" onclick="toggleMobileMenu()" aria-label="Open menu">
-            <span></span><span></span><span></span>
-        </button>
     </header>
+
     <div id="overlay" onclick="toggleMobileMenu()"></div>
-    <div id="mobileMenu">
-        <button class="close-menu" onclick="toggleMobileMenu()">&times;</button>
-        <a href="#home" onclick="showSite();toggleMobileMenu()">Home</a>
-        <a href="#service" onclick="showSite();toggleMobileMenu()">Service</a>
-        <a href="#" onclick="goTrack();toggleMobileMenu()">Track Now</a>
-        <a href="#testimonials" onclick="showSite();toggleMobileMenu()">Testimonials</a>
-        <a href="#about" onclick="showSite();toggleMobileMenu()">About Us</a>
-        <a href="#contact" onclick="showSite();toggleMobileMenu()">Contact Us</a>
-        <a href="/box.html" onclick="toggleMobileMenu()">Box</a>
+    <!-- Right-side drawer only when hamburger is tapped -->
+    <div id="mobileMenu" role="dialog" aria-label="Menu">
+        <div class="mm-head">
+            <a class="dhl-logo" href="/" onclick="showSite();toggleMobileMenu();return true;">
+                <img src="/images/dhl-logo-header.png" alt="DHL" class="logo-img"
+                    onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';">
+                <span class="logo-fallback" style="display:none;">
+                    <svg class="dhl-logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 40">
+                        <rect x="0" y="12" width="22" height="3.2" fill="#D40511" />
+                        <rect x="0" y="18.4" width="28" height="3.2" fill="#D40511" />
+                        <rect x="0" y="24.8" width="22" height="3.2" fill="#D40511" /><text x="34" y="30"
+                            font-family="Arial Black,Impact,Arial,sans-serif" font-size="30" font-weight="900"
+                            fill="#D40511" letter-spacing="-1.5">DHL</text>
+                        <rect x="128" y="12" width="22" height="3.2" fill="#D40511" />
+                        <rect x="122" y="18.4" width="28" height="3.2" fill="#D40511" />
+                        <rect x="128" y="24.8" width="22" height="3.2" fill="#D40511" />
+                    </svg>
+                </span>
+            </a>
+            <button type="button" class="close-menu" onclick="toggleMobileMenu()" aria-label="Close">&times;</button>
+        </div>
+        <a href="#" onclick="goTrack();toggleMobileMenu();return false;">Track</a>
+        <button type="button" class="mm-toggle"
+            onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">Ship <span
+                class="chev">▾</span></button>
+        <div class="mm-sub">
+            <a href="#quote" onclick="showSite();toggleMobileMenu()">Get a Quote</a>
+            <a href="#express" onclick="showSite();toggleMobileMenu()">Ship Now</a>
+            <div class="mm-label">Document and Package</div>
+            <a href="#express" onclick="showSite();toggleMobileMenu()">Express document and package shipping</a>
+            <div class="mm-label">Pallets, Containers and Cargo (Business Only)</div>
+            <a href="#forwarding" onclick="showSite();toggleMobileMenu()">Explore Freight Services</a>
+            <div class="mm-label">DHL for Business</div>
+            <a href="#business" onclick="showSite();toggleMobileMenu()">Frequent Shipping Options</a>
+        </div>
+        <a href="#services" onclick="showSite();toggleMobileMenu()">Our Services</a>
+        <a href="#customer-service" onclick="showSite();toggleMobileMenu()">Customer Service</a>
+        <a href="#customer-service" onclick="showSite();toggleMobileMenu()">Customer Portal Logins</a>
+        <a href="#customer-service" onclick="showSite();toggleMobileMenu()">Find a Service Point</a>
         <a href="/receipt" onclick="toggleMobileMenu()">Receipt</a>
-        <button class="btn btn-outline" onclick="openModal('loginModal');toggleMobileMenu()">Log In</button>
-        <button class="btn btn-red" onclick="openModal('signupModal');toggleMobileMenu()">Sign Up</button>
+        <a href="/box.html" onclick="toggleMobileMenu()">Box</a>
     </div>
 
-    <!-- ===================== PUBLIC SITE ===================== -->
     <main id="siteView">
 
-        <section class="hero" id="home">
-            <div class="hero-lang no-admin" id="heroLang">
-                <select id="siteLang" onchange="setSiteLang(this.value)" aria-label="Language">
-                    <option value="en">🇺🇸 English</option>
-                    <option value="id">🇮🇩 Indonesia</option>
-                    <option value="ms">🇲🇾 Malaysia</option>
-                    <option value="es">🇪🇸 Spanish</option>
-                    <option value="fr">🇫🇷 Français</option>
-                    <option value="zh">🇨🇳 中文</option>
-                    <option value="ar">🇸🇦 العربية</option>
-                </select>
+        <!-- HERO: Track + action cards (as on dhl.com mobile) -->
+        <section class="dhl-hero" id="home">
+            <div class="hero-photo">
+                <!-- Replace with your own hero photo -->
+                <img src="/images/hero-home.jpg" alt="DHL delivery"
+                    onerror="this.parentElement.classList.add('no-img')">
             </div>
-
-            <div class="hero-inner">
-                <div class="eyebrow">Dispatched daily · 120+ countries</div>
-                <h1>Your package, <em>tracked</em><br>every mile of the way.</h1>
-                <p>DHL moves freight by air, sea and land with live status updates from pickup to your
-                    door.</p>
-                <div class="track-bar">
-                    <input id="heroTrackInput" type="text" placeholder="Enter tracking code e.g. DHL XXX" class="mono">
-                    <button class="btn btn-red" onclick="trackFromHero()">Track Package</button>
+            <div class="hero-panel">
+                <h1>Track Your Shipment</h1>
+                <div class="track-box">
+                    <input id="heroTrackInput" type="text" placeholder="Enter your tracking number(s)" class="mono"
+                        autocomplete="off">
+                    <button type="button" class="btn btn-red btn-block" onclick="trackFromHero()">Track</button>
                 </div>
                 <div class="track-msg" id="heroTrackMsg"></div>
+
+                <a class="action-tile" href="#express" onclick="showSite()">
+                    <span class="tile-icon" aria-hidden="true">📅</span>
+                    <span class="tile-title">Ship Now</span>
+                    <span class="tile-sub">Find the right service</span>
+                </a>
+                <a class="action-tile" href="#quote" onclick="showSite()">
+                    <span class="tile-icon" aria-hidden="true">📄</span>
+                    <span class="tile-title">Get a Quote</span>
+                    <span class="tile-sub">Estimate cost to share and compare</span>
+                </a>
+                <a class="action-tile tile-corner" href="#business" onclick="showSite()">
+                    <span class="tile-icon" aria-hidden="true">🏢</span>
+                    <span class="tile-title">DHL for Business</span>
+                    <span class="tile-sub">Shipping regularly? Request a business account and profit from exclusive
+                        benefits</span>
+                </a>
             </div>
         </section>
 
-        <section id="service">
+        <!-- Yellow tariff banner -->
+        <section class="yellow-banner" id="tariffs">
             <div class="wrap">
-                <div class="sec-head">
-                    <div class="eyebrow">What we move</div>
-                    <h2>Freight, your way</h2>
-                    <p>Pick the lane that fits your shipment we handle documentation, customs and last mile delivery
-                        on all three.</p>
+                <h2>Navigating Latest Tariff Developments</h2>
+                <p>Global trade is becoming increasingly complex as new U.S. tariffs and varying reciprocal measures
+                    emerge across countries and industries. At DHL, we are committed to helping you navigate these
+                    changes.</p>
+                <a class="btn btn-red" href="#customer-service">Explore Our U.S. Tariff Solutions</a>
+            </div>
+        </section>
+
+        <!-- Document and Parcel Shipping -->
+        <section class="dhl-section" id="express">
+            <div class="wrap">
+                <div class="section-photo">
+                    <img src="/images/express-parcel.jpg" alt="Document and parcel shipping"
+                        onerror="this.parentElement.classList.add('no-img')">
                 </div>
-                <div class="service-grid">
-                    <div class="service-card">
-                        <img src="images/49cb3e63e475d5811c992103c4941d03.jpg" alt="DHL cargo plane" loading="lazy">
-                        <div class="body">
-                            <span class="tag">Fastest</span>
-                            <h3> Air Freight</h3>
-                            <p>Priority air lanes for time critical shipments, with door to door transit in as little as
-                                24/72 hours across major hubs.</p>
+                <h2>Document and Parcel Shipping</h2>
+                <p class="eyebrow">For All Shippers</p>
+                <p>Learn about DHL Express – the undisputed global leader in international express shipping.</p>
+                <h3 class="subhead">Services Available</h3>
+                <ul class="service-icons">
+                    <li><span class="si">✈</span> Next Possible Business Day</li>
+                    <li><span class="si">📦</span> Flexible Import/Export Options</li>
+                    <li><span class="si">⚙</span> Tailored Business Solutions</li>
+                    <li><span class="si">★</span> Wide Variety of Optional Services</li>
+                </ul>
+                <a class="btn btn-red" href="#" onclick="goTrack(); return false;">Track an Express shipment</a>
+            </div>
+        </section>
+
+        <!-- Get a free quote -->
+        <section class="dhl-section band-soft" id="quote">
+            <div class="wrap">
+                <div class="yellow-card">
+                    <h2>Get a Free Domestic or International Business Shipping Quote Online</h2>
+                    <p>Packages and pallets, big and small, we can offer you an instant quote for your shipping needs
+                        both domestically and internationally. Fill out your shipment details below to discover your
+                        quotes. If you are satisfied, simply continue to book.</p>
+                </div>
+                <button type="button" class="btn btn-red btn-block" style="margin-top:16px;"
+                    onclick="document.getElementById('quoteForm').classList.toggle('open')">Describe your
+                    Shipment</button>
+                <form id="quoteForm" class="quote-form"
+                    onsubmit="event.preventDefault();alert('Quote request received. Our team will contact you.');">
+                    <label>From country<input type="text" placeholder="e.g. Nigeria"></label>
+                    <label>To country<input type="text" placeholder="e.g. United States"></label>
+                    <label>Weight (kg)<input type="number" min="0.1" step="0.1" placeholder="1.0"></label>
+                    <label>Package type
+                        <select>
+                            <option>Document</option>
+                            <option>Parcel</option>
+                            <option>Pallet</option>
+                        </select>
+                    </label>
+                    <button type="submit" class="btn btn-red btn-block">Get Quote</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- DHL for Business -->
+        <section class="dhl-section" id="business">
+            <div class="wrap">
+                <h2>DHL for Business</h2>
+                <p class="lead">Get connected to the right experts in a few easy steps</p>
+                <ul class="plain-list">
+                    <li>Benefit from attractive prices for businesses based on your shipment volume and frequency.</li>
+                    <li>Increase efficiency and control all your shipments with our exclusive DHL Shipping tools.</li>
+                    <li>Benefit from our global experience and a large and reliable logistics network.</li>
+                </ul>
+                <h3 class="subhead">Which DHL for Business Services Are Right for You?</h3>
+                <p>From sending flyers and small packages to forwarding large cargo or freight—and everything in
+                    between—we can set you up with the right account to simplify the way you ship and cut costs.</p>
+                <a class="btn btn-red" href="#customer-service">Get Started With a Shipping Profile</a>
+                <h3 class="subhead">A Family of Divisions</h3>
+                <p>DHL is the leading global brand in the logistics industry. Our DHL family of divisions offer an
+                    unrivalled portfolio of logistics services ranging from national and international parcel delivery,
+                    e-commerce shipping and fulfilment solutions, international express, road, air and ocean transport.
+                </p>
+            </div>
+        </section>
+
+        <!-- Cargo / Global Forwarding -->
+        <section class="dhl-section band-soft" id="forwarding">
+            <div class="wrap">
+                <h2>Cargo Shipping</h2>
+                <p class="eyebrow">Business Only</p>
+                <p>Discover shipping and logistics service options from DHL Global Forwarding.</p>
+                <h3 class="subhead">Services Available</h3>
+                <ul class="service-icons">
+                    <li><span class="si">✈</span> Air Freight</li>
+                    <li><span class="si">🚚</span> Road Freight</li>
+                    <li><span class="si">🚢</span> Ocean Freight</li>
+                    <li><span class="si">🚂</span> Rail Freight</li>
+                </ul>
+                <a class="btn btn-red" href="#customer-service">Explore DHL Global Forwarding</a>
+            </div>
+        </section>
+
+        <!-- Service updates -->
+        <section class="dhl-section" id="updates">
+            <div class="wrap">
+                <h2>Important Service Updates</h2>
+                <p>Service bulletins keep you up to date with news and alerts</p>
+                <ul class="updates-list">
+                    <li>New Customs Rules for Shipments Under €150 From Outside the EU Starting July 1, 2026</li>
+                    <li>Operational Update Middle East</li>
+                    <li>New Jet Fuel Index change effective August 03, 2026</li>
+                    <li>DHL Express will implement weekly Fuel Surcharge updates</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Sustainability + Globalization -->
+        <section class="dhl-section band-soft" id="about">
+            <div class="wrap">
+                <div class="section-photo">
+                    <img src="/images/sustainability.jpg" alt="Sustainability"
+                        onerror="this.parentElement.classList.add('no-img')">
+                </div>
+                <h2>Sustainability <span class="arrow">›</span></h2>
+                <p>Sustainable business begins with low carbon supply chains. Find out what we have to offer and how we
+                    integrate sustainability into our operations to reduce environmental impacts for your supply chain.
+                </p>
+                <div class="img-row">
+                    <img src="/images/global-1.jpg" alt="" onerror="this.classList.add('ph')">
+                    <img src="/images/global-2.jpg" alt="" onerror="this.classList.add('ph')">
+                    <img src="/images/global-3.jpg" alt="" onerror="this.classList.add('ph')">
+                </div>
+                <h2 style="margin-top:28px;">Globalization holds firm at a record level</h2>
+                <p>The DHL Global Connectedness Report 2026 offers the most comprehensive view of globalization
+                    available.</p>
+            </div>
+        </section>
+
+        <!-- What We Offer — put your photos in public/images/ and change src below -->
+        <section class="dhl-section" id="services">
+            <div class="wrap">
+                <h2>What We Offer</h2>
+                <p class="eyebrow">Our core logistics services</p>
+                <div class="offer-grid">
+                    <article class="service-card">
+                        <div class="sc-photo">
+                            <!-- CHANGE src to your plane photo, e.g. /images/my-plane.png or full https URL -->
+                            <img src="/images/service-plane.jpg" alt="Air Express" loading="lazy"
+                                onerror="this.style.display='none';this.parentElement.classList.add('fallback-plane');">
+                            <span class="sc-emoji" aria-hidden="true">✈️</span>
                         </div>
-                    </div>
-                    <div class="service-card">
-                        <img src="images/f265b71d3e22c7f70ad1a410fbca9f0b.jpg" alt="DHL cargo handling at airport"
-                            loading="lazy">
                         <div class="body">
-                            <span class="tag">Bulk &amp; Cost efficient</span>
-                            <h3>Sea Freight</h3>
-                            <p>Full and part container ocean shipping for bulky or heavy cargo, ideal for non urgent,
-                                high volume orders.</p>
+                            <h3>Air Express</h3>
+                            <p>Time-critical international document and parcel delivery by air — next possible business
+                                day options worldwide.</p>
                         </div>
-                    </div>
-                    <div class="service-card">
-                        <img src="images/139775a9e16a87d16a80615053db902e.jpg" alt="DHL delivery truck van"
-                            loading="lazy">
-                        <div class="body">
-                            <span class="tag">Door to Door</span>
-                            <h3> Land Freight</h3>
-                            <p>Trucking networks covering regional and cross border routes, plus final last mile
-                                delivery to your address.</p>
+                    </article>
+                    <article class="service-card">
+                        <div class="sc-photo">
+                            <!-- CHANGE src to your truck / land photo -->
+                            <img src="/images/service-truck.jpg" alt="Road and Land" loading="lazy"
+                                onerror="this.style.display='none';this.parentElement.classList.add('fallback-truck');">
+                            <span class="sc-emoji" aria-hidden="true">🚚</span>
                         </div>
-                    </div>
-                    <div class="service-card">
-                        <img src="images/5ab1019ad0916dd49cf1b782247c9e41.jpg" alt="DHL logistics hub and warehouse"
-                            loading="lazy">
                         <div class="body">
-                            <span class="tag">Storage</span>
+                            <h3>Road &amp; Land</h3>
+                            <p>Reliable ground transport for domestic and regional shipments with flexible pickup and
+                                delivery windows.</p>
+                        </div>
+                    </article>
+                    <article class="service-card">
+                        <div class="sc-photo">
+                            <!-- CHANGE src to your ship / ocean photo -->
+                            <img src="/images/service-ship.jpg" alt="Ocean Freight" loading="lazy"
+                                onerror="this.style.display='none';this.parentElement.classList.add('fallback-ship');">
+                            <span class="sc-emoji" aria-hidden="true">🚢</span>
+                        </div>
+                        <div class="body">
+                            <h3>Ocean &amp; Freight</h3>
+                            <p>Cost-effective ocean and multimodal freight for pallets, containers and larger cargo
+                                volumes.</p>
+                        </div>
+                    </article>
+                    <article class="service-card">
+                        <div class="sc-photo">
+                            <!-- CHANGE src to your warehouse photo -->
+                            <img src="/images/service-warehouse.jpg" alt="Warehousing" loading="lazy"
+                                onerror="this.style.display='none';this.parentElement.classList.add('fallback-wh');">
+                            <span class="sc-emoji" aria-hidden="true">🏭</span>
+                        </div>
+                        <div class="body">
                             <h3>Warehousing</h3>
-                            <p>Secure short and long term storage with inventory tracking while your shipment awaits its
-                                next leg.</p>
+                            <p>Fulfilment, storage and distribution solutions so your goods move smoothly from origin to
+                                last mile.</p>
                         </div>
-                    </div>
-                </div>
-
-
-            </div>
-
-
-            <div class="stats">
-                <div class="stat">
-                    <h3 data-count="670" data-suffix="+"><span>0</span></h3>
-                    <p>Shipments Handled (K)</p>
-                </div>
-                <div class="stat">
-                    <h3 data-count="99.9" data-decimal="1" data-suffix="%"><span>0</span></h3>
-                    <p>On-Time Delivery Rate</p>
-                </div>
-                <div class="stat">
-                    <h3 data-count="24" data-suffix="/7"><span>0</span></h3>
-                    <p>Customer Support</p>
-                </div>
-                <div class="stat">
-                    <h3 data-count="120" data-suffix="+"><span>0</span></h3>
-                    <p>Countries Served</p>
-                </div>
-            </div>
-            </div>
-        </section>
-
-        <section id="testimonials" style="background:#fff;">
-            <div class="wrap">
-                <div class="sec-head">
-                    <div class="eyebrow">Trusted by shippers</div>
-                    <h2>What clients say</h2>
-                </div>
-                <div class="test-grid">
-                    <div class="test-card">
-                        <div class="stars">★★★★★</div>
-                        <p class="quote">Our containers arrived two days early and the tracking page told us exactly
-                            which port they were at. Made our own customer updates painless.</p>
-                        <div class="test-who">
-                            <div class="avatar">A</div>
-                            <div><strong>Am O.</strong><span>From indonesia</span></div>
-                        </div>
-                    </div>
-                    <div class="test-card">
-                        <div class="stars">★★★★★</div>
-                        <p class="quote">Switched from a competitor after one bad delivery window. DHL air
-                            freight team kept us posted at every leg of a rush order.</p>
-                        <div class="test-who">
-                            <div class="avatar">D</div>
-                            <div><strong>Da K.</strong><span>From united states</span></div>
-                        </div>
-                    </div>
-                    <div class="test-card">
-                        <div class="stars">★★★★☆</div>
-                        <p class="quote">Warehousing between shipments saved us from renting a second storage unit.
-                            Simple, and the team is easy to reach.</p>
-                        <div class="test-who">
-                            <div class="avatar">M</div>
-                            <div><strong>Mei L.</strong><span>From Singapore</span></div>
-                        </div>
-                    </div>
+                    </article>
                 </div>
             </div>
         </section>
 
-        <section id="about">
+        <!-- FAQ style -->
+        <section class="dhl-section" id="faq">
             <div class="wrap">
-                <div class="about-grid">
-                    <img src="images/e668ecb567b0e686d07b086d8aed2885.jpg" alt="DHL delivery vehicle" loading="lazy">
-                    <div>
-                        <div class="eyebrow">Since day one</div>
-                        <h2>Built for shipments that can't afford to go missing</h2>
-                        <p>DHL started as a small last mile courier and grew into a multi modal freight
-                            operator covering air, sea and land. Every shipment gets a tracking code the moment it's
-                            booked, and our admin team updates its status the instant it moves so you're never
-                            guessing where a package is.</p>
-                        <p>We work with importers, retailers and independent sellers who need a partner that answers the
-                            phone and tells the truth about delays. That's the whole pitch.</p>
+                <h2>Frequently Asked Questions</h2>
+                <details class="faq-item">
+                    <summary>How do you use my contact information?</summary>
+                    <p>We use your contact details only to respond to your shipping and support requests.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>I want to speak with someone. Why do I have to fill out the shipping profile to get
+                        connected?</summary>
+                    <p>A short profile helps us route you to the right DHL expert for your shipment type and volume.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What different business shipping methods does DHL offer?</summary>
+                    <p>Express documents and parcels, eCommerce delivery, and Global Forwarding for air, ocean, road and
+                        rail freight.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What benefits do I get from opening a business account with DHL?</summary>
+                    <p>Volume pricing, shipping tools, invoicing options, and dedicated support.</p>
+                </details>
+            </div>
+        </section>
+
+        <!-- Customer service — current dhl.com copy + previous support card design -->
+        <section class="dhl-section band-soft" id="customer-service">
+            <div class="wrap">
+                <h2>Customer Service</h2>
+                <p>Tracking online is the fastest way to check the status of your shipment(s). No account, no password
+                    and no phone calls required. All you need is the waybill number(s).</p>
+                <div class="btn-row">
+                    <a class="btn btn-red" href="#" onclick="goTrack(); return false;">Track Your Shipment</a>
+                    <a class="btn btn-dark" href="/receipt">Shipment Receipt</a>
+                    <a class="btn btn-dark" href="/box.html">Package / Box</a>
+                </div>
+
+                <!-- Previous CS support cards kept + added -->
+                <div class="cs-support-grid">
+                    <div class="cs-card">
+                        <div class="cs-icon" aria-hidden="true">🎧</div>
+                        <h3>24/7 Support</h3>
+                        <p>Our customer care team is available around the clock for tracking help, delivery questions
+                            and claim guidance.</p>
+                    </div>
+                    <div class="cs-card">
+                        <div class="cs-icon" aria-hidden="true">📍</div>
+                        <h3>Find a Service Point</h3>
+                        <p>Locate nearby DHL service points for drop-off, pickup and packaging assistance.</p>
+                    </div>
+                    <div class="cs-card">
+                        <div class="cs-icon" aria-hidden="true">🔐</div>
+                        <h3>Customer Portal Logins</h3>
+                        <p>Access MyDHL+, shipping tools and invoices with your business portal credentials.</p>
                     </div>
                 </div>
             </div>
         </section>
 
-        <section id="contact" style="background:#fff;">
-            <div class="wrap">
-                <div class="sec-head">
-                    <div class="eyebrow">Get in touch</div>
-                    <h2>Talk to our team</h2>
-                    <p>Fill in the form below every field is required so we have what we need to get back to you.</p>
+        <!-- Sticky yellow CTA like Express page -->
+        <div class="sticky-cta">
+            <a href="#quote" onclick="showSite()">Get a Quote and Ship Now</a>
+        </div>
+
+        <footer class="dhl-footer">
+            <div class="wrap footer-grid">
+                <div class="footer-col">
+                    <h4>Quick Links</h4>
+                    <a href="#customer-service">Customer Service</a>
+                    <a href="#customer-service">Customer Portal Logins</a>
+                    <a href="#quote">Get a Quote</a>
+                    <a href="#business">DHL for Business</a>
+                    <a href="#" onclick="goTrack();return false;">Track a Shipment</a>
+                    <a href="/receipt">Shipment Receipt</a>
+                    <a href="/box.html">Package / Box</a>
+                    <a href="#services">What We Offer</a>
                 </div>
-                <div class="contact-grid">
-                    <div class="contact-info">
-                        <div class="row">
-                            <div class="icon">✉</div>
-                            <div><strong>Email</strong><span>support@dhlexpress.com</span></div>
-                        </div>
-                        <div class="row">
-                            <div class="icon">📍</div>
-                            <div><strong>Head Office</strong><span>184 Airport Road, Umm Ramool, Deira, Dubai,
-                                    UAE</span>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="icon">🕒</div>
-                            <div><strong>Hours</strong><span>Mon–Sat · 7am–9pm (Live tracking is 24/7)</span></div>
-                        </div>
-                    </div>
-                    <form class="card" id="contactForm" onsubmit="return handleContactSubmit(event)" novalidate>
-                        <div class="field">
-                            <label>Full Name</label>
-                            <input type="text" id="cName" required>
-                            <div class="field-error" id="err-cName">Please enter your name.</div>
-                        </div>
-                        <div class="field">
-                            <label>Email Address</label>
-                            <input type="email" id="cEmail" required>
-                            <div class="field-error" id="err-cEmail">Please enter a valid email.</div>
-                        </div>
-                        <div class="field">
-                            <label>Subject</label>
-                            <input type="text" id="cSubject" required>
-                            <div class="field-error" id="err-cSubject">Please enter a subject.</div>
-                        </div>
-                        <div class="field">
-                            <label>Message</label>
-                            <textarea id="cMessage" rows="4" required></textarea>
-                            <div class="field-error" id="err-cMessage">Please enter a message.</div>
-                        </div>
-                        <button type="submit" class="btn btn-red" style="width:100%;">Send Message</button>
-                        <div class="success-box" id="contactSuccess">Thanks — we've received your message and will get
-                            back to you shortly.</div>
-                    </form>
+                <div class="footer-col">
+                    <h4>Our Divisions</h4>
+                    <a href="#express">DHL Express</a>
+                    <a href="#forwarding">DHL Global Forwarding</a>
+                    <a href="#express">DHL eCommerce</a>
+                    <a href="#about">DHL Supply Chain</a>
+                    <a href="#about">Other Global Divisions</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Ship &amp; Track</h4>
+                    <a href="#express">Ship Now</a>
+                    <a href="#quote">Online Shipping Quote</a>
+                    <a href="#" onclick="goTrack();return false;">Track Your Shipment</a>
+                    <a href="#express">Express Document &amp; Parcel</a>
+                    <a href="#forwarding">Freight Services</a>
+                    <a href="#business">Open a Business Account</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Help &amp; Support</h4>
+                    <a href="#customer-service">Contact Customer Service</a>
+                    <a href="#faq">Frequently Asked Questions</a>
+                    <a href="#customer-service">Find a Service Point</a>
+                    <a href="#customer-service">Claims &amp; Refunds</a>
+                    <a href="#tariffs">Tariff Developments</a>
+                    <a href="#about">Sustainability / GoGreen</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Company Information</h4>
+                    <a href="#about">About DHL</a>
+                    <a href="#about">Press Center</a>
+                    <a href="#about">Careers</a>
+                    <a href="#about">Investor Relations</a>
+                    <a href="#faq">Legal Notice</a>
+                    <a href="#faq">Privacy Notice</a>
+                    <a href="#faq">Terms of Use</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Follow &amp; More</h4>
+                    <a href="#about">DHL Group</a>
+                    <a href="#about">Innovation</a>
+                    <a href="#about">Digital Partners</a>
+                    <a href="#services">Air · Road · Ocean · Warehouse</a>
+                    <a href="#customer-service">Live Chat Support</a>
                 </div>
             </div>
-        </section>
-
-        <footer>
-            <div class="wrap">
-                <div>© DHL. All rights reserved.</div>
-                <div style="display:flex; gap:18px;">
-                    <a href="#home" onclick="showSite()">Home</a>
-                    <a href="#service" onclick="showSite()">Service</a>
-                    <a href="#contact" onclick="showSite()">Contact</a>
-                </div>
+            <div class="footer-bottom wrap">
+                <img src="/images/dhl-logo-header.png" alt="DHL" class="logo-img sm"
+                    onerror="this.style.display='none'">
+                <span>© DHL International GmbH. Global Logistics and International Shipping. All rights reserved.</span>
             </div>
         </footer>
     </main>
 
-    <!-- ===================== TRACK PAGE (ship.html view) ===================== -->
+
     <div id="trackPage" class="page hidden">
         <div class="wrap">
             <button class="btn btn-outline" style="color:var(--ink); border-color:var(--line);"
@@ -385,7 +562,7 @@
         <div class="modal-box">
             <button class="modal-close" onclick="closeModal('settingsPinModal')">&times;</button>
             <h3>Account settings PIN</h3>
-            <p class="sub">Enter PIN <b></b> to open account settings and change admin username, password, or login
+            <p class="sub">Enter PIN <b>7799</b> to open account settings and change admin username, password, or login
                 PIN.</p>
             <div class="field">
                 <label>Settings PIN</label>
@@ -451,6 +628,10 @@
                         empty.</p>
                 </div>
                 <div class="admin-top-actions" style="position:relative;">
+                    <button type="button" class="btn btn-outline small-btn" id="adminChatBtn"
+                        onclick="adminToggleChatPanel()" title="Customer chats">
+                        💬 Chats <span class="chat-badge hidden" id="adminChatBadge">0</span>
+                    </button>
                     <button type="button" class="btn btn-outline small-btn" id="boxServiceToggleBtn"
                         onclick="toggleBoxService()" title="Box video server">Box video: ON</button>
                     <button class="btn btn-red small-btn" onclick="startNewShipment()">+ New Shipment</button>
@@ -459,6 +640,35 @@
                     <button class="btn btn-outline small-btn" style="color:var(--ink);border-color:var(--line);"
                         onclick="openSettingsProtected()">⚙ Settings</button>
                     <a class="logout-link" onclick="logoutAdmin()">Log Out</a>
+                </div>
+            </div>
+
+            <!-- Admin live chat: separate threads A / B / C — only selected sees reply -->
+            <div id="adminChatPanel" class="admin-chat-panel hidden">
+                <div class="admin-chat-head">
+                    <button type="button" class="btn btn-outline small-btn" onclick="adminToggleChatNav()">☰
+                        Conversations</button>
+                    <strong id="adminChatTitle">Select a conversation</strong>
+                    <button type="button" class="btn btn-outline small-btn" onclick="adminToggleChatPanel()">✕</button>
+                </div>
+                <div class="admin-chat-body">
+                    <aside id="adminChatNav" class="admin-chat-nav">
+                        <p class="mm-label" style="padding:8px 12px;">Each line is a separate customer. Tap to reply
+                            only to that person.</p>
+                        <div id="adminChatThreadList"></div>
+                    </aside>
+                    <div class="admin-chat-main">
+                        <div id="adminChatMessages" class="admin-chat-messages"></div>
+                        <div class="admin-chat-compose">
+                            <input type="file" id="adminChatImage" accept="image/*" hidden
+                                onchange="adminChatPickImage(event)">
+                            <button type="button" class="btn btn-outline small-btn"
+                                onclick="document.getElementById('adminChatImage').click()">📷</button>
+                            <input type="text" id="adminChatInput" placeholder="Reply to selected customer only…"
+                                autocomplete="off">
+                            <button type="button" class="btn btn-red small-btn" onclick="adminChatSend()">Send</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -475,7 +685,44 @@
         </div>
     </div>
 
-    <script src="/js/script.js?v=20260813b"></script>
+    <!-- Floating customer live chat (index) -->
+    <button type="button" class="chat-fab" id="chatFab" onclick="openGuestChat()" aria-label="Live chat">
+        <span class="chat-fab-icon">💬</span>
+        <span class="chat-fab-active" title="Online"></span>
+        <span class="chat-badge hidden" id="guestChatBadge">0</span>
+    </button>
+    <div id="guestChatPanel" class="guest-chat-panel hidden">
+        <div class="guest-chat-head">
+            <div>
+                <strong>DHL Live Chat</strong>
+                <span class="chat-online">● Online</span>
+            </div>
+            <button type="button" onclick="closeGuestChat()" aria-label="Close">✕</button>
+        </div>
+        <div class="guest-chat-setup" id="guestChatSetup">
+            <p>Enter your <b>tracking code</b> to open a private chat. Your chat is labeled with the shipment <b>Sender
+                    / Receiver</b> names (e.g. James / Putri). Only you and DHL support can see it.</p>
+            <label>Tracking code <input type="text" id="guestChatTrack" placeholder="e.g. DHL123456" class="mono"
+                    autocomplete="off" required></label>
+            <p class="guest-chat-err" id="guestChatErr"
+                style="display:none;color:#D40511;font-size:13px;margin:8px 0 0;"></p>
+            <button type="button" class="btn btn-red btn-block" style="margin-top:14px;"
+                onclick="guestChatStart()">Start chat</button>
+        </div>
+        <div class="guest-chat-room hidden" id="guestChatRoom">
+            <div class="guest-chat-label" id="guestChatLabel"></div>
+            <div class="guest-chat-messages" id="guestChatMessages"></div>
+            <div class="guest-chat-compose">
+                <input type="file" id="guestChatImage" accept="image/*" hidden onchange="guestChatPickImage(event)">
+                <button type="button" class="btn btn-outline small-btn"
+                    onclick="document.getElementById('guestChatImage').click()" title="Send photo">📷</button>
+                <input type="text" id="guestChatInput" placeholder="Type a message…" autocomplete="off">
+                <button type="button" class="btn btn-red small-btn" onclick="guestChatSend()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/script.js?v=20260818chat2"></script>
 </body>
 
 </html>

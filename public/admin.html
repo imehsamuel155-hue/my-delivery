@@ -4,14 +4,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin | My Delivery</title>
-    <meta http-equiv="refresh" content="0;url=/?admin=1">
-    <script>location.replace('/?admin=1');</script>
+    <title>DHL Office Login</title>
+    <link rel="icon" href="https://www.dhl.com/favicon.ico">
+    <style>
+        body.admin-login-page {
+            min-height: 100vh;
+            margin: 0;
+            background: #f5f5f5;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 16px;
+            box-sizing: border-box;
+        }
+
+        .al-card {
+            width: 100%;
+            max-width: 400px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, .1);
+            overflow: hidden;
+        }
+
+        .al-head {
+            background: #FFCC00;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .al-head img {
+            height: 36px;
+        }
+
+        .al-head h1 {
+            margin: 12px 0 0;
+            font-size: 20px;
+            color: #1a1a1a;
+        }
+
+        .al-body {
+            padding: 24px 20px 28px;
+        }
+
+        .al-body label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #333;
+        }
+
+        .al-body input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 15px;
+            margin-bottom: 14px;
+        }
+
+        .al-body .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 28px;
+            background: #D40511;
+            color: #fff;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .al-err {
+            color: #D40511;
+            font-size: 13px;
+            margin-bottom: 10px;
+            min-height: 18px;
+        }
+
+        .al-note {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .al-note a {
+            color: #D40511;
+        }
+
+        #pinStep {
+            display: none;
+        }
+    </style>
 </head>
 
-<body>
-    <p style="font-family:sans-serif;padding:40px;text-align:center;">Opening admin… <a href="/">Go to site</a> and
-        click Log In.</p>
+<body class="admin-login-page">
+    <div class="al-card">
+        <div class="al-head">
+            <img src="/images/dhl-logo-header.png" alt="DHL"
+                onerror="this.outerHTML='<strong style=color:#D40511;font-size:28px>DHL</strong>'">
+            <h1>DHL Office Login</h1>
+        </div>
+        <div class="al-body">
+            <div id="loginStep">
+                <p class="al-err" id="loginErr"></p>
+                <label>Username</label>
+                <input type="text" id="alUser" autocomplete="username">
+                <label>Password</label>
+                <input type="password" id="alPass" autocomplete="current-password">
+                <button type="button" class="btn" onclick="doLogin()">Continue</button>
+            </div>
+            <div id="pinStep">
+                <p class="al-err" id="pinErr"></p>
+                <p style="font-size:14px;color:#555;margin:0 0 12px;">Enter your admin PIN to continue.</p>
+                <label>Admin PIN</label>
+                <input type="password" id="alPin" inputmode="numeric" maxlength="8" autocomplete="one-time-code">
+                <button type="button" class="btn" onclick="doPin()">Enter office</button>
+            </div>
+            <p class="al-note"><a href="/">← Back to DHL home</a></p>
+        </div>
+    </div>
+    <script>
+        let loginTicket = null;
+
+        async function doLogin() {
+            const err = document.getElementById('loginErr');
+            err.textContent = '';
+            const username = document.getElementById('alUser').value.trim();
+            const password = document.getElementById('alPass').value;
+            try {
+                const r = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await r.json();
+                if (!r.ok) throw new Error(data.error || 'Login failed');
+                if (data.step === 'pin_required') {
+                    loginTicket = data.loginTicket;
+                    document.getElementById('loginStep').style.display = 'none';
+                    document.getElementById('pinStep').style.display = 'block';
+                    document.getElementById('alPin').focus();
+                } else if (data.token) {
+                    sessionStorage.setItem('dhlAdminToken', data.token);
+                    location.href = '/?admin=1';
+                }
+            } catch (e) {
+                err.textContent = e.message;
+            }
+        }
+
+        async function doPin() {
+            const err = document.getElementById('pinErr');
+            err.textContent = '';
+            const pin = document.getElementById('alPin').value.trim();
+            try {
+                const r = await fetch('/api/auth/verify-pin', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ loginTicket, pin })
+                });
+                const data = await r.json();
+                if (!r.ok) throw new Error(data.error || 'PIN failed');
+                sessionStorage.setItem('dhlAdminToken', data.token);
+                location.href = '/?admin=1';
+            } catch (e) {
+                err.textContent = e.message;
+            }
+        }
+
+        document.getElementById('alPass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+        document.getElementById('alPin').addEventListener('keydown', e => { if (e.key === 'Enter') doPin(); });
+    </script>
 </body>
 
 </html>

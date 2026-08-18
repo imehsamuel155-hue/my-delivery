@@ -129,8 +129,13 @@ const STATUS_LIBRARY = ["Order Received", "Dispatched", "Picked Up", "In Transit
 
 /* ---------- NAV / VIEW SWITCHING ---------- */
 function toggleMobileMenu() {
-    document.getElementById('mobileMenu').classList.toggle('open');
-    document.getElementById('overlay').classList.toggle('show');
+    const menu = document.getElementById('mobileMenu');
+    const overlay = document.getElementById('overlay');
+    if (!menu) return;
+    const open = !menu.classList.contains('open');
+    menu.classList.toggle('open', open);
+    if (overlay) overlay.classList.toggle('show', open);
+    document.body.classList.toggle('menu-open', open);
 }
 function showSite() {
     destroyPublicMap();
@@ -305,7 +310,7 @@ async function handlePinSubmit(e) {
     mdShowWait('Verifying PIN……');
     try {
         const data = await apiRequest('/auth/verify-pin', { method: 'POST', body: JSON.stringify({ loginTicket: pendingLoginTicket, pin }) });
-        adminToken = data.token;
+        adminToken = data.token; sessionStorage.setItem("dhlAdminToken", data.token);
         pendingLoginTicket = null;
         err.style.display = 'none';
         closeModal('pinModal');
@@ -2168,3 +2173,286 @@ async function toggleBoxService() {
     }
 }
 
+
+
+/* mobile menu open class for dhl.com layout */
+(function () {
+    var orig = window.toggleMobileMenu;
+    window.toggleMobileMenu = function () {
+        document.body.classList.toggle("menu-open");
+        var m = document.getElementById("mobileMenu");
+        if (m) m.classList.toggle("open");
+        if (typeof orig === "function") {
+            try { orig(); } catch (e) { }
+        }
+    };
+})();
+
+/* ========== LIVE CUSTOMER CHAT (guest + admin, separate threads) ========== */
+function dhlGuestId() {
+    let id = sessionStorage.getItem('dhlGuestId');
+    if (!id) {
+        id = 'g_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        sessionStorage.setItem('dhlGuestId', id);
+    }
+    return id;
+}
+
+function openGuestChat() {
+    const p = document.getElementById('guestChatPanel');
+    if (p) {
+        p.classList.remove('hidden');
+        p.classList.remove('fullscreen');
+    }
+    const badge = document.getElementById('guestChatBadge');
+    if (badge) badge.classList.add('hidden');
+    document.body.classList.add('guest-chat-open');
+}
+
+function closeGuestChat() {
+    const p = document.getElementById('guestChatPanel');
+    if (p) {
+        p.classList.add('hidden');
+        p.classList.remove('fullscreen');
+    }
+    document.body.classList.remove('guest-chat-open');
+}
+
+async function guestChatStart() {
+    const trackEl = document.getElementById('guestChatTrack');
+    const errEl = document.getElementById('guestChatErr');
+    const track = (trackEl && trackEl.value || '').trim();
+    if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
+    if (!track) {
+        if (errEl) {
+            errEl.textContent = 'Please enter a tracking code.';
+            errEl.style.display = 'block';
+        }
+        return;
+    }
+    mdShowWait('Connecting……');
+    try {
+        const data = await apiRequest('/chat/guest/open', {
+            method: 'POST',
+            body: JSON.stringify({
+                guestId: dhlGuestId(),
+                trackCode: track
+            })
+        });
+        document.getElementById('guestChatSetup').classList.add('hidden');
+        document.getElementById('guestChatRoom').classList.remove('hidden');
+        const panel = document.getElementById('guestChatPanel');
+        if (panel) panel.classList.add('fullscreen');
+        const lab = document.getElementById('guestChatLabel');
+        if (lab) lab.textContent = data.label || track;
+        guestRenderMessages(data.messages || []);
+        if (window._guestChatPoll) clearInterval(window._guestChatPoll);
+        window._guestChatPoll = setInterval(guestChatPoll, 4000);
+    } catch (e) {
+        if (errEl) {
+            errEl.textContent = e.message || 'Could not start chat';
+            errEl.style.display = 'block';
+        } else {
+            alert(e.message || 'Could not start chat');
+        }
+    } finally {
+        mdHideWait();
+    }
+}
+
+function guestRenderMessages(msgs) {
+    const box = document.getElementById('guestChatMessages');
+    if (!box) return;
+    box.innerHTML = (msgs || []).map(function (m) {
+        const side = m.from === 'admin' ? 'left' : 'right';
+        const img = m.image ? '<img class="chat-img" src="' + m.image + '" alt="" onclick="window.open(this.src)">' : '';
+        return '<div class="chat-bubble ' + side + '"><div class="chat-meta">' +
+            (m.from === 'admin' ? 'DHL Support' : 'You') + '</div>' +
+            (m.text ? '<div>' + esc(m.text) + '</div>' : '') + img + '</div>';
+    }).join('');
+    box.scrollTop = box.scrollHeight;
+}
+
+async function guestChatPoll() {
+    try {
+        const data = await apiRequest('/chat/guest/' + encodeURIComponent(dhlGuestId()));
+        guestRenderMessages(data.messages || []);
+    } catch (e) { }
+}
+
+async function guestChatSend() {
+    const input = document.getElementById('guestChatInput');
+    const text = (input && input.value || '').trim();
+    if (!text && !window._guestChatPendingImage) return;
+    try {
+        const data = await apiRequest('/chat/guest/send', {
+            method: 'POST',
+            body: JSON.stringify({
+                guestId: dhlGuestId(),
+                text: text,
+                image: window._guestChatPendingImage || ''
+            })
+        });
+        if (input) input.value = '';
+        window._guestChatPendingImage = '';
+        guestRenderMessages(data.messages || []);
+    } catch (e) {
+        alert(e.message || 'Send failed');
+    }
+}
+
+function guestChatPickImage(ev) {
+    const f = ev.target.files && ev.target.files[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = function () {
+        window._guestChatPendingImage = reader.result;
+        guestChatSend();
+    };
+    reader.readAsDataURL(f);
+    ev.target.value = '';
+}
+
+/* Admin chat */
+let adminSelectedThreadId = null;
+
+function adminToggleChatPanel() {
+    const p = document.getElementById('adminChatPanel');
+    if (!p) return;
+    p.classList.toggle('hidden');
+    if (!p.classList.contains('hidden')) {
+        adminLoadThreads();
+        if (window._adminChatPoll) clearInterval(window._adminChatPoll);
+        window._adminChatPoll = setInterval(adminLoadThreads, 5000);
+    }
+}
+
+function adminToggleChatNav() {
+    const n = document.getElementById('adminChatNav');
+    if (n) n.classList.toggle('open');
+}
+
+async function adminLoadThreads() {
+    if (!adminToken) return;
+    try {
+        const data = await apiRequest('/chat/admin/threads');
+        const list = document.getElementById('adminChatThreadList');
+        const badge = document.getElementById('adminChatBadge');
+        let totalUnread = 0;
+        if (list) {
+            list.innerHTML = (data.threads || []).map(function (t) {
+                totalUnread += t.unreadAdmin || 0;
+                const u = t.unreadAdmin ? '<span class="chat-badge">' + t.unreadAdmin + '</span>' : '';
+                return '<button type="button" class="admin-thread-item' +
+                    (adminSelectedThreadId === t.id ? ' active' : '') +
+                    '" onclick="adminOpenThread(\'' + t.id + '\')"><strong>' + esc(t.label) + '</strong>' +
+                    u + '<small>' + esc(t.preview || '') + '</small></button>';
+            }).join('') || '<p style="padding:12px;color:#888;font-size:13px;">No chats yet.</p>';
+        }
+        if (badge) {
+            if (totalUnread > 0) {
+                badge.textContent = totalUnread > 9 ? '9+' : String(totalUnread);
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+    } catch (e) { }
+}
+
+async function adminOpenThread(id) {
+    adminSelectedThreadId = id;
+    const nav = document.getElementById('adminChatNav');
+    if (nav) nav.classList.remove('open');
+    try {
+        const data = await apiRequest('/chat/admin/threads/' + id);
+        const title = document.getElementById('adminChatTitle');
+        if (title) title.textContent = data.label || 'Chat';
+        adminRenderMessages(data.messages || []);
+        adminLoadThreads();
+    } catch (e) {
+        alert(e.message || 'Could not open chat');
+    }
+}
+
+function adminRenderMessages(msgs) {
+    const box = document.getElementById('adminChatMessages');
+    if (!box) return;
+    box.innerHTML = (msgs || []).map(function (m) {
+        const side = m.from === 'admin' ? 'right' : 'left';
+        const who = m.from === 'admin' ? 'You (Admin)' : 'Customer';
+        const img = m.image ? '<img class="chat-img" src="' + m.image + '" alt="" onclick="window.open(this.src)">' : '';
+        return '<div class="chat-bubble ' + side + '"><div class="chat-meta">' + who + '</div>' +
+            (m.text ? '<div>' + esc(m.text) + '</div>' : '') + img + '</div>';
+    }).join('');
+    box.scrollTop = box.scrollHeight;
+}
+
+async function adminChatSend() {
+    if (!adminSelectedThreadId) {
+        alert('Select a conversation first (☰ Conversations).');
+        return;
+    }
+    const input = document.getElementById('adminChatInput');
+    const text = (input && input.value || '').trim();
+    if (!text && !window._adminChatPendingImage) return;
+    try {
+        const data = await apiRequest('/chat/admin/threads/' + adminSelectedThreadId + '/reply', {
+            method: 'POST',
+            body: JSON.stringify({ text: text, image: window._adminChatPendingImage || '' })
+        });
+        if (input) input.value = '';
+        window._adminChatPendingImage = '';
+        adminRenderMessages(data.messages || []);
+        adminLoadThreads();
+    } catch (e) {
+        alert(e.message || 'Send failed');
+    }
+}
+
+function adminChatPickImage(ev) {
+    const f = ev.target.files && ev.target.files[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = function () {
+        window._adminChatPendingImage = reader.result;
+        adminChatSend();
+    };
+    reader.readAsDataURL(f);
+    ev.target.value = '';
+}
+
+/* Bootstrap admin from /admin login (sessionStorage) or ?admin=1 */
+(function bootstrapAdminFromOffice() {
+    try {
+        const params = new URLSearchParams(location.search);
+        const tok = sessionStorage.getItem('dhlAdminToken');
+        if (tok) adminToken = tok;
+        if (params.get('admin') === '1' && adminToken) {
+            document.getElementById('siteView').classList.add('hidden');
+            const tp = document.getElementById('trackPage');
+            if (tp) tp.classList.add('hidden');
+            document.getElementById('adminDashboard').classList.remove('hidden');
+            if (typeof renderShipList === 'function') renderShipList();
+            if (typeof nsLoadAdminNotifs === 'function') nsLoadAdminNotifs();
+            adminLoadThreads();
+            if (window._nsAdminNotifTimer) clearInterval(window._nsAdminNotifTimer);
+            window._nsAdminNotifTimer = setInterval(function () {
+                if (typeof nsLoadAdminNotifs === 'function') nsLoadAdminNotifs();
+                adminLoadThreads();
+            }, 8000);
+            window.scrollTo(0, 0);
+        } else if (params.get('admin') === '1' && !adminToken) {
+            location.replace('/admin');
+        }
+    } catch (e) { }
+})();
+
+const _logoutAdminOrig = logoutAdmin;
+logoutAdmin = function () {
+    sessionStorage.removeItem('dhlAdminToken');
+    adminToken = null;
+    if (window._adminChatPoll) clearInterval(window._adminChatPoll);
+    if (typeof _logoutAdminOrig === 'function') _logoutAdminOrig();
+    else showSite();
+};

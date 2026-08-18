@@ -8,6 +8,7 @@ const authRoutes = require("./routes/auth");
 const shipmentRoutes = require("./routes/shipments");
 const contactRoutes = require("./routes/contact");
 const pushRoutes = require("./routes/push");
+const chatRoutes = require("./routes/chat");
 const { startLivePushLoop } = require("./utils/livePush");
 
 const app = express();
@@ -23,6 +24,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/shipments", shipmentRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/push", pushRoutes);
+app.use("/api/chat", chatRoutes);
 
 app.use(express.static(PUBLIC, { index: false }));
 
