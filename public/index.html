@@ -10,7 +10,88 @@
     <link rel="icon" href="https://www.dhl.com/favicon.ico">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link rel="stylesheet" href="/css/style.css?v=20260819navfix2">
+    <link rel="stylesheet" href="/css/style.css?v=20260819navblack">
+
+    <style id="nav-force">
+        #overlay {
+            position: fixed !important;
+            inset: 0 !important;
+            background: rgba(0, 0, 0, .5) !important;
+            z-index: 9998 !important;
+            display: none !important;
+        }
+
+        #overlay.show {
+            display: block !important;
+        }
+
+        #mobileMenu {
+            position: fixed !important;
+            top: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            width: min(300px, 88vw) !important;
+            max-width: 300px !important;
+            background: #ffffff !important;
+            color: #111111 !important;
+            z-index: 9999 !important;
+            transform: translateX(100%) !important;
+            transition: transform .28s ease !important;
+            overflow-y: auto !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            box-shadow: -8px 0 28px rgba(0, 0, 0, .25) !important;
+            display: block !important;
+        }
+
+        #mobileMenu.open {
+            transform: translateX(0) !important;
+        }
+
+        #mobileMenu .mm-head {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            padding: 14px 16px !important;
+            background: #D40511 !important;
+            color: #FFCC00 !important;
+        }
+
+        #mobileMenu .mm-title {
+            font-weight: 800 !important;
+            font-size: 16px !important;
+            color: #FFCC00 !important;
+        }
+
+        #mobileMenu .close-menu {
+            background: none !important;
+            border: none !important;
+            color: #FFCC00 !important;
+            font-size: 28px !important;
+            cursor: pointer !important;
+            line-height: 1 !important;
+        }
+
+        #mobileMenu a.mm-link,
+        #mobileMenu a {
+            display: block !important;
+            color: #111111 !important;
+            background: #ffffff !important;
+            padding: 16px 18px !important;
+            font-size: 16px !important;
+            font-weight: 700 !important;
+            text-decoration: none !important;
+            border-bottom: 1px solid #e5e5e5 !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+
+        #mobileMenu a.mm-link:active,
+        #mobileMenu a.mm-link:hover {
+            background: #f5f5f5 !important;
+            color: #D40511 !important;
+        }
+    </style>
 </head>
 
 <body>
@@ -35,32 +116,22 @@
             </div>
         </div>
     </header>
-    <div id="overlay" onclick="return toggleMobileMenu(event);"
-        style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2990;"></div>
-    <div id="mobileMenu" class="video-side-menu" role="dialog" aria-label="Menu"
-        style="position:fixed;top:0;right:0;bottom:0;width:min(300px,88vw);background:#111;color:#fff;z-index:3000;transform:translateX(100%);transition:transform .28s ease;overflow-y:auto;padding:56px 0 32px;box-sizing:border-box;">
-        <button type="button" class="close-menu" onclick="return toggleMobileMenu(event);" aria-label="Close"
-            style="position:absolute;top:12px;right:14px;background:none;border:none;color:#FFCC00;font-size:32px;cursor:pointer;line-height:1;">&times;</button>
-        <a href="/" onclick="showSite();return toggleMobileMenu(event);"
-            style="display:block;color:#fff;padding:16px 22px;font-size:17px;font-weight:600;text-decoration:none;border-bottom:1px solid #2a2a2a;">Home</a>
-        <a href="#services" onclick="showSite();return toggleMobileMenu(event);"
-            style="display:block;color:#fff;padding:16px 22px;font-size:17px;font-weight:600;text-decoration:none;border-bottom:1px solid #2a2a2a;">Service</a>
-        <a href="#" onclick="goTrack();return toggleMobileMenu(event);"
-            style="display:block;color:#fff;padding:16px 22px;font-size:17px;font-weight:600;text-decoration:none;border-bottom:1px solid #2a2a2a;">Track
-            Now</a>
-        <a href="#testimonials" onclick="showSite();return toggleMobileMenu(event);"
-            style="display:block;color:#fff;padding:16px 22px;font-size:17px;font-weight:600;text-decoration:none;border-bottom:1px solid #2a2a2a;">Testimonials</a>
-        <a href="#about" onclick="showSite();return toggleMobileMenu(event);"
-            style="display:block;color:#fff;padding:16px 22px;font-size:17px;font-weight:600;text-decoration:none;border-bottom:1px solid #2a2a2a;">About
-            Us</a>
-        <a href="#customer-service" onclick="showSite();return toggleMobileMenu(event);"
-            style="display:block;color:#fff;padding:16px 22px;font-size:17px;font-weight:600;text-decoration:none;border-bottom:1px solid #2a2a2a;">Contact
-            Us</a>
-        <a href="/box.html" onclick="return toggleMobileMenu(event);"
-            style="display:block;color:#fff;padding:16px 22px;font-size:17px;font-weight:600;text-decoration:none;border-bottom:1px solid #2a2a2a;">Box</a>
-        <a href="/receipt" onclick="return toggleMobileMenu(event);"
-            style="display:block;color:#fff;padding:16px 22px;font-size:17px;font-weight:600;text-decoration:none;border-bottom:1px solid #2a2a2a;">Receipt</a>
-    </div>
+    <div id="overlay" onclick="return toggleMobileMenu(event);"></div>
+    <nav id="mobileMenu" class="video-side-menu" role="dialog" aria-label="Menu">
+        <div class="mm-head">
+            <span class="mm-title">Menu</span>
+            <button type="button" class="close-menu" onclick="return toggleMobileMenu(event);"
+                aria-label="Close">&times;</button>
+        </div>
+        <a class="mm-link" href="/" onclick="showSite();return toggleMobileMenu(event);">Home</a>
+        <a class="mm-link" href="#services" onclick="showSite();return toggleMobileMenu(event);">Service</a>
+        <a class="mm-link" href="#" onclick="goTrack();return toggleMobileMenu(event);">Track Now</a>
+        <a class="mm-link" href="#testimonials" onclick="showSite();return toggleMobileMenu(event);">Testimonials</a>
+        <a class="mm-link" href="#about" onclick="showSite();return toggleMobileMenu(event);">About Us</a>
+        <a class="mm-link" href="#customer-service" onclick="showSite();return toggleMobileMenu(event);">Contact Us</a>
+        <a class="mm-link" href="/box.html" onclick="return toggleMobileMenu(event);">Box</a>
+        <a class="mm-link" href="/receipt" onclick="return toggleMobileMenu(event);">Receipt</a>
+    </nav>
 
     <main id="siteView">
 
@@ -86,6 +157,7 @@
         </section>
 
 
+        <!-- Auto-scroll photo carousel (3 images) -->
         <!-- Auto-scroll photo carousel (3 images) -->
         <section class="photo-carousel-sec" id="gallery">
             <div class="photo-carousel" id="photoCarousel">
@@ -539,7 +611,7 @@
         </div>
     </div>
 
-    <script src="/js/script.js?v=20260819navfix2"></script>
+    <script src="/js/script.js?v=20260819navblack"></script>
 
     <script>
         (function () {
