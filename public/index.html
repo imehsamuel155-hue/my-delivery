@@ -10,7 +10,7 @@
     <link rel="icon" href="https://www.dhl.com/favicon.ico">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link rel="stylesheet" href="/css/style.css?v=20260819swap">
+    <link rel="stylesheet" href="/css/style.css?v=20260819navfix2">
 </head>
 
 <body>
@@ -35,19 +35,31 @@
             </div>
         </div>
     </header>
-    <div id="overlay" onclick="return toggleMobileMenu(event);"></div>
-    <!-- Right-side drawer only when hamburger is tapped -->
-    <div id="mobileMenu" class="video-side-menu" role="dialog" aria-label="Menu">
-        <button type="button" class="close-menu" onclick="return toggleMobileMenu(event);"
-            aria-label="Close">&times;</button>
-        <a href="/" onclick="showSite();return toggleMobileMenu(event);">Home</a>
-        <a href="#services" onclick="showSite();return toggleMobileMenu(event);">Service</a>
-        <a href="#" onclick="goTrack();return toggleMobileMenu(event);">Track Now</a>
-        <a href="#testimonials" onclick="showSite();return toggleMobileMenu(event);">Testimonials</a>
-        <a href="#about" onclick="showSite();return toggleMobileMenu(event);">About Us</a>
-        <a href="#customer-service" onclick="showSite();return toggleMobileMenu(event);">Contact Us</a>
-        <a href="/box.html" onclick="return toggleMobileMenu(event);">Box</a>
-        <a href="/receipt" onclick="return toggleMobileMenu(event);">Receipt</a>
+    <div id="overlay" onclick="return toggleMobileMenu(event);"
+        style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2990;"></div>
+    <div id="mobileMenu" class="video-side-menu" role="dialog" aria-label="Menu"
+        style="position:fixed;top:0;right:0;bottom:0;width:min(300px,88vw);background:#111;color:#fff;z-index:3000;transform:translateX(100%);transition:transform .28s ease;overflow-y:auto;padding:56px 0 32px;box-sizing:border-box;">
+        <button type="button" class="close-menu" onclick="return toggleMobileMenu(event);" aria-label="Close"
+            style="position:absolute;top:12px;right:14px;background:none;border:none;color:#FFCC00;font-size:32px;cursor:pointer;line-height:1;">&times;</button>
+        <a href="/" onclick="showSite();return toggleMobileMenu(event);"
+            style="display:block;color:#fff;padding:16px 22px;font-size:17px;font-weight:600;text-decoration:none;border-bottom:1px solid #2a2a2a;">Home</a>
+        <a href="#services" onclick="showSite();return toggleMobileMenu(event);"
+            style="display:block;color:#fff;padding:16px 22px;font-size:17px;font-weight:600;text-decoration:none;border-bottom:1px solid #2a2a2a;">Service</a>
+        <a href="#" onclick="goTrack();return toggleMobileMenu(event);"
+            style="display:block;color:#fff;padding:16px 22px;font-size:17px;font-weight:600;text-decoration:none;border-bottom:1px solid #2a2a2a;">Track
+            Now</a>
+        <a href="#testimonials" onclick="showSite();return toggleMobileMenu(event);"
+            style="display:block;color:#fff;padding:16px 22px;font-size:17px;font-weight:600;text-decoration:none;border-bottom:1px solid #2a2a2a;">Testimonials</a>
+        <a href="#about" onclick="showSite();return toggleMobileMenu(event);"
+            style="display:block;color:#fff;padding:16px 22px;font-size:17px;font-weight:600;text-decoration:none;border-bottom:1px solid #2a2a2a;">About
+            Us</a>
+        <a href="#customer-service" onclick="showSite();return toggleMobileMenu(event);"
+            style="display:block;color:#fff;padding:16px 22px;font-size:17px;font-weight:600;text-decoration:none;border-bottom:1px solid #2a2a2a;">Contact
+            Us</a>
+        <a href="/box.html" onclick="return toggleMobileMenu(event);"
+            style="display:block;color:#fff;padding:16px 22px;font-size:17px;font-weight:600;text-decoration:none;border-bottom:1px solid #2a2a2a;">Box</a>
+        <a href="/receipt" onclick="return toggleMobileMenu(event);"
+            style="display:block;color:#fff;padding:16px 22px;font-size:17px;font-weight:600;text-decoration:none;border-bottom:1px solid #2a2a2a;">Receipt</a>
     </div>
 
     <main id="siteView">
@@ -70,6 +82,20 @@
                     <button type="button" class="btn-track-yellow" onclick="trackFromHero()">Track Package</button>
                 </div>
                 <div class="track-msg" id="heroTrackMsg"></div>
+            </div>
+        </section>
+
+
+        <!-- Auto-scroll photo carousel (3 images) -->
+        <section class="photo-carousel-sec" id="gallery">
+            <div class="photo-carousel" id="photoCarousel">
+                <div class="pc-item active"><img
+                        src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=800&q=80"
+                        alt="Truck loading"></div>
+                <div class="pc-item"><img src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&q=80"
+                        alt="Warehouse"></div>
+                <div class="pc-item"><img src="https://images.unsplash.com/photo-1521791136064-7986c2920216?w=800&q=80"
+                        alt="Partnership"></div>
             </div>
         </section>
 
@@ -132,8 +158,8 @@
         <section class="dhl-section" id="express">
             <div class="wrap">
                 <div class="section-photo">
-                    <img src="/my-delivery/public/images/299fbd63c790d63a446b876e39cc7f0b.jpg"
-                        alt="Document and parcel shipping" onerror="this.parentElement.classList.add('no-img')">
+                    <img src="/images/f265b71d3e22c7f70ad1a410fbca9f0b.jpg" alt="Document and parcel shipping"
+                        onerror="this.parentElement.classList.add('no-img')">
                 </div>
                 <h2>Document and Parcel Shipping</h2>
                 <p class="eyebrow">For All Shippers</p>
@@ -515,7 +541,7 @@
         </div>
     </div>
 
-    <script src="/js/script.js?v=20260819noadmin"></script>
+    <script src="/js/script.js?v=20260819navfix2"></script>
 
     <script>
         (function () {
@@ -552,6 +578,24 @@
                 var sec = document.getElementById('stats');
                 if (sec) io.observe(sec); else run();
             } else run();
+        })();
+    </script>
+
+
+    <script>
+        (function () {
+            var root = document.getElementById('photoCarousel');
+            if (!root) return;
+            var items = Array.prototype.slice.call(root.querySelectorAll('.pc-item'));
+            if (!items.length) return;
+            var i = 0;
+            function show(n) {
+                items.forEach(function (el, idx) { el.classList.toggle('active', idx === n); });
+            }
+            setInterval(function () {
+                i = (i + 1) % items.length;
+                show(i);
+            }, 3200);
         })();
     </script>
 
