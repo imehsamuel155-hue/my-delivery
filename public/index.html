@@ -10,7 +10,7 @@
     <link rel="icon" href="https://www.dhl.com/favicon.ico">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link rel="stylesheet" href="/css/style.css?v=20260818homenav">
+    <link rel="stylesheet" href="/css/style.css?v=20260818video">
 </head>
 
 <body>
@@ -20,120 +20,93 @@
         <div class="sub">Loading…</div>
     </div>
 
-    <!-- Yellow header — desktop links on right + mobile hamburger (drawer from right) -->
-    <header class="dhl-header">
+    <!-- Video-style yellow header -->
+    <header class="dhl-header video-header">
         <div class="header-bar">
-            <a class="dhl-logo" href="/" onclick="showSite(); return true;" aria-label="DHL Home">
-                <img src="/images/Screenshot_20260818-050108-removebg-preview.png" alt="DHL" class="logo-img"
-                    onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';">
-                <span class="logo-fallback" style="display:none;" aria-hidden="true">
-                    <svg class="dhl-logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 40" role="img"
-                        aria-label="DHL">
-                        <rect x="0" y="12" width="22" height="3.2" fill="#D40511" />
-                        <rect x="0" y="18.4" width="28" height="3.2" fill="#D40511" />
-                        <rect x="0" y="24.8" width="22" height="3.2" fill="#D40511" />
-                        <text x="34" y="30" font-family="Arial Black,Impact,Arial,sans-serif" font-size="30"
-                            font-weight="900" fill="#D40511" letter-spacing="-1.5">DHL</text>
-                        <rect x="128" y="12" width="22" height="3.2" fill="#D40511" />
-                        <rect x="122" y="18.4" width="28" height="3.2" fill="#D40511" />
-                        <rect x="128" y="24.8" width="22" height="3.2" fill="#D40511" />
-                    </svg>
-                </span>
+            <a class="dhl-logo brand-text" href="/" onclick="showSite(); return true;" aria-label="Home">
+                <span class="brand-dhl">DHL</span>
+                <span class="brand-sub">GLOBAL FREIGHT &amp; COURIER</span>
             </a>
-            <!-- Desktop / PC nav (right side) -->
-            <nav class="desktop-nav" aria-label="Main">
-                <a href="#" onclick="goTrack();return false;">Track</a>
-                <a href="#express" onclick="showSite()">Ship</a>
-                <a href="#quote" onclick="showSite()">Get a Quote</a>
-                <a href="#services" onclick="showSite()">Our Services</a>
-                <a href="#customer-service" onclick="showSite()">Customer Service</a>
-                <a href="/receipt">Receipt</a>
-                <a href="/box.html">Box</a>
-            </nav>
-            <button type="button" class="hamburger" onclick="return toggleMobileMenu(event);" aria-label="Open menu">
-                <span></span><span></span><span></span>
-            </button>
+            <div class="header-right-actions">
+                <button type="button" class="btn-login-top" onclick="openModal('loginModal')">Log In</button>
+                <button type="button" class="hamburger" onclick="return toggleMobileMenu(event);"
+                    aria-label="Open menu">
+                    <span></span><span></span><span></span>
+                </button>
+            </div>
         </div>
     </header>
-
     <div id="overlay" onclick="return toggleMobileMenu(event);"></div>
     <!-- Right-side drawer only when hamburger is tapped -->
-    <div id="mobileMenu" role="dialog" aria-label="Menu">
-        <div class="mm-head">
-            <a class="dhl-logo" href="/" onclick="showSite();toggleMobileMenu();return true;">
-                <img src="/images/Screenshot_20260818-050108-removebg-preview.png" alt="DHL" class="logo-img"
-                    onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';">
-                <span class="logo-fallback" style="display:none;">
-                    <svg class="dhl-logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 40">
-                        <rect x="0" y="12" width="22" height="3.2" fill="#D40511" />
-                        <rect x="0" y="18.4" width="28" height="3.2" fill="#D40511" />
-                        <rect x="0" y="24.8" width="22" height="3.2" fill="#D40511" /><text x="34" y="30"
-                            font-family="Arial Black,Impact,Arial,sans-serif" font-size="30" font-weight="900"
-                            fill="#D40511" letter-spacing="-1.5">DHL</text>
-                        <rect x="128" y="12" width="22" height="3.2" fill="#D40511" />
-                        <rect x="122" y="18.4" width="28" height="3.2" fill="#D40511" />
-                        <rect x="128" y="24.8" width="22" height="3.2" fill="#D40511" />
-                    </svg>
-                </span>
-            </a>
-            <button type="button" class="close-menu" onclick="return toggleMobileMenu(event);"
-                aria-label="Close">&times;</button>
-        </div>
-        <a href="#" onclick="goTrack();toggleMobileMenu();return false;">Track</a>
-        <button type="button" class="mm-toggle"
-            onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">Ship <span
-                class="chev">▾</span></button>
-        <div class="mm-sub">
-            <a href="#quote" onclick="showSite();toggleMobileMenu()">Get a Quote</a>
-            <a href="#express" onclick="showSite();toggleMobileMenu()">Ship Now</a>
-            <div class="mm-label">Document and Package</div>
-            <a href="#express" onclick="showSite();toggleMobileMenu()">Express document and package shipping</a>
-            <div class="mm-label">Pallets, Containers and Cargo (Business Only)</div>
-            <a href="#forwarding" onclick="showSite();toggleMobileMenu()">Explore Freight Services</a>
-            <div class="mm-label">DHL for Business</div>
-            <a href="#business" onclick="showSite();toggleMobileMenu()">Frequent Shipping Options</a>
-        </div>
-        <a href="#services" onclick="showSite();toggleMobileMenu()">Our Services</a>
-        <a href="#customer-service" onclick="showSite();toggleMobileMenu()">Customer Service</a>
-        <a href="#customer-service" onclick="showSite();toggleMobileMenu()">Customer Portal Logins</a>
-        <a href="#customer-service" onclick="showSite();toggleMobileMenu()">Find a Service Point</a>
-        <a href="/receipt" onclick="return toggleMobileMenu(event);">Receipt</a>
+    <div id="mobileMenu" class="video-side-menu" role="dialog" aria-label="Menu">
+        <button type="button" class="close-menu" onclick="return toggleMobileMenu(event);"
+            aria-label="Close">&times;</button>
+        <a href="/" onclick="showSite();return toggleMobileMenu(event);">Home</a>
+        <a href="#services" onclick="showSite();return toggleMobileMenu(event);">Service</a>
+        <a href="#" onclick="goTrack();return toggleMobileMenu(event);">Track Now</a>
+        <a href="#testimonials" onclick="showSite();return toggleMobileMenu(event);">Testimonials</a>
+        <a href="#about" onclick="showSite();return toggleMobileMenu(event);">About Us</a>
+        <a href="#customer-service" onclick="showSite();return toggleMobileMenu(event);">Contact Us</a>
         <a href="/box.html" onclick="return toggleMobileMenu(event);">Box</a>
+        <a href="/receipt" onclick="return toggleMobileMenu(event);">Receipt</a>
+        <div class="mm-auth">
+            <button type="button" class="btn-mm-login" onclick="closeMobileAndLogin()">Log In</button>
+            <button type="button" class="btn-mm-signup" onclick="closeMobileAndSignup()">Sign Up</button>
+        </div>
     </div>
 
     <main id="siteView">
 
-        <!-- HERO: Track + action cards (as on dhl.com mobile) -->
-        <section class="dhl-hero" id="home">
-            <div class="hero-photo">
-                <img src="/images/0bb6d71f2100ec98646099d8716334e5.jpg" alt="DHL delivery"
-                    onerror="this.parentElement.classList.add('no-img')">
+        <!-- HERO: warehouse + track (video style) -->
+        <section class="dhl-hero video-hero" id="home">
+            <div class="hero-bg">
+                <img src="/images/0bb6d71f2100ec98646099d8716334e5.jpg" alt="Warehouse"
+                    onerror="this.style.opacity=0.3">
+                <div class="hero-bg-overlay"></div>
             </div>
-            <div class="hero-panel">
-                <h1>Track Your Shipment</h1>
-                <div class="track-box">
-                    <input id="heroTrackInput" type="text" placeholder="Enter your tracking number(s)" class="mono"
+            <div class="hero-content-center">
+                <p class="hero-kicker">DISPATCHED DAILY · 120+ COUNTRIES</p>
+                <h1>Your package, <span class="accent">tracked</span><br>every mile of the way.</h1>
+                <p class="hero-lead">Moves freight by air, sea and land with live status updates from pickup to your
+                    door.</p>
+                <div class="hero-track-row">
+                    <input id="heroTrackInput" type="text" placeholder="Enter tracking code" class="mono"
                         autocomplete="off">
-                    <button type="button" class="btn btn-red btn-block" onclick="trackFromHero()">Track</button>
+                    <button type="button" class="btn-track-yellow" onclick="trackFromHero()">Track Package</button>
                 </div>
                 <div class="track-msg" id="heroTrackMsg"></div>
+            </div>
+        </section>
 
-                <a class="action-tile" href="#express" onclick="showSite()">
-                    <span class="tile-icon" aria-hidden="true">📅</span>
-                    <span class="tile-title">Ship Now</span>
-                    <span class="tile-sub">Find the right service</span>
-                </a>
-                <a class="action-tile" href="#quote" onclick="showSite()">
-                    <span class="tile-icon" aria-hidden="true">📄</span>
-                    <span class="tile-title">Get a Quote</span>
-                    <span class="tile-sub">Estimate cost to share and compare</span>
-                </a>
-                <a class="action-tile tile-corner" href="#business" onclick="showSite()">
-                    <span class="tile-icon" aria-hidden="true">🏢</span>
-                    <span class="tile-title">DHL for Business</span>
-                    <span class="tile-sub">Shipping regularly? Request a business account and profit from exclusive
-                        benefits</span>
-                </a>
+        <!-- Stats strip from video -->
+        <section class="stats-strip" id="stats">
+            <div class="stats-card">
+                <div class="stat"><strong>670+</strong><span>SHIPMENTS HANDLED (K)</span></div>
+                <div class="stat"><strong>99.9%</strong><span>ON-TIME DELIVERY RATE</span></div>
+                <div class="stat"><strong>24/7</strong><span>CUSTOMER SUPPORT</span></div>
+                <div class="stat"><strong>120+</strong><span>COUNTRIES SERVED</span></div>
+            </div>
+        </section>
+
+        <!-- Testimonials -->
+        <section class="testimonials-sec" id="testimonials">
+            <p class="sec-eyebrow">TRUSTED BY SHIPPERS</p>
+            <h2>What clients say</h2>
+            <div class="testimonial-card">
+                <div class="stars">★★★★★</div>
+                <p>Our containers arrived two days early and the tracking page told us exactly which port they were at.
+                    Made our own customer updates painless.</p>
+                <div class="t-author"><span class="t-av">A</span>
+                    <div><strong>Am O.</strong><small>From Indonesia</small></div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="stars">★★★★★</div>
+                <p>Switched from a competitor after one bad delivery window. Air freight team kept us posted at every
+                    leg of a rush order.</p>
+                <div class="t-author"><span class="t-av">D</span>
+                    <div><strong>Da K.</strong><small>From United States</small></div>
+                </div>
             </div>
         </section>
 
@@ -490,7 +463,7 @@
         <div class="modal-box">
             <button class="modal-close" onclick="closeModal('loginModal')">&times;</button>
             <h3>Log In</h3>
-            <p class="sub">Use <a href="/admin" style="color:#D40511;">/admin</a> for office login.</p>
+            <p class="sub">Customer login (demo). Office panel is on a separate site and is not linked here.</p>
             <form onsubmit="return handleLogin(event)">
                 <div class="field">
                     <label>Username</label>
@@ -686,7 +659,7 @@
         </div>
         <div class="guest-chat-setup" id="guestChatSetup">
             <p>Enter your <b>tracking code</b> to open a private chat. Labeled as shipment <b>Sender / Receiver</b>.
-                Only you and DHL support can see it.</p>
+                Only you and DHL support can see it — admin replies from the office dashboard.</p>
             <label>Tracking code <input type="text" id="guestChatTrack" placeholder="e.g. DHL123456" class="mono"
                     autocomplete="off" required></label>
             <p class="guest-chat-err" id="guestChatErr"
@@ -707,7 +680,7 @@
         </div>
     </div>
 
-    <script src="/js/script.js?v=20260818homenav"></script>
+    <script src="/js/script.js?v=20260818video"></script>
 </body>
 
 </html>
