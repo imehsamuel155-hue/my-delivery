@@ -10,7 +10,7 @@
     <link rel="icon" href="https://www.dhl.com/favicon.ico">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link rel="stylesheet" href="/css/style.css?v=20260819navblack">
+    <link rel="stylesheet" href="/css/style.css?v=navfix3">
 
     <style id="nav-force">
         #overlay {
@@ -92,6 +92,16 @@
             color: #D40511 !important;
         }
     </style>
+
+    <style id="nav-open-fix">
+        #mobileMenu.open {
+            transform: translateX(0) !important;
+        }
+
+        #overlay.show {
+            display: block !important;
+        }
+    </style>
 </head>
 
 <body>
@@ -116,23 +126,36 @@
             </div>
         </div>
     </header>
-    <div id="overlay" onclick="return toggleMobileMenu(event);"></div>
-    <nav id="mobileMenu" class="video-side-menu" role="dialog" aria-label="Menu">
-        <div class="mm-head">
-            <span class="mm-title">Menu</span>
-            <button type="button" class="close-menu" onclick="return toggleMobileMenu(event);"
-                aria-label="Close">&times;</button>
+    <div id="overlay" onclick="toggleMobileMenu(event)"
+        style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9998;"></div>
+    <nav id="mobileMenu"
+        style="position:fixed;top:0;right:0;bottom:0;width:min(300px,90vw);background:#fff;z-index:9999;transform:translateX(100%);transition:transform .25s ease;overflow-y:auto;box-shadow:-6px 0 24px rgba(0,0,0,.2);">
+        <div
+            style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:#D40511;">
+            <span style="color:#FFCC00;font-weight:800;font-size:16px;">Menu</span>
+            <button type="button" onclick="toggleMobileMenu(event)"
+                style="background:none;border:none;color:#FFCC00;font-size:28px;cursor:pointer;line-height:1;">&times;</button>
         </div>
-        <a class="mm-link" href="/" onclick="showSite();return toggleMobileMenu(event);">Home</a>
-        <a class="mm-link" href="#services" onclick="showSite();return toggleMobileMenu(event);">Service</a>
-        <a class="mm-link" href="#" onclick="goTrack();return toggleMobileMenu(event);">Track Now</a>
-        <a class="mm-link" href="#testimonials" onclick="showSite();return toggleMobileMenu(event);">Testimonials</a>
-        <a class="mm-link" href="#about" onclick="showSite();return toggleMobileMenu(event);">About Us</a>
-        <a class="mm-link" href="#customer-service" onclick="showSite();return toggleMobileMenu(event);">Contact Us</a>
-        <a class="mm-link" href="/box.html" onclick="return toggleMobileMenu(event);">Box</a>
-        <a class="mm-link" href="/receipt" onclick="return toggleMobileMenu(event);">Receipt</a>
+        <a href="/" onclick="showSite();toggleMobileMenu(event);return false;"
+            style="display:block;color:#111!important;background:#fff;padding:16px 18px;font-size:17px;font-weight:700;text-decoration:none;border-bottom:1px solid #ddd;">Home</a>
+        <a href="#services" onclick="showSite();toggleMobileMenu(event);return false;"
+            style="display:block;color:#111!important;background:#fff;padding:16px 18px;font-size:17px;font-weight:700;text-decoration:none;border-bottom:1px solid #ddd;">Service</a>
+        <a href="#" onclick="goTrack();toggleMobileMenu(event);return false;"
+            style="display:block;color:#111!important;background:#fff;padding:16px 18px;font-size:17px;font-weight:700;text-decoration:none;border-bottom:1px solid #ddd;">Track
+            Now</a>
+        <a href="#testimonials" onclick="showSite();toggleMobileMenu(event);return false;"
+            style="display:block;color:#111!important;background:#fff;padding:16px 18px;font-size:17px;font-weight:700;text-decoration:none;border-bottom:1px solid #ddd;">Testimonials</a>
+        <a href="#about" onclick="showSite();toggleMobileMenu(event);return false;"
+            style="display:block;color:#111!important;background:#fff;padding:16px 18px;font-size:17px;font-weight:700;text-decoration:none;border-bottom:1px solid #ddd;">About
+            Us</a>
+        <a href="#customer-service" onclick="showSite();toggleMobileMenu(event);return false;"
+            style="display:block;color:#111!important;background:#fff;padding:16px 18px;font-size:17px;font-weight:700;text-decoration:none;border-bottom:1px solid #ddd;">Contact
+            Us</a>
+        <a href="/box.html"
+            style="display:block;color:#111!important;background:#fff;padding:16px 18px;font-size:17px;font-weight:700;text-decoration:none;border-bottom:1px solid #ddd;">Box</a>
+        <a href="/receipt"
+            style="display:block;color:#111!important;background:#fff;padding:16px 18px;font-size:17px;font-weight:700;text-decoration:none;border-bottom:1px solid #ddd;">Receipt</a>
     </nav>
-
     <main id="siteView">
 
         <!-- HERO: warehouse + track (video style) -->
@@ -158,14 +181,15 @@
 
 
         <!-- Auto-scroll photo carousel (3 images) -->
-        <!-- Auto-scroll photo carousel (3 images) -->
         <section class="photo-carousel-sec" id="gallery">
             <div class="photo-carousel" id="photoCarousel">
-                <div class="pc-item active"><img src="/my-delivery/public/images/268070077cca37f5d1f5e460ffd59dce.jpg"
+                <div class="pc-item active"><img
+                        src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=800&q=80"
                         alt="Truck loading"></div>
                 <div class="pc-item"><img src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&q=80"
                         alt="Warehouse"></div>
-                <div class="pc-item"><img src="/my-delivery/public/images/talk.jfif" alt="Partnership"></div>
+                <div class="pc-item"><img src="https://images.unsplash.com/photo-1521791136064-7986c2920216?w=800&q=80"
+                        alt="Partnership"></div>
             </div>
         </section>
 
@@ -611,7 +635,7 @@
         </div>
     </div>
 
-    <script src="/js/script.js?v=20260819navblack"></script>
+    <script src="/js/script.js?v=navfix3"></script>
 
     <script>
         (function () {
