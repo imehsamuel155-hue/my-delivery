@@ -4,165 +4,173 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DHL Office Login</title>
-    <link rel="icon" href="https://www.dhl.com/favicon.ico">
+    <title>Demo Project — Office Login</title>
+    <meta name="robots" content="noindex,nofollow">
     <style>
-        body.admin-login-page {
-            min-height: 100vh;
-            margin: 0;
-            background: #f5f5f5;
-            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 24px 16px;
+        * {
             box-sizing: border-box;
         }
 
-        .al-card {
+        body {
+            min-height: 100vh;
+            margin: 0;
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 16px;
+        }
+
+        .card {
             width: 100%;
             max-width: 400px;
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, .1);
+            background: #1e293b;
+            border-radius: 16px;
             overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, .4);
             position: relative;
         }
 
-        .al-head {
-            background: #FFCC00;
-            padding: 20px;
+        .head {
+            background: #334155;
+            padding: 24px 20px;
             text-align: center;
+            border-bottom: 1px solid #475569;
         }
 
-        .al-head img {
-            height: 36px;
+        .head .badge {
+            display: inline-block;
+            background: #64748b;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            margin-bottom: 10px;
         }
 
-        .al-head h1 {
-            margin: 12px 0 0;
-            font-size: 20px;
-            color: #1a1a1a;
+        .head h1 {
+            margin: 0;
+            font-size: 22px;
+            color: #f8fafc;
         }
 
-        .al-body {
+        .head p {
+            margin: 8px 0 0;
+            font-size: 13px;
+            color: #94a3b8;
+        }
+
+        .body {
             padding: 24px 20px 28px;
         }
 
-        .al-body label {
+        label {
             display: block;
             font-size: 13px;
             font-weight: 600;
             margin-bottom: 6px;
-            color: #333;
+            color: #cbd5e1;
         }
 
-        .al-body input {
+        input {
             width: 100%;
-            box-sizing: border-box;
-            padding: 12px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1px solid #475569;
+            background: #0f172a;
+            color: #f1f5f9;
             font-size: 15px;
             margin-bottom: 14px;
         }
 
-        .al-body .btn {
+        input:focus {
+            outline: 2px solid #64748b;
+            border-color: #64748b;
+        }
+
+        .btn {
             width: 100%;
             padding: 14px;
             border: none;
             border-radius: 28px;
-            background: #D40511;
+            background: #3b82f6;
             color: #fff;
             font-weight: 700;
             font-size: 16px;
             cursor: pointer;
         }
 
-        .al-body .btn:disabled {
-            opacity: 0.75;
+        .btn:disabled {
+            opacity: .7;
             cursor: wait;
         }
 
-        .al-err {
-            color: #D40511;
+        .err {
+            color: #f87171;
             font-size: 13px;
-            margin-bottom: 10px;
             min-height: 18px;
+            margin-bottom: 10px;
         }
 
-        .al-note {
+        .note {
             text-align: center;
             margin-top: 16px;
-            font-size: 13px;
-            color: #666;
-        }
-
-        .al-note a {
-            color: #D40511;
+            font-size: 12px;
+            color: #64748b;
         }
 
         #pinStep {
             display: none;
         }
 
-        /* Full-card please wait ...... */
-        .al-wait {
+        .wait {
             display: none;
             position: absolute;
             inset: 0;
-            background: rgba(255, 255, 255, .92);
-            z-index: 10;
+            background: rgba(15, 23, 42, .92);
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            text-align: center;
-            padding: 20px;
+            z-index: 5;
         }
 
-        .al-wait.show {
+        .wait.show {
             display: flex;
         }
 
-        .al-wait .dots {
+        .wait .dots {
             font-size: 28px;
-            font-weight: 700;
             letter-spacing: 4px;
-            color: #D40511;
-            min-width: 4ch;
+            color: #93c5fd;
+            font-weight: 700;
         }
 
-        .al-wait .txt {
+        .wait .txt {
             margin-top: 10px;
-            font-size: 15px;
-            font-weight: 600;
-            color: #1a1a1a;
-        }
-
-        .al-wait .sub {
-            margin-top: 4px;
-            font-size: 13px;
-            color: #666;
+            font-size: 14px;
+            color: #e2e8f0;
         }
     </style>
 </head>
 
-<body class="admin-login-page">
-    <div class="al-card">
-        <div class="al-wait" id="alWait" aria-live="polite">
+<body>
+    <div class="card">
+        <div class="wait" id="alWait">
             <div class="dots" id="alDots">......</div>
             <div class="txt">Please wait</div>
-            <div class="sub" id="alWaitSub">Signing in…</div>
         </div>
-        <div class="al-head">
-            <img src="/images/dhl-logo-header.png" alt="DHL"
-                onerror="this.outerHTML='<strong style=color:#D40511;font-size:28px>DHL</strong>'">
-            <h1>DHL Office Login</h1>
+        <div class="head">
+            <div class="badge">DEMO PROJECT</div>
+            <h1>Office Login</h1>
+            <p>Internal demo control panel — not a carrier brand</p>
         </div>
-        <div class="al-body">
+        <div class="body">
             <div id="loginStep">
-                <p class="al-err" id="loginErr"></p>
+                <p class="err" id="loginErr"></p>
                 <label>Username</label>
                 <input type="text" id="alUser" autocomplete="username">
                 <label>Password</label>
@@ -170,61 +178,61 @@
                 <button type="button" class="btn" id="alLoginBtn" onclick="doLogin()">Continue</button>
             </div>
             <div id="pinStep">
-                <p class="al-err" id="pinErr"></p>
-                <p style="font-size:14px;color:#555;margin:0 0 12px;">Enter your admin PIN to continue.</p>
-                <label>Admin PIN</label>
+                <p class="err" id="pinErr"></p>
+                <p style="font-size:13px;color:#94a3b8;margin:0 0 12px;">Enter office PIN to continue.</p>
+                <label>Office PIN</label>
                 <input type="password" id="alPin" inputmode="numeric" maxlength="8" autocomplete="one-time-code">
                 <button type="button" class="btn" id="alPinBtn" onclick="doPin()">Enter office</button>
             </div>
-            <p class="al-note"><a href="/">← Back to DHL home</a></p>
+            <p class="note">Demo Project · Connected to shared API</p>
         </div>
     </div>
     <script>
-        let loginTicket = null;
-        let waitTimer = null;
+        // Point this to your Render backend when hosted on Netlify
+        const API = (function () {
+            const h = location.hostname;
+            if (h === 'localhost' || h === '127.0.0.1') return '/api';
+            return 'https://my-delivery-w6xz.onrender.com/api';
+        })();
+        // After login go to board on same host (Netlify) or package site board
+        const BOARD_URL = (function () {
+            const h = location.hostname;
+            if (h.indexOf('netlify') !== -1 || h.indexOf('anotherway') !== -1) return '/board.html';
+            return '/board.html';
+        })();
 
-        function showWait(sub) {
-            const w = document.getElementById('alWait');
-            const dots = document.getElementById('alDots');
-            const subEl = document.getElementById('alWaitSub');
-            if (subEl) subEl.textContent = sub || 'Please wait…';
-            if (w) w.classList.add('show');
+        let loginTicket = null, waitTimer = null;
+        function showWait() {
+            document.getElementById('alWait').classList.add('show');
             let n = 1;
-            if (waitTimer) clearInterval(waitTimer);
+            clearInterval(waitTimer);
             waitTimer = setInterval(function () {
                 n = n >= 6 ? 1 : n + 1;
-                if (dots) dots.textContent = '.'.repeat(n);
+                document.getElementById('alDots').textContent = '.'.repeat(n);
             }, 280);
-            var btn1 = document.getElementById('alLoginBtn');
-            var btn2 = document.getElementById('alPinBtn');
-            if (btn1) { btn1.disabled = true; btn1.textContent = '......'; }
-            if (btn2) { btn2.disabled = true; btn2.textContent = '......'; }
+            document.getElementById('alLoginBtn').disabled = true;
+            document.getElementById('alLoginBtn').textContent = '......';
+            var b2 = document.getElementById('alPinBtn');
+            if (b2) { b2.disabled = true; b2.textContent = '......'; }
         }
-
         function hideWait() {
-            const w = document.getElementById('alWait');
-            if (w) w.classList.remove('show');
-            if (waitTimer) { clearInterval(waitTimer); waitTimer = null; }
-            var btn1 = document.getElementById('alLoginBtn');
-            var btn2 = document.getElementById('alPinBtn');
-            if (btn1) { btn1.disabled = false; btn1.textContent = 'Continue'; }
-            if (btn2) { btn2.disabled = false; btn2.textContent = 'Enter office'; }
+            document.getElementById('alWait').classList.remove('show');
+            clearInterval(waitTimer);
+            document.getElementById('alLoginBtn').disabled = false;
+            document.getElementById('alLoginBtn').textContent = 'Continue';
+            var b2 = document.getElementById('alPinBtn');
+            if (b2) { b2.disabled = false; b2.textContent = 'Enter office'; }
         }
-
         async function doLogin() {
             const err = document.getElementById('loginErr');
             err.textContent = '';
             const username = document.getElementById('alUser').value.trim();
             const password = document.getElementById('alPass').value;
-            if (!username || !password) {
-                err.textContent = 'Enter username and password.';
-                return;
-            }
-            showWait('Signing in…');
+            if (!username || !password) { err.textContent = 'Enter username and password.'; return; }
+            showWait();
             try {
-                const r = await fetch('/api/auth/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                const r = await fetch(API + '/auth/login', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })
                 });
                 const data = await r.json();
@@ -237,41 +245,27 @@
                     document.getElementById('alPin').focus();
                 } else if (data.token) {
                     sessionStorage.setItem('dhlAdminToken', data.token);
-                    location.href = '/?admin=1';
-                } else {
-                    hideWait();
-                }
-            } catch (e) {
-                hideWait();
-                err.textContent = e.message;
-            }
+                    location.href = BOARD_URL;
+                } else hideWait();
+            } catch (e) { hideWait(); err.textContent = e.message; }
         }
-
         async function doPin() {
             const err = document.getElementById('pinErr');
             err.textContent = '';
             const pin = document.getElementById('alPin').value.trim();
-            if (!pin) {
-                err.textContent = 'Enter admin PIN.';
-                return;
-            }
-            showWait('Verifying PIN…');
+            if (!pin) { err.textContent = 'Enter PIN.'; return; }
+            showWait();
             try {
-                const r = await fetch('/api/auth/verify-pin', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                const r = await fetch(API + '/auth/verify-pin', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ loginTicket, pin })
                 });
                 const data = await r.json();
                 if (!r.ok) throw new Error(data.error || 'PIN failed');
                 sessionStorage.setItem('dhlAdminToken', data.token);
-                location.href = '/?admin=1';
-            } catch (e) {
-                hideWait();
-                err.textContent = e.message;
-            }
+                location.href = BOARD_URL;
+            } catch (e) { hideWait(); err.textContent = e.message; }
         }
-
         document.getElementById('alPass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
         document.getElementById('alPin').addEventListener('keydown', e => { if (e.key === 'Enter') doPin(); });
     </script>

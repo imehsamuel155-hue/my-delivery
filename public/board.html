@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo Project — Office Board</title>
+    <meta name="robots" content="noindex,nofollow">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="/css/style.css?v=demoboard1">
+    <style>
+        body.demo-office {
+            background: #0f172a;
+            margin: 0;
+        }
+
+        .demo-bar {
+            background: #334155;
+            color: #e2e8f0;
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-family: system-ui, sans-serif;
+            font-size: 14px;
+        }
+
+        .demo-bar strong {
+            color: #93c5fd;
+        }
+
+        .demo-bar a {
+            color: #93c5fd;
+        }
+
+        #adminDashboard {
+            display: block !important;
+        }
+
+        #adminDashboard.hidden {
+            display: block !important;
+        }
+
+        #siteView,
+        #trackPage,
+        .dhl-header,
+        .chat-fab,
+        #guestChatPanel,
+        .sticky-cta {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body class="demo-office admin-mode">
+    <div class="demo-bar">
+        <span><strong>DEMO PROJECT</strong> · Office board (not a carrier brand)</span>
+        <span><a href="/admin.html" onclick="sessionStorage.removeItem('dhlAdminToken')">Log out</a></span>
+    </div>
+    <div id="mdPleaseWait" class="md-please-wait" style="display:none">
+        <div class="dots">......</div>
+        <div class="txt">Please wait</div>
+    </div>
+    <div id="siteView" class="hidden"></div>
+    <div id="trackPage" class="hidden"></div>
+
+    <div id="adminDashboard" class="page">
+        <div class="admin-wrap">
+            <div class="admin-top">
+                <div style="min-width:0;flex:1 1 200px;">
+                    <h2>Demo Office Dashboard</h2>
+                    <p style="color:var(--gray); font-size:13.5px;">Edits save to the shared API and show on the public
+                        package site. Tracking codes auto-generate if left empty.</p>
+                </div>
+                <div class="admin-top-actions" style="position:relative;">
+                    <button type="button" class="btn btn-outline small-btn" id="adminChatBtn"
+                        onclick="adminToggleChatPanel()">💬 Chats <span class="chat-badge hidden"
+                            id="adminChatBadge">0</span></button>
+                    <button type="button" class="btn btn-outline small-btn" id="boxServiceToggleBtn"
+                        onclick="toggleBoxService()">Box video: ON</button>
+                    <button class="btn btn-red small-btn" onclick="startNewShipment()">+ New Shipment</button>
+                    <button class="btn btn-outline small-btn" onclick="openSettingsProtected()">⚙ Settings</button>
+                    <a class="logout-link" href="/admin.html" onclick="sessionStorage.removeItem('dhlAdminToken');">Log
+                        Out</a>
+                </div>
+            </div>
+            <div id="adminChatPanel" class="admin-chat-panel hidden">
+                <div class="admin-chat-head">
+                    <button type="button" class="btn btn-outline small-btn" onclick="adminToggleChatNav()">☰
+                        Conversations</button>
+                    <strong id="adminChatTitle">Select a conversation</strong>
+                    <button type="button" class="btn btn-outline small-btn" onclick="adminToggleChatPanel()">✕</button>
+                </div>
+                <div class="admin-chat-body">
+                    <aside id="adminChatNav" class="admin-chat-nav">
+                        <div id="adminChatThreadList"></div>
+                    </aside>
+                    <div class="admin-chat-main">
+                        <div id="adminChatMessages" class="admin-chat-messages"></div>
+                        <div class="admin-chat-compose">
+                            <input type="file" id="adminChatImage" accept="image/*" hidden
+                                onchange="adminChatPickImage(event)">
+                            <button type="button" class="btn btn-outline small-btn"
+                                onclick="document.getElementById('adminChatImage').click()">📷</button>
+                            <input type="text" id="adminChatInput" placeholder="Reply…">
+                            <button type="button" class="btn btn-red small-btn" onclick="adminChatSend()">Send</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="admin-layout">
+                <div class="panel">
+                    <h4 class="section-title">All Shipments</h4>
+                    <div class="ship-list" id="shipList"></div>
+                </div>
+                <div class="panel" id="shipDetailPanel"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- minimal modals for settings / pin used by script.js -->
+    <div class="modal-overlay" id="loginModal">
+        <div class="modal-box"><button class="modal-close" onclick="closeModal('loginModal')">&times;</button>
+            <p>Use the Demo login page.</p>
+        </div>
+    </div>
+    <div class="modal-overlay" id="pinModal">
+        <div class="modal-box"><button class="modal-close" onclick="closeModal('pinModal')">&times;</button>
+            <h3>PIN</h3>
+            <form onsubmit="return handlePinSubmit(event)"><input id="pinInput" type="password" maxlength="8"><button
+                    type="submit" class="btn btn-red">OK</button>
+                <div class="error-box" id="pinError"></div>
+            </form>
+        </div>
+    </div>
+    <div class="modal-overlay" id="settingsPinModal">
+        <div class="modal-box"><button class="modal-close" onclick="closeModal('settingsPinModal')">&times;</button>
+            <h3>Settings PIN</h3>
+            <p class="sub">Enter PIN 7799</p>
+            <input id="settingsPinInput" type="password" maxlength="4"><button class="btn btn-red"
+                onclick="verifySettingsPin()">Open</button>
+        </div>
+    </div>
+    <div class="modal-overlay" id="credentialsModal">
+        <div class="modal-box"><button class="modal-close" onclick="closeModal('credentialsModal')">&times;</button>
+            <h3>Account settings</h3>
+            <form onsubmit="return handleCredentialsSubmit(event)">
+                <label>Username</label><input id="credUser"><label>Password</label><input id="credPass">
+                <label>Admin PIN</label><input id="credPin"><label>Current password</label><input id="credCurrent">
+                <button type="submit" class="btn btn-red">Save</button>
+                <div class="error-box" id="settingsError"></div>
+                <div id="settingsSuccess" style="display:none">Saved</div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Force API to Render when on Netlify / separate host
+        window.DEMO_OFFICE_BOARD = true;
+    </script>
+    <script src="/js/script.js?v=demoboard1"></script>
+    <script>
+        (function () {
+            var tok = sessionStorage.getItem('dhlAdminToken');
+            if (!tok) { location.replace('/admin.html'); return; }
+            if (typeof adminToken !== 'undefined') adminToken = tok;
+            document.body.classList.add('admin-mode');
+            if (typeof setAdminMode === 'function') setAdminMode(true);
+            if (typeof renderShipList === 'function') renderShipList();
+            if (typeof adminLoadThreads === 'function') adminLoadThreads();
+            if (typeof nsLoadAdminNotifs === 'function') {
+                nsLoadAdminNotifs();
+                setInterval(nsLoadAdminNotifs, 8000);
+            }
+        })();
+    </script>
+</body>
+
+</html>

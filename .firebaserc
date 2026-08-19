@@ -1,5 +1,15 @@
 {
   "projects": {
-    "default": "dhltrackpackage"
-  }
+    "default": "track-e9a42"
+  },
+  "targets": {
+    "logisticsparceltrack": {
+      "hosting": {
+        "logisticsparceltrack": [
+          "logisticsparceltrack"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }
