@@ -1,0 +1,32 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Demo Chat</title>
+  <style>
+    body{font-family:system-ui;background:#111;color:#eee;display:flex;min-height:100vh;align-items:center;justify-content:center;margin:0}
+    .box{background:#1a1a1a;padding:28px;border-radius:14px;width:min(360px,92vw);text-align:center}
+    input,button{width:100%;padding:12px;margin:8px 0;border-radius:8px;border:0;font-size:16px}
+    button{background:#D40511;color:#fff;font-weight:700;cursor:pointer}
+    .ok{display:none;color:#0f0}
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2 style="color:#FFCC00">Demo Chat</h2>
+    <p>Enter PIN</p>
+    <input id="pin" type="password" placeholder="PIN" />
+    <button type="button" onclick="go()">Enter</button>
+    <p id="err" style="color:#f66"></p>
+    <div id="ok" class="ok">PIN OK — full chat API connects when backend is online.</div>
+  </div>
+  <script>
+    function go(){
+      var p=document.getElementById('pin').value.trim();
+      if(p==='4422'){document.getElementById('ok').style.display='block';document.getElementById('err').textContent='';}
+      else document.getElementById('err').textContent='Wrong PIN';
+    }
+  </script>
+</body>
+</html>
