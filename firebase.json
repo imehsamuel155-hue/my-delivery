@@ -4,30 +4,20 @@
     "ignore": [
       "firebase.json",
       "**/.*",
-      "**/node_modules/**",
-      "admin.html",
-      "board.html"
+      "**/node_modules/**"
     ],
     "rewrites": [
       {
-        "source": "/receipt",
-        "destination": "/receipt.html"
-      },
-      {
-        "source": "/box",
-        "destination": "/box.html"
-      },
-      {
-        "source": "/track",
-        "destination": "/index.html"
+        "source": "/",
+        "destination": "/admin.html"
       },
       {
         "source": "/admin",
-        "destination": "/index.html"
+        "destination": "/admin.html"
       },
       {
-        "source": "/admin/**",
-        "destination": "/index.html"
+        "source": "/board",
+        "destination": "/board.html"
       }
     ]
   }

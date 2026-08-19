@@ -1,6 +1,8 @@
 {
   "projects": {
-    "default": "parceltrack-84181"
+    "default": "parceltrack-84181",
+    "augh": "yourproject-a1273",
+    "det": "worldwidedhl"
   },
   "targets": {
     "logisticsparceltrack": {
