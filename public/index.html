@@ -10,7 +10,7 @@
     <link rel="icon" href="https://www.dhl.com/favicon.ico">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link rel="stylesheet" href="/css/style.css?v=20260818video">
+    <link rel="stylesheet" href="/css/style.css?v=20260819swap">
 </head>
 
 <body>
@@ -24,11 +24,10 @@
     <header class="dhl-header video-header">
         <div class="header-bar">
             <a class="dhl-logo brand-text" href="/" onclick="showSite(); return true;" aria-label="Home">
-                <span class="brand-dhl">DHL</span>
-                <span class="brand-sub">GLOBAL FREIGHT &amp; COURIER</span>
+                <span class="brand-line"><span class="brand-dhl">DHL</span><span class="brand-sub">GLOBAL FREIGHT &amp;
+                        COURIER</span></span>
             </a>
             <div class="header-right-actions">
-                <button type="button" class="btn-login-top" onclick="openModal('loginModal')">Log In</button>
                 <button type="button" class="hamburger" onclick="return toggleMobileMenu(event);"
                     aria-label="Open menu">
                     <span></span><span></span><span></span>
@@ -49,10 +48,6 @@
         <a href="#customer-service" onclick="showSite();return toggleMobileMenu(event);">Contact Us</a>
         <a href="/box.html" onclick="return toggleMobileMenu(event);">Box</a>
         <a href="/receipt" onclick="return toggleMobileMenu(event);">Receipt</a>
-        <div class="mm-auth">
-            <button type="button" class="btn-mm-login" onclick="closeMobileAndLogin()">Log In</button>
-            <button type="button" class="btn-mm-signup" onclick="closeMobileAndSignup()">Sign Up</button>
-        </div>
     </div>
 
     <main id="siteView">
@@ -78,13 +73,25 @@
             </div>
         </section>
 
-        <!-- Stats strip from video -->
+        <!-- Stats strip — animated counters -->
         <section class="stats-strip" id="stats">
             <div class="stats-card">
-                <div class="stat"><strong>670+</strong><span>SHIPMENTS HANDLED (K)</span></div>
-                <div class="stat"><strong>99.9%</strong><span>ON-TIME DELIVERY RATE</span></div>
-                <div class="stat"><strong>24/7</strong><span>CUSTOMER SUPPORT</span></div>
-                <div class="stat"><strong>120+</strong><span>COUNTRIES SERVED</span></div>
+                <div class="stat">
+                    <strong class="count-up" data-target="670" data-suffix="+">0</strong>
+                    <span>SHIPMENTS HANDLED (K)</span>
+                </div>
+                <div class="stat">
+                    <strong class="count-up" data-target="99.9" data-suffix="%" data-decimals="1">0</strong>
+                    <span>ON-TIME DELIVERY RATE</span>
+                </div>
+                <div class="stat">
+                    <strong class="count-up" data-target="24" data-suffix="/7">0</strong>
+                    <span>CUSTOMER SUPPORT</span>
+                </div>
+                <div class="stat">
+                    <strong class="count-up" data-target="120" data-suffix="+">0</strong>
+                    <span>COUNTRIES SERVED</span>
+                </div>
             </div>
         </section>
 
@@ -125,8 +132,8 @@
         <section class="dhl-section" id="express">
             <div class="wrap">
                 <div class="section-photo">
-                    <img src="/images/f265b71d3e22c7f70ad1a410fbca9f0b.jpg" alt="Document and parcel shipping"
-                        onerror="this.parentElement.classList.add('no-img')">
+                    <img src="/my-delivery/public/images/299fbd63c790d63a446b876e39cc7f0b.jpg"
+                        alt="Document and parcel shipping" onerror="this.parentElement.classList.add('no-img')">
                 </div>
                 <h2>Document and Parcel Shipping</h2>
                 <p class="eyebrow">For All Shippers</p>
@@ -458,190 +465,18 @@
         </div>
     </div>
 
-    <!-- LOGIN / PIN / SIGNUP / SETTINGS modals kept for admin dashboard flows -->
-    <div class="modal-overlay" id="loginModal">
-        <div class="modal-box">
-            <button class="modal-close" onclick="closeModal('loginModal')">&times;</button>
-            <h3>Log In</h3>
-            <p class="sub">Customer login (demo). Office panel is on a separate site and is not linked here.</p>
-            <form onsubmit="return handleLogin(event)">
-                <div class="field">
-                    <label>Username</label>
-                    <input type="text" id="loginUser" required>
-                </div>
-                <div class="field">
-                    <label>Password</label>
-                    <input type="password" id="loginPass" required>
-                </div>
-                <button type="submit" class="btn btn-red" style="width:100%;">Log In</button>
-                <div class="error-box" id="loginError">Incorrect username or password.</div>
-            </form>
-        </div>
-    </div>
+    <!-- Admin UI removed from public Firebase site — office is Netlify only -->
 
-    <div class="modal-overlay" id="pinModal">
-        <div class="modal-box">
-            <button class="modal-close" onclick="closeModal('pinModal')">&times;</button>
-            <h3>Enter Your PIN</h3>
-            <p class="sub">One more step — enter your admin PIN.</p>
-            <form onsubmit="return handlePinSubmit(event)">
-                <div class="field">
-                    <label>Admin PIN</label>
-                    <input type="password" id="pinInput" class="mono" maxlength="6" inputmode="numeric"
-                        autocomplete="one-time-code" required>
-                </div>
-                <button type="submit" class="btn btn-red" style="width:100%;">Verify</button>
-                <div class="error-box" id="pinError">Incorrect PIN.</div>
-            </form>
-        </div>
-    </div>
+    <!-- adminDashboard removed: use https://anotherway.netlify.app -->
 
-    <div class="modal-overlay" id="signupModal">
-        <div class="modal-box">
-            <button class="modal-close" onclick="closeModal('signupModal')">&times;</button>
-            <h3>Create Account</h3>
-            <p class="sub">Set up a customer account.</p>
-            <form onsubmit="return handleSignup(event)">
-                <div class="field">
-                    <label>Full Name</label>
-                    <input type="text" id="suName" required>
-                </div>
-                <div class="field">
-                    <label>Email Address</label>
-                    <input type="email" id="suEmail" required>
-                </div>
-                <div class="field">
-                    <label>Password</label>
-                    <input type="password" id="suPass" required>
-                </div>
-                <button type="submit" class="btn btn-red" style="width:100%;">Sign Up</button>
-                <div class="error-box" id="signupError">Server error. Please try again later.</div>
-            </form>
-        </div>
-    </div>
+    <!-- Silent stubs so public script does not error (no real admin on this host) -->
+    <div id="adminDashboard" class="hidden" style="display:none!important" aria-hidden="true"></div>
+    <div id="shipList" class="hidden" style="display:none!important"></div>
+    <div id="shipDetailPanel" class="hidden" style="display:none!important"></div>
+    <div id="loginModal" class="hidden" style="display:none!important"></div>
+    <div id="pinModal" class="hidden" style="display:none!important"></div>
+    <div id="signupModal" class="hidden" style="display:none!important"></div>
 
-    <div class="modal-overlay" id="settingsPinModal">
-        <div class="modal-box">
-            <button class="modal-close" onclick="closeModal('settingsPinModal')">&times;</button>
-            <h3>Account settings PIN</h3>
-            <p class="sub">Enter PIN <b>7799</b> to open account settings and change admin username, password, or login
-                PIN.</p>
-            <div class="field">
-                <label>Settings PIN</label>
-                <input type="password" id="settingsPinInput" maxlength="4" inputmode="numeric" placeholder="••••"
-                    autocomplete="off">
-            </div>
-            <div class="error-box" id="settingsPinError" style="display:none;">Incorrect PIN.</div>
-            <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
-                <button type="button" class="btn btn-red" onclick="submitSettingsPin()">Unlock</button>
-                <button type="button" class="btn btn-outline" onclick="closeModal('settingsPinModal')">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal-overlay" id="settingsModal">
-        <div class="modal-box">
-            <button class="modal-close" onclick="closeModal('settingsModal')">&times;</button>
-            <h3>Account Settings</h3>
-            <p class="sub">Change admin username, password, or admin login PIN. Current password is required. (Unlocked
-                with settings PIN 7799.)</p>
-            <form onsubmit="return handleCredentialsSubmit(event)">
-                <div class="field">
-                    <label>Current Password</label>
-                    <input type="password" id="settingsCurrentPass" required>
-                </div>
-                <div class="field">
-                    <label>New Username <span style="color:var(--gray);font-weight:400;">(leave blank to
-                            keep)</span></label>
-                    <input type="text" id="settingsNewUser">
-                </div>
-                <div class="field">
-                    <label>New Password <span style="color:var(--gray);font-weight:400;">(leave blank to
-                            keep)</span></label>
-                    <input type="password" id="settingsNewPass">
-                </div>
-                <div class="field">
-                    <label>New 6-Digit PIN <span style="color:var(--gray);font-weight:400;">(leave blank to
-                            keep)</span></label>
-                    <input type="text" id="settingsNewPin" class="mono" maxlength="6" inputmode="numeric">
-                </div>
-                <button type="submit" class="btn btn-red" style="width:100%;">Save Changes</button>
-                <div class="error-box" id="settingsError"></div>
-                <div class="success-box" id="settingsSuccess">Saved successfully.</div>
-            </form>
-            <hr style="margin:18px 0;border:none;border-top:1px solid var(--line);">
-            <div class="field">
-                <label>Box video service</label>
-                <p style="font-size:12.5px;color:var(--gray);margin-bottom:8px;">When OFF, box page shows server
-                    unavailable. When ON, correct receipt QR opens the package video.</p>
-                <button type="button" class="btn btn-outline small-btn" id="boxServiceToggleBtn2"
-                    onclick="toggleBoxService()">Box video: ON</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ADMIN DASHBOARD — chat replies only here -->
-    <div id="adminDashboard" class="page hidden">
-        <div class="admin-wrap">
-            <div class="admin-top">
-                <div style="min-width:0;flex:1 1 200px;">
-                    <h2>Admin Dashboard</h2>
-                    <p style="color:var(--gray); font-size:13.5px;">Tracking codes auto-generate as DHL###### if left
-                        empty. Customer chats appear under 💬 Chats — reply only to the selected conversation.</p>
-                </div>
-                <div class="admin-top-actions" style="position:relative;">
-                    <button type="button" class="btn btn-outline small-btn" id="adminChatBtn"
-                        onclick="adminToggleChatPanel()" title="Customer chats">
-                        💬 Chats <span class="chat-badge hidden" id="adminChatBadge">0</span>
-                    </button>
-                    <button type="button" class="btn btn-outline small-btn" id="boxServiceToggleBtn"
-                        onclick="toggleBoxService()" title="Box video server">Box video: ON</button>
-                    <button class="btn btn-red small-btn" onclick="startNewShipment()">+ New Shipment</button>
-                    <a class="btn btn-outline small-btn" href="/receipt"
-                        style="color:var(--ink);border-color:var(--line);text-decoration:none;">Receipt</a>
-                    <button class="btn btn-outline small-btn" style="color:var(--ink);border-color:var(--line);"
-                        onclick="openSettingsProtected()">⚙ Settings</button>
-                    <a class="logout-link" onclick="logoutAdmin()">Log Out</a>
-                </div>
-            </div>
-
-            <div id="adminChatPanel" class="admin-chat-panel hidden">
-                <div class="admin-chat-head">
-                    <button type="button" class="btn btn-outline small-btn" onclick="adminToggleChatNav()">☰
-                        Conversations</button>
-                    <strong id="adminChatTitle">Select a conversation</strong>
-                    <button type="button" class="btn btn-outline small-btn" onclick="adminToggleChatPanel()">✕</button>
-                </div>
-                <div class="admin-chat-body">
-                    <aside id="adminChatNav" class="admin-chat-nav">
-                        <p class="mm-label" style="padding:8px 12px;">Each line is a separate customer (Sender /
-                            Receiver). Tap one — only that person sees your reply.</p>
-                        <div id="adminChatThreadList"></div>
-                    </aside>
-                    <div class="admin-chat-main">
-                        <div id="adminChatMessages" class="admin-chat-messages"></div>
-                        <div class="admin-chat-compose">
-                            <input type="file" id="adminChatImage" accept="image/*" hidden
-                                onchange="adminChatPickImage(event)">
-                            <button type="button" class="btn btn-outline small-btn"
-                                onclick="document.getElementById('adminChatImage').click()">📷</button>
-                            <input type="text" id="adminChatInput" placeholder="Reply to selected customer only…"
-                                autocomplete="off">
-                            <button type="button" class="btn btn-red small-btn" onclick="adminChatSend()">Send</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="admin-layout">
-                <div class="panel">
-                    <h4 class="section-title">All Shipments</h4>
-                    <div class="ship-list" id="shipList"></div>
-                </div>
-                <div class="panel" id="shipDetailPanel"></div>
-            </div>
-        </div>
-    </div>
 
     <!-- Customer live chat (sends to admin; only admin replies) -->
     <button type="button" class="chat-fab" id="chatFab" onclick="openGuestChat()" aria-label="Live chat">
@@ -659,7 +494,7 @@
         </div>
         <div class="guest-chat-setup" id="guestChatSetup">
             <p>Enter your <b>tracking code</b> to open a private chat. Labeled as shipment <b>Sender / Receiver</b>.
-                Only you and DHL support can see it — admin replies from the office dashboard.</p>
+                Only you and support can see this conversation.</p>
             <label>Tracking code <input type="text" id="guestChatTrack" placeholder="e.g. DHL123456" class="mono"
                     autocomplete="off" required></label>
             <p class="guest-chat-err" id="guestChatErr"
@@ -680,7 +515,46 @@
         </div>
     </div>
 
-    <script src="/js/script.js?v=20260818video"></script>
+    <script src="/js/script.js?v=20260819noadmin"></script>
+
+    <script>
+        (function () {
+            function animateCount(el) {
+                var target = parseFloat(el.getAttribute('data-target') || '0');
+                var suffix = el.getAttribute('data-suffix') || '';
+                var decimals = parseInt(el.getAttribute('data-decimals') || '0', 10);
+                var dur = 1600;
+                var start = null;
+                function step(ts) {
+                    if (!start) start = ts;
+                    var p = Math.min(1, (ts - start) / dur);
+                    var eased = 1 - Math.pow(1 - p, 3);
+                    var val = target * eased;
+                    el.textContent = (decimals ? val.toFixed(decimals) : Math.floor(val)) + suffix;
+                    if (p < 1) requestAnimationFrame(step);
+                    else el.textContent = (decimals ? target.toFixed(decimals) : target) + suffix;
+                }
+                requestAnimationFrame(step);
+            }
+            function run() {
+                document.querySelectorAll('.count-up').forEach(function (el) {
+                    if (el.dataset.done) return;
+                    el.dataset.done = '1';
+                    animateCount(el);
+                });
+            }
+            if ('IntersectionObserver' in window) {
+                var io = new IntersectionObserver(function (entries) {
+                    entries.forEach(function (e) {
+                        if (e.isIntersecting) { run(); io.disconnect(); }
+                    });
+                }, { threshold: 0.3 });
+                var sec = document.getElementById('stats');
+                if (sec) io.observe(sec); else run();
+            } else run();
+        })();
+    </script>
+
 </body>
 
 </html>

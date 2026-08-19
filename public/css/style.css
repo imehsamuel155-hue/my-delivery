@@ -4566,3 +4566,549 @@ body.menu-open #overlay {
     display: block !important;
     z-index: 2990 !important;
 }
+
+/* ===== Video-style public site (dhltrackpackage look) ===== */
+.video-header .header-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: #FFCC00;
+}
+
+.brand-text {
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    line-height: 1.05;
+}
+
+.brand-dhl {
+    font-family: Arial Black, Impact, Arial, sans-serif;
+    font-size: 28px;
+    font-weight: 900;
+    color: #D40511;
+    letter-spacing: -1px;
+}
+
+.brand-sub {
+    font-size: 9px;
+    font-weight: 700;
+    color: #D40511;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
+}
+
+.header-right-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-login-top {
+    background: transparent;
+    border: 2px solid #1a1a1a;
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    color: #1a1a1a;
+}
+
+.video-header .hamburger span {
+    background: #1a1a1a !important;
+}
+
+/* Dark side menu like video */
+#mobileMenu.video-side-menu {
+    background: #1a1a1a !important;
+    color: #fff !important;
+    padding: 56px 0 32px !important;
+}
+
+#mobileMenu.video-side-menu a {
+    color: #fff !important;
+    padding: 14px 22px !important;
+    font-size: 16px !important;
+    font-weight: 500 !important;
+    border-bottom: none !important;
+}
+
+#mobileMenu.video-side-menu .close-menu {
+    color: #fff !important;
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    font-size: 28px;
+}
+
+.mm-auth {
+    padding: 20px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.btn-mm-login {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #fff;
+    background: transparent;
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.btn-mm-signup {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    background: #FFCC00;
+    color: #1a1a1a;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+/* Warehouse hero */
+.video-hero {
+    position: relative;
+    min-height: 72vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 0 !important;
+    background: #111;
+}
+
+.video-hero .hero-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+}
+
+.video-hero .hero-bg img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.55;
+}
+
+.hero-bg-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0, 0, 0, .45), rgba(0, 0, 0, .65));
+}
+
+.hero-content-center {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 48px 18px 56px;
+    max-width: 560px;
+    margin: 0 auto;
+    color: #fff;
+}
+
+.hero-kicker {
+    font-size: 11px;
+    letter-spacing: 2px;
+    font-weight: 700;
+    color: #FFCC00;
+    margin: 0 0 12px;
+}
+
+.hero-content-center h1 {
+    font-size: clamp(26px, 6vw, 36px);
+    line-height: 1.2;
+    margin: 0 0 12px;
+    font-weight: 800;
+    color: #fff;
+}
+
+.hero-content-center h1 .accent {
+    color: #FFCC00;
+}
+
+.hero-lead {
+    font-size: 14px;
+    color: rgba(255, 255, 255, .85);
+    margin: 0 0 20px;
+    line-height: 1.45;
+}
+
+.hero-track-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    background: #fff;
+    border-radius: 8px;
+    padding: 6px;
+    max-width: 420px;
+    margin: 0 auto;
+}
+
+.hero-track-row input {
+    flex: 1 1 160px;
+    border: none;
+    padding: 12px 14px;
+    font-size: 14px;
+    min-width: 0;
+    color: #1a1a1a;
+}
+
+.hero-track-row input:focus {
+    outline: none;
+}
+
+.btn-track-yellow {
+    background: #FFCC00;
+    border: none;
+    border-radius: 6px;
+    padding: 12px 16px;
+    font-weight: 800;
+    cursor: pointer;
+    color: #1a1a1a;
+    white-space: nowrap;
+}
+
+.stats-strip {
+    padding: 28px 16px;
+    background: #f5f5f5;
+}
+
+.stats-card {
+    background: #1a1a1a;
+    border-radius: 12px;
+    padding: 28px 20px;
+    max-width: 420px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.stats-card .stat {
+    margin-bottom: 22px;
+}
+
+.stats-card .stat:last-child {
+    margin-bottom: 0;
+}
+
+.stats-card strong {
+    display: block;
+    font-size: 32px;
+    color: #FFCC00;
+    font-weight: 900;
+}
+
+.stats-card span {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    color: #aaa;
+    margin-top: 4px;
+}
+
+.testimonials-sec {
+    padding: 36px 16px 48px;
+    max-width: 520px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.sec-eyebrow {
+    color: #D40511;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    margin: 0 0 8px;
+}
+
+.testimonials-sec h2 {
+    margin: 0 0 20px;
+    font-size: 28px;
+}
+
+.testimonial-card {
+    text-align: left;
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    padding: 18px 16px;
+    margin-bottom: 14px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .04);
+}
+
+.testimonial-card .stars {
+    color: #f5a623;
+    margin-bottom: 8px;
+    letter-spacing: 2px;
+}
+
+.testimonial-card p {
+    margin: 0 0 12px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #333;
+}
+
+.t-author {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.t-av {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #FFCC00;
+    color: #1a1a1a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+}
+
+.t-author strong {
+    display: block;
+    font-size: 14px;
+}
+
+.t-author small {
+    color: #888;
+    font-size: 12px;
+}
+
+/* Public site: never expose office */
+a[href="/admin"],
+a[href="/admin.html"] {
+    display: none !important;
+}
+
+
+/* Brand row fix */
+.brand-text {
+    flex-direction: row !important;
+    align-items: baseline;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.brand-dhl {
+    font-size: 22px !important;
+}
+
+.brand-sub {
+    font-size: 10px !important;
+    margin-top: 0 !important;
+}
+
+/* Stats must stay on dark card */
+.stats-strip {
+    background: #f0f0f0 !important;
+    padding: 24px 16px !important;
+}
+
+.stats-card {
+    background: #111 !important;
+    color: #fff !important;
+    border-radius: 14px !important;
+    padding: 28px 18px !important;
+    max-width: 440px !important;
+    margin: 0 auto !important;
+}
+
+.stats-card .stat {
+    margin-bottom: 20px !important;
+}
+
+.stats-card strong {
+    display: block !important;
+    color: #FFCC00 !important;
+    font-size: 30px !important;
+    font-weight: 900 !important;
+}
+
+.stats-card span {
+    display: block !important;
+    color: #bbb !important;
+    font-size: 11px !important;
+    letter-spacing: 1.2px !important;
+    margin-top: 4px !important;
+}
+
+/* Never show admin chrome on public */
+#adminDashboard,
+#loginModal,
+#pinModal,
+#signupModal,
+#credentialsModal,
+#settingsPinModal {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
+.btn-login-top {
+    display: none !important;
+}
+
+
+/* ===== Public index: RED header / YELLOW accents (swapped) ===== */
+.video-header .header-bar,
+header.dhl-header.video-header,
+header.dhl-header {
+    background: #D40511 !important;
+}
+
+.brand-line {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.05;
+    text-decoration: none;
+}
+
+.brand-dhl {
+    color: #FFCC00 !important;
+    font-size: 26px !important;
+    font-weight: 900 !important;
+    letter-spacing: -0.5px;
+}
+
+.brand-sub {
+    color: #FFCC00 !important;
+    font-size: 9px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.6px;
+    margin-top: 2px !important;
+}
+
+.video-header .hamburger span,
+.dhl-header .hamburger span {
+    background: #FFCC00 !important;
+}
+
+.hero-kicker {
+    color: #FFCC00 !important;
+}
+
+.hero-content-center h1 .accent {
+    color: #FFCC00 !important;
+}
+
+.btn-track-yellow {
+    background: #FFCC00 !important;
+    color: #1a1a1a !important;
+    font-weight: 800 !important;
+}
+
+/* Sticky CTA: yellow bar, red text */
+.sticky-cta,
+.dhl-sticky-cta,
+a.sticky-cta,
+.quote-bar {
+    background: #FFCC00 !important;
+    color: #D40511 !important;
+    border-color: #FFCC00 !important;
+}
+
+.sticky-cta *,
+.quote-bar * {
+    color: #D40511 !important;
+}
+
+/* Stats card polished + counters */
+.stats-strip {
+    background: #f4f4f4 !important;
+    padding: 32px 16px !important;
+}
+
+.stats-card {
+    background: linear-gradient(160deg, #1a1a1a 0%, #2a2a2a 100%) !important;
+    border-radius: 16px !important;
+    padding: 32px 22px !important;
+    max-width: 440px !important;
+    margin: 0 auto !important;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, .18) !important;
+    border: 1px solid #333 !important;
+}
+
+.stats-card .stat {
+    margin-bottom: 26px !important;
+    padding-bottom: 18px !important;
+    border-bottom: 1px solid #333 !important;
+}
+
+.stats-card .stat:last-child {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+    border-bottom: none !important;
+}
+
+.stats-card strong,
+.stats-card .count-up {
+    display: block !important;
+    color: #FFCC00 !important;
+    font-size: 36px !important;
+    font-weight: 900 !important;
+    letter-spacing: -0.5px !important;
+    font-variant-numeric: tabular-nums;
+}
+
+.stats-card span {
+    display: block !important;
+    color: #a0a0a0 !important;
+    font-size: 11px !important;
+    letter-spacing: 1.6px !important;
+    margin-top: 6px !important;
+    font-weight: 600 !important;
+}
+
+/* Testimonials accent */
+.sec-eyebrow {
+    color: #D40511 !important;
+}
+
+.testimonial-card .stars {
+    color: #FFCC00 !important;
+}
+
+.t-av {
+    background: #D40511 !important;
+    color: #FFCC00 !important;
+}
+
+/* Chat FAB: yellow with red icon area */
+.chat-fab {
+    background: #D40511 !important;
+    box-shadow: 0 4px 16px rgba(212, 5, 17, .4) !important;
+}
+
+/* Side menu accent */
+.btn-mm-signup {
+    background: #FFCC00 !important;
+    color: #1a1a1a !important;
+}
+
+#mobileMenu.video-side-menu a:active,
+#mobileMenu.video-side-menu a:hover {
+    color: #FFCC00 !important;
+}
+
+/* Primary public buttons: yellow */
+.btn-red {
+    background: #FFCC00 !important;
+    color: #1a1a1a !important;
+    border-color: #FFCC00 !important;
+}
+
+.btn-red:hover {
+    background: #e6b800 !important;
+    color: #1a1a1a !important;
+}
