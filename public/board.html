@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <title>Office Board</title>
+    <title>Demo Office Board</title>
     <style>
         * {
             box-sizing: border-box
@@ -70,7 +70,7 @@
             border-radius: 10px;
             border: 1px solid #cbd5e1;
             background: #fff;
-            color: #0f172a;
+            color: #c9c9ca;
             font-weight: 600;
             font-size: 14px;
             text-align: center;
@@ -261,12 +261,12 @@
 
 <body>
     <div class="bar">
-        <span><strong> PROJECT</strong> · Office board</span>
+        <span><strong>DEMO PROJECT</strong> · Office board</span>
         <a href="/admin.html" id="logout">Log out</a>
     </div>
     <div class="wrap">
         <h1>Office Dashboard</h1>
-        <p class="sub">Tap a button or a shipment.</p>
+        <p class="sub">Tap a button or a shipment. Changes save to the shared API (main site).</p>
 
         <div class="actions">
             <a class="btn" href="/chat.html">💬 Chats</a>
@@ -292,7 +292,7 @@
     <div class="modal" id="modalPin">
         <div class="modal-box">
             <h3>Settings PIN</h3>
-            <p class="sub">Enter <strong></strong></p>
+            <p class="sub">Enter <strong>7799</strong></p>
             <input id="settingsPin" type="password" inputmode="numeric" maxlength="8" placeholder="7799">
             <div class="form-actions">
                 <button type="button" class="save" id="pinOk">Open</button>
@@ -418,7 +418,9 @@
                     '<label>Status note</label><input id="f_status" value="" placeholder="e.g. In Transit">' +
                     '<div class="form-actions">' +
                     '<button type="button" class="save" id="btnSaveShip">Save</button>' +
-                    '<button type="button" class="sec" id="btnCloseDetail">Close</button></div>' +
+                    '<button type="button" class="sec" id="btnCloseDetail">Close</button>' +
+                    (isNew ? '' : '<button type="button" class="sec" id="btnDelShip" style="background:#7f1d1d;color:#fff">Delete permanently</button>') +
+                    '</div>' +
                     '<div id="shipMsg" class="msg"></div>';
                 $('detail').classList.add('show');
                 $('detail').classList.remove('hidden');
@@ -428,6 +430,36 @@
                     $('detail').classList.remove('show');
                 };
                 $('btnSaveShip').onclick = function () { saveShip(isNew, code); };
+                var del = $('btnDelShip');
+                if (del) {
+                    del.onclick = async function () {
+                        if (!code) return;
+                        if (!confirm('Permanently delete shipment ' + code + '? This cannot be undone.')) return;
+                        try {
+                            await api('/shipments/' + encodeURIComponent(code), { method: 'DELETE' });
+                            show($('status'), 'ok', 'Deleted ' + code);
+                            $('detail').classList.add('hidden');
+                            $('detail').classList.remove('show');
+                            loadList();
+                        } catch (e) {
+                            show($('shipMsg'), 'err', e.message);
+                        }
+                    };
+                }
+                // Locked shipment: ask PIN then unlock
+                if (s && s.pinProtected && code) {
+                    var pinTry = prompt('This shipment is locked. Enter access PIN to edit full details (Cancel to view limited form only):');
+                    if (pinTry) {
+                        api('/shipments/' + encodeURIComponent(code) + '/unlock', {
+                            method: 'POST',
+                            body: JSON.stringify({ pin: pinTry })
+                        }).then(function (full) {
+                            openShipment(Object.assign({}, full, { pinProtected: false }));
+                        }).catch(function (e) {
+                            show($('shipMsg'), 'err', e.message || 'Wrong PIN');
+                        });
+                    }
+                }
             }
 
             async function saveShip(isNew, oldCode) {
