@@ -172,10 +172,12 @@
 
     .chatHead button {
       width: auto;
-      padding: 8px 12px;
+      padding: 8px 10px;
       margin: 0;
       background: #2a3942;
-      color: #e9edef
+      color: #e9edef;
+      font-size: 12px;
+      flex-shrink: 0
     }
 
     .chatHead .title {
@@ -274,13 +276,46 @@
     #unlockModal.show {
       display: flex
     }
+
+    #photoLightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: rgba(0, 0, 0, .92);
+      align-items: center;
+      justify-content: center;
+      padding: 12px
+    }
+
+    #photoLightbox.show {
+      display: flex
+    }
+
+    #photoLightbox img {
+      max-width: 100%;
+      max-height: 92vh;
+      object-fit: contain;
+      border-radius: 8px
+    }
+
+    #photoLightbox .x {
+      position: absolute;
+      top: 12px;
+      right: 16px;
+      color: #fff;
+      font-size: 28px;
+      background: 0;
+      border: 0;
+      cursor: pointer
+    }
   </style>
 </head>
 
 <body>
   <div class="wrap">
     <div class="head">
-      <strong>· Chat</strong>
+      <strong> · Chat</strong>
       <a href="/admin.html">Admin login</a>
     </div>
 
@@ -300,6 +335,9 @@
         <div class="chatHead">
           <button type="button" id="backBtn">←</button>
           <div class="title" id="chatTitle">Chat</div>
+          <button type="button" id="clearBtn" title="Clear messages">Clear</button>
+          <button type="button" id="delBtn" title="Delete conversation"
+            style="background:#ea4335;color:#fff">Delete</button>
         </div>
         <div class="msgs" id="msgs"></div>
         <div class="compose">
@@ -336,6 +374,12 @@
         var h = Object.assign({ 'Content-Type': 'application/json', 'X-Chat-Pin': chatPin }, extra || {});
         if (adminTok) h.Authorization = 'Bearer ' + adminTok;
         return h;
+      }
+      function openPhoto(src) {
+        var box = document.getElementById('photoLightbox');
+        var im = document.getElementById('photoLightboxImg');
+        if (im) im.src = src;
+        if (box) box.classList.add('show');
       }
       function esc(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
       function fmtTime(d) {
@@ -455,7 +499,7 @@
         var box = document.getElementById('msgs');
         box.innerHTML = (msgs || []).map(function (m) {
           var me = m.from === 'admin';
-          var img = m.image ? '<img src="' + m.image + '" alt="" onclick="window.open(this.src)">' : '';
+          var img = m.image ? '<img src="' + m.image + '" alt="" style="cursor:pointer" onclick="event.stopPropagation();openPhoto(this.src)">' : '';
           return '<div class="row ' + (me ? 'me' : 'them') + '"><div class="bubble">'
             + (m.text ? esc(m.text) : '') + img
             + '<div class="time">' + fmtTime(m.createdAt) + '</div></div></div>';
@@ -492,6 +536,36 @@
         } catch (e) { alert(e.message); }
       }
 
+
+      async function clearMsgs() {
+        if (!selectedId) return;
+        if (!confirm('Clear all messages in this conversation?')) return;
+        try {
+          var r = await fetch(API + '/chat/admin/threads/' + selectedId + '/clear', {
+            method: 'POST', headers: headers(), body: '{}'
+          });
+          var d = await r.json();
+          if (!r.ok) throw new Error(d.error || 'Clear failed');
+          renderMsgs([]);
+        } catch (e) { alert(e.message); }
+      }
+      async function deleteThread() {
+        if (!selectedId) return;
+        if (!confirm('Permanently delete this conversation?')) return;
+        try {
+          var r = await fetch(API + '/chat/admin/threads/' + selectedId, {
+            method: 'DELETE', headers: headers()
+          });
+          var d = await r.json().catch(function () { return {}; });
+          if (!r.ok) throw new Error(d.error || 'Delete failed');
+          selectedId = null;
+          unlocked = {};
+          showList();
+        } catch (e) { alert(e.message); }
+      }
+      document.getElementById('clearBtn').onclick = clearMsgs;
+      document.getElementById('delBtn').onclick = deleteThread;
+
       document.getElementById('gateBtn').onclick = enterGate;
       document.getElementById('backBtn').onclick = showList;
       document.getElementById('unlockBtn').onclick = doUnlock;
@@ -518,6 +592,9 @@
       if (chatPin) document.getElementById('gatePin').value = chatPin;
     })();
   </script>
+
+  <div id="photoLightbox" onclick="this.classList.remove('show')"><button type="button" class="x"
+      aria-label="Close">&times;</button><img id="photoLightboxImg" alt=""></div>
 </body>
 
 </html>

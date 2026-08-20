@@ -3,462 +3,603 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <title>Office Board — Full</title>
-    <meta name="robots" content="noindex,nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title> Office Board</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link rel="stylesheet" href="/css/style.css?v=fulladmin1">
     <style>
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: rgba(0, 0, 0, .06)
+        }
+
         html,
         body {
             margin: 0;
             padding: 0;
-            background: #f4f4f0 !important;
-            color: #111 !important;
-            overflow-x: hidden !important;
-            width: 100%;
-            max-width: 100vw
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #eef0f3;
+            color: #0f172a;
+            overflow-x: hidden
         }
 
-        .demo-bar {
+        .bar {
             background: #1e293b;
             color: #e2e8f0;
-            padding: 10px 12px;
+            padding: 12px 14px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
-            gap: 8px;
             position: sticky;
             top: 0;
-            z-index: 300;
-            font-family: system-ui, sans-serif;
+            z-index: 40
+        }
+
+        .bar strong {
+            color: #93c5fd
+        }
+
+        .bar a {
+            color: #93c5fd;
+            text-decoration: none;
+            margin-left: 10px;
             font-size: 13px
         }
 
-        .demo-bar strong {
-            color: #93c5fd
-        }
-
-        .demo-bar a {
-            color: #93c5fd
-        }
-
-        #siteView,
-        #trackPage,
-        .dhl-header,
-        .chat-fab,
-        #guestChatPanel,
-        .sticky-cta,
-        #langStrip {
-            display: none !important
-        }
-
-        #adminDashboard {
-            display: block !important;
-            visibility: visible !important;
-            padding: 10px 8px 56px !important;
-            min-height: 100vh !important;
-            background: #f4f4f0 !important;
-            color: #111 !important;
-            width: 100% !important;
-            max-width: 100vw !important;
-            box-sizing: border-box !important
-        }
-
-        #adminDashboard.hidden {
-            display: block !important
-        }
-
-        .admin-wrap {
-            max-width: 1180px;
+        .wrap {
+            max-width: 1000px;
             margin: 0 auto;
-            width: 100%;
-            box-sizing: border-box;
-            padding: 0 2px
+            padding: 12px 10px 48px
         }
 
-        .admin-top {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+        h1 {
+            font-size: 1.25rem;
+            margin: 0 0 4px
+        }
+
+        .sub {
+            color: #64748b;
+            font-size: 13px;
+            margin: 0 0 12px
+        }
+
+        .actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
             margin-bottom: 12px
         }
 
-        .admin-top h2 {
-            margin: 0;
-            font-size: clamp(18px, 5vw, 24px);
-            color: #0f172a !important;
-            word-break: break-word
-        }
-
-        .admin-top-actions {
-            display: grid !important;
-            grid-template-columns: 1fr 1fr !important;
-            gap: 8px !important;
+        .actions button,
+        .actions a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 48px;
+            padding: 12px 8px;
+            border-radius: 10px;
+            border: 1px solid #cbd5e1;
+            background: #fff;
+            color: #0f172a;
+            font-weight: 600;
+            font-size: 14px;
+            text-decoration: none;
+            cursor: pointer;
             width: 100%
         }
 
-        .admin-top-actions .btn,
-        .admin-top-actions button,
-        .admin-top-actions a {
-            min-height: 48px !important;
-            padding: 12px 8px !important;
-            font-size: 13px !important;
-            width: 100% !important;
-            box-sizing: border-box !important;
-            touch-action: manipulation;
-            -webkit-tap-highlight-color: rgba(0, 0, 0, .08)
-        }
-
-        .admin-top-actions .btn-red {
-            grid-column: 1/-1 !important
-        }
-
-        .admin-layout {
-            display: flex !important;
-            flex-direction: column !important;
-            gap: 12px !important;
-            width: 100%
+        .actions .red {
+            background: #D40511;
+            color: #fff;
+            border: none;
+            grid-column: 1/-1
         }
 
         .panel {
-            background: #fff !important;
-            color: #111 !important;
+            background: #fff;
             border-radius: 12px;
-            padding: 12px !important;
+            padding: 12px;
             border: 1px solid #e2e8f0;
-            overflow-x: auto;
-            width: 100%;
-            box-sizing: border-box
+            margin-bottom: 12px
         }
 
-        #shipDetailPanel {
-            order: 2
+        .panel h2 {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            color: #64748b;
+            margin: 0 0 10px
         }
 
-        #shipList,
-        .ship-list {
-            width: 100%
-        }
-
-        .ship-row,
-        .ship-list>* {
-            cursor: pointer;
-            padding: 14px 12px !important;
-            min-height: 48px;
+        .ship {
+            padding: 14px 12px;
             border: 1px solid #e5e7eb;
             border-radius: 10px;
             margin-bottom: 8px;
-            box-sizing: border-box;
-            touch-action: manipulation
+            background: #fafafa;
+            cursor: pointer
         }
 
-        .grid2 {
-            display: grid !important;
-            grid-template-columns: 1fr !important;
-            gap: 10px !important
+        .ship.on {
+            background: #eff6ff;
+            border-color: #93c5fd
         }
 
-        .field {
-            margin-bottom: 10px;
-            width: 100%;
-            box-sizing: border-box
+        .ship .code {
+            font-weight: 700;
+            font-size: 15px
         }
 
-        .field label {
+        .ship .meta {
+            font-size: 13px;
+            color: #64748b;
+            margin-top: 3px
+        }
+
+        #editor {
+            display: none
+        }
+
+        #editor.show {
+            display: block
+        }
+
+        label {
             display: block;
             font-size: 12px;
             font-weight: 600;
-            margin-bottom: 4px
+            margin: 10px 0 4px
         }
 
-        .field input,
-        .field select,
-        .field textarea,
-        #shipDetailPanel input,
-        #shipDetailPanel select,
-        #shipDetailPanel textarea {
-            width: 100% !important;
-            max-width: 100% !important;
-            padding: 12px !important;
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px;
             border: 1px solid #cbd5e1;
             border-radius: 8px;
-            font-size: 16px !important;
-            box-sizing: border-box !important
-        }
-
-        #adminMap,
-        .leaflet-container {
-            height: 220px !important;
-            width: 100% !important;
-            max-width: 100% !important;
-            border-radius: 10px;
-            z-index: 1
-        }
-
-        .progress-bar,
-        .progress-bar.tall {
-            width: 100% !important;
-            max-width: 100% !important
-        }
-
-        .btn,
-        .btn-red,
-        .btn-outline {
-            touch-action: manipulation
-        }
-
-        .admin-chat-panel.hidden {
-            display: none !important
-        }
-
-        .admin-chat-panel:not(.hidden) {
-            display: flex !important;
-            flex-direction: column;
-            position: fixed;
-            inset: 0;
-            z-index: 500;
+            font-size: 16px;
             background: #fff
         }
 
-        .modal-overlay {
+        .row2 {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0
+        }
+
+        @media(min-width:640px) {
+            .row2 {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px
+            }
+        }
+
+        #map {
+            height: 220px;
+            width: 100%;
+            border-radius: 10px;
+            margin: 10px 0;
+            background: #ddd
+        }
+
+        .btns {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 14px
+        }
+
+        .btns button {
+            flex: 1;
+            min-width: 110px;
+            min-height: 48px;
+            padding: 12px;
+            border: 0;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 14px
+        }
+
+        .btns .save {
+            background: #D40511;
+            color: #fff
+        }
+
+        .btns .sec {
+            background: #e2e8f0;
+            color: #0f172a
+        }
+
+        .btns .del {
+            background: #7f1d1d;
+            color: #fff
+        }
+
+        .msg {
+            display: none;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin: 8px 0
+        }
+
+        .msg.err {
+            display: block;
+            background: #fef2f2;
+            color: #b91c1c
+        }
+
+        .msg.ok {
+            display: block;
+            background: #f0fdf4;
+            color: #15803d
+        }
+
+        .modal {
             display: none;
             position: fixed;
             inset: 0;
-            z-index: 600;
-            background: rgba(0, 0, 0, .5);
+            background: rgba(15, 23, 42, .55);
+            z-index: 50;
+            padding: 12px;
             align-items: flex-end;
             justify-content: center;
-            padding: 0;
-            box-sizing: border-box
+            overflow: auto
         }
 
-        .modal-overlay.show {
-            display: flex !important
+        .modal.show {
+            display: flex
         }
 
-        .modal-box {
+        .mbox {
             background: #fff;
             border-radius: 14px 14px 0 0;
             padding: 18px;
             width: 100%;
-            max-width: 480px;
-            max-height: 92vh;
-            overflow: auto;
-            box-sizing: border-box
+            max-width: 440px;
+            max-height: 90vh;
+            overflow: auto
         }
 
-        @media(min-width:700px) {
-            .modal-overlay {
-                align-items: center;
-                padding: 16px
+        @media(min-width:600px) {
+            .modal {
+                align-items: center
             }
 
-            .modal-box {
-                border-radius: 12px
-            }
-
-            .grid2 {
-                grid-template-columns: 1fr 1fr !important
-            }
-
-            #adminMap,
-            .leaflet-container {
-                height: 300px !important
+            .mbox {
+                border-radius: 14px
             }
         }
 
-        @media(min-width:900px) {
-            .admin-top {
-                flex-direction: row;
-                justify-content: space-between;
-                align-items: flex-start
-            }
-
-            .admin-top-actions {
-                display: flex !important;
-                grid-template-columns: none !important;
-                width: auto
-            }
-
-            .admin-top-actions .btn-red {
-                grid-column: auto !important
-            }
-
-            .admin-layout {
-                display: grid !important;
-                grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr) !important;
-                gap: 14px !important
-            }
-
-            #shipDetailPanel {
-                order: 0
-            }
+        .hist {
+            font-size: 13px;
+            background: #f8fafc;
+            padding: 8px;
+            border-radius: 8px;
+            margin-top: 6px;
+            max-height: 140px;
+            overflow: auto
         }
     </style>
 </head>
 
-<body class="demo-office admin-mode">
-    <div class="demo-bar">
-        <span><strong> PROJECT</strong> · Full office board</span>
+<body>
+    <div class="bar">
+        <span><strong></strong> · Office board</span>
         <span>
-            <a href="/chat.html">Chat</a> ·
-            <a href="/admin.html" onclick="sessionStorage.removeItem('dhlAdminToken')">Log out</a>
+            <a href="/chat.html">Chat</a>
+            <a href="/admin.html" id="logout">Log out</a>
         </span>
     </div>
+    <div class="wrap">
+        <h1>Office Dashboard</h1>
+        <p class="sub">Tap buttons or a shipment. Same live database as the public site.</p>
+        <div class="actions">
+            <a href="/chat.html">💬 Chats</a>
+            <button type="button" id="btnBox">Box: …</button>
+            <button type="button" class="red" id="btnNew">+ New Shipment</button>
+            <button type="button" id="btnSet">⚙ Account Settings</button>
+        </div>
+        <div id="flash" class="msg"></div>
 
-    <div id="mdPleaseWait" class="md-please-wait" style="display:none">
-        <div class="dots" id="mdDots">......</div>
-        <div class="txt">Please wait</div>
-        <div class="sub" id="mdWaitSub"></div>
-    </div>
-    <div id="siteView" class="hidden"></div>
-    <div id="trackPage" class="hidden"></div>
+        <div class="panel">
+            <h2>All shipments</h2>
+            <div id="list">Loading…</div>
+        </div>
 
-    <div id="adminDashboard" class="page">
-        <div class="admin-wrap">
-            <div class="admin-top">
-                <div>
-                    <h2>Office Dashboard</h2>
-                    <p style="color:#64748b;font-size:13px;margin:6px 0 0;">Full editor: map · origin/destination ·
-                        receipt fields · history · box · chat. Same database as the live site.</p>
-                </div>
-                <div class="admin-top-actions">
-                    <button type="button" class="btn btn-outline small-btn" id="adminChatBtn"
-                        onclick="window.location.href='/chat.html'">💬 Chats</button>
-                    <button type="button" class="btn btn-outline small-btn" id="boxServiceToggleBtn"
-                        onclick="typeof toggleBoxService==='function'&&toggleBoxService()">Box video: ON</button>
-                    <button type="button" class="btn btn-red small-btn"
-                        onclick="typeof startNewShipment==='function'&&startNewShipment()">+ New Shipment</button>
-                    <button type="button" class="btn btn-outline small-btn"
-                        onclick="typeof openSettingsProtected==='function'&&openSettingsProtected()">⚙ Account
-                        Settings</button>
-                </div>
-            </div>
-
-            <div id="adminChatPanel" class="admin-chat-panel hidden">
-                <div class="admin-chat-head"
-                    style="display:flex;gap:8px;padding:10px;border-bottom:1px solid #eee;flex-wrap:wrap;align-items:center">
-                    <button type="button" class="btn btn-outline small-btn"
-                        onclick="typeof adminToggleChatNav==='function'&&adminToggleChatNav()">☰</button>
-                    <strong id="adminChatTitle" style="flex:1">Conversations</strong>
-                    <button type="button" class="btn btn-outline small-btn"
-                        onclick="typeof adminToggleChatPanel==='function'&&adminToggleChatPanel()">✕</button>
-                </div>
-                <div class="admin-chat-body" style="display:flex;flex-direction:column;flex:1;min-height:0">
-                    <aside id="adminChatNav">
-                        <div id="adminChatThreadList"></div>
-                    </aside>
-                    <div class="admin-chat-main" style="flex:1;display:flex;flex-direction:column">
-                        <div id="adminChatMessages" style="flex:1;overflow:auto;padding:12px"></div>
-                        <div class="admin-chat-compose"
-                            style="display:flex;gap:6px;padding:10px;border-top:1px solid #eee">
-                            <input type="file" id="adminChatImage" accept="image/*" hidden
-                                onchange="typeof adminChatPickImage==='function'&&adminChatPickImage(event)">
-                            <button type="button" class="btn btn-outline small-btn"
-                                onclick="document.getElementById('adminChatImage').click()">📷</button>
-                            <input type="text" id="adminChatInput" placeholder="Reply…"
-                                style="flex:1;padding:10px;border-radius:8px;border:1px solid #ccc">
-                            <button type="button" class="btn btn-red small-btn"
-                                onclick="typeof adminChatSend==='function'&&adminChatSend()">Send</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="admin-layout">
-                <div class="panel">
-                    <h4 class="section-title">All Shipments</h4>
-                    <div class="ship-list" id="shipList">
-                        <p style="color:#64748b">Loading…</p>
-                    </div>
-                </div>
-                <div class="panel" id="shipDetailPanel">
-                    <p style="color:#64748b">Tap a shipment or + New Shipment. Full form includes live map, origin &amp;
-                        destination countries, package, payment, status history.</p>
-                </div>
-            </div>
+        <div class="panel" id="editor">
+            <h2 id="edTitle">Shipment</h2>
+            <div id="edBody"></div>
         </div>
     </div>
 
-    <div class="modal-overlay" id="settingsPinModal">
-        <div class="modal-box">
-            <button type="button" class="modal-close" onclick="closeModal('settingsPinModal')"
-                style="float:right;border:0;background:0;font-size:22px">&times;</button>
+    <div class="modal" id="mPin">
+        <div class="mbox">
             <h3>Settings PIN</h3>
-            <p style="font-size:13px;color:#64748b">Enter <strong></strong></p>
-            <input id="settingsPinInput" type="password" maxlength="8" inputmode="numeric" placeholder="0000"
-                style="width:100%;padding:10px;margin:8px 0">
-            <p class="error-box" id="settingsPinError" style="display:none;color:#b91c1c"></p>
-            <button type="button" class="btn btn-red" style="width:100%;padding:12px;margin-top:8px"
-                onclick="typeof submitSettingsPin==='function'&&submitSettingsPin()">Open settings</button>
+            <p class="sub">Enter <strong>0000</strong></p>
+            <input id="pinIn" type="password" inputmode="numeric" maxlength="8" placeholder="0000">
+            <div class="btns">
+                <button type="button" class="save" id="pinGo">Open</button>
+                <button type="button" class="sec" id="pinX">Cancel</button>
+            </div>
+            <div id="pinErr" class="msg"></div>
         </div>
     </div>
-
-    <div class="modal-overlay" id="settingsModal">
-        <div class="modal-box">
-            <button type="button" class="modal-close" onclick="closeModal('settingsModal')"
-                style="float:right;border:0;background:0;font-size:22px">&times;</button>
+    <div class="modal" id="mSet">
+        <div class="mbox">
             <h3>Account settings</h3>
-            <form onsubmit="return typeof handleCredentialsSubmit==='function'&&handleCredentialsSubmit(event)">
-                <label>New username</label>
-                <input id="settingsNewUser" style="width:100%;padding:10px;margin:4px 0 10px">
-                <label>New password</label>
-                <input id="settingsNewPass" type="password" style="width:100%;padding:10px;margin:4px 0 10px">
-                <label>New login PIN (4–8 digits)</label>
-                <input id="settingsNewPin" type="password" inputmode="numeric" maxlength="8"
-                    style="width:100%;padding:10px;margin:4px 0 10px">
-                <label>New chat PIN</label>
-                <input id="settingsChatPin" type="password" inputmode="numeric" maxlength="8" placeholder="4422"
-                    style="width:100%;padding:10px;margin:4px 0 10px">
-                <label>Current password (required)</label>
-                <input id="settingsCurrentPass" type="password" required
-                    style="width:100%;padding:10px;margin:4px 0 10px">
-                <button type="submit" class="btn btn-red" style="width:100%;padding:12px">Save</button>
-                <div id="settingsError" class="error-box" style="display:none;color:#b91c1c"></div>
-                <div id="settingsSuccess" style="display:none;color:#15803d"></div>
-            </form>
+            <label>New username</label><input id="nu">
+            <label>New password</label><input id="np" type="password">
+            <label>New login PIN</label><input id="nl" type="password" inputmode="numeric" maxlength="8">
+            <label>New chat PIN</label><input id="nc" type="password" inputmode="numeric" maxlength="8"
+                placeholder="4422">
+            <label>Current password (required)</label><input id="cp" type="password">
+            <div class="btns">
+                <button type="button" class="save" id="setSave">Save</button>
+                <button type="button" class="sec" id="setX">Close</button>
+            </div>
+            <div id="setMsg" class="msg"></div>
         </div>
     </div>
 
-    <div class="modal-overlay" id="loginModal">
-        <div class="modal-box">
-            <p>Use /admin login.</p>
-        </div>
-    </div>
-    <div class="modal-overlay" id="pinModal">
-        <div class="modal-box">
-            <h3>Office PIN</h3>
-            <form onsubmit="return typeof handlePinSubmit==='function'&&handlePinSubmit(event)">
-                <input id="pinInput" type="password" maxlength="8" inputmode="numeric" style="width:100%;padding:10px">
-                <button type="submit" class="btn btn-red"
-                    style="width:100%;margin-top:10px;padding:12px">Continue</button>
-                <div class="error-box" id="pinError"></div>
-            </form>
-        </div>
-    </div>
-
-    <script>window.DEMO_OFFICE_BOARD = true;</script>
-    <script src="/js/script.js?v=fulladmin1"></script>
     <script>
-        function openModal(id) { var m = document.getElementById(id); if (m) { m.classList.add('show'); m.style.display = 'flex'; } }
-        function closeModal(id) { var m = document.getElementById(id); if (m) { m.classList.remove('show'); m.style.display = 'none'; } }
-        (function () {
-            var tok = sessionStorage.getItem('dhlAdminToken');
-            if (!tok) { location.replace('/admin.html'); return; }
-            if (typeof adminToken !== 'undefined') adminToken = tok;
-            document.body.classList.add('admin-mode');
-            var dash = document.getElementById('adminDashboard');
-            if (dash) { dash.style.display = 'block'; dash.classList.remove('hidden'); }
-            if (typeof setAdminMode === 'function') setAdminMode(true);
-            if (typeof renderShipList === 'function') {
-                renderShipList();
-            } else {
-                document.getElementById('shipList').innerHTML = '<p style="color:#b91c1c">script.js failed to load. Redeploy public/js/script.js</p>';
+        var API = 'https://my-delivery-w6xz.onrender.com/api';
+        var COUNTRIES = { "Afghanistan": [34.5553, 69.2075], "Albania": [41.3275, 19.8187], "Algeria": [36.7538, 3.0588], "Angola": [-8.839, 13.2894], "Argentina": [-34.6037, -58.3816], "Armenia": [40.1792, 44.4991], "Australia": [-35.2809, 149.13], "Austria": [48.2082, 16.3738], "Azerbaijan": [40.4093, 49.8671], "Bahrain": [26.2285, 50.586], "Bangladesh": [23.8103, 90.4125], "Belarus": [53.9045, 27.5615], "Belgium": [50.8503, 4.3517], "Benin": [6.4969, 2.6289], "Bolivia": [-16.4897, -68.1193], "Bosnia and Herzegovina": [43.8563, 18.4131], "Botswana": [-24.6282, 25.9231], "Brazil": [-15.8267, -47.9218], "Bulgaria": [42.6977, 23.3219], "Burkina Faso": [12.3714, -1.5197], "Cambodia": [11.5564, 104.9282], "Cameroon": [3.848, 11.5021], "Canada": [45.4215, -75.6972], "Chile": [-33.4489, -70.6693], "China": [39.9042, 116.4074], "Colombia": [4.711, -74.0721], "Congo": [-4.2634, 15.2429], "Costa Rica": [9.9281, -84.0907], "Croatia": [45.815, 15.9819], "Cuba": [23.1136, -82.3666], "Cyprus": [35.1856, 33.3823], "Czech Republic": [50.0755, 14.4378], "Denmark": [55.6761, 12.5683], "Dominican Republic": [18.4861, -69.9312], "Ecuador": [-0.1807, -78.4678], "Egypt": [30.0444, 31.2357], "El Salvador": [13.6929, -89.2182], "Estonia": [59.437, 24.7536], "Ethiopia": [9.025, 38.7469], "Finland": [60.1699, 24.9384], "France": [48.8566, 2.3522], "Gabon": [0.4162, 9.4673], "Gambia": [13.4549, -16.579], "Georgia": [41.7151, 44.8271], "Germany": [52.52, 13.405], "Ghana": [5.6037, -0.187], "Greece": [37.9838, 23.7275], "Guatemala": [14.6349, -90.5069], "Guinea": [9.6412, -13.5784], "Haiti": [18.5944, -72.3074], "Honduras": [14.0723, -87.1921], "Hong Kong": [22.3193, 114.1694], "Hungary": [47.4979, 19.0402], "Iceland": [64.1466, -21.9426], "India": [28.6139, 77.209], "Indonesia": [-6.2088, 106.8456], "Iran": [35.6892, 51.389], "Iraq": [33.3152, 44.3661], "Ireland": [53.3498, -6.2603], "Israel": [31.7683, 35.2137], "Italy": [41.9028, 12.4964], "Ivory Coast": [5.36, -4.0083], "Jamaica": [18.0179, -76.8099], "Japan": [35.6762, 139.6503], "Jordan": [31.9454, 35.9284], "Kazakhstan": [51.1694, 71.4491], "Kenya": [-1.2921, 36.8219], "Kuwait": [29.3759, 47.9774], "Latvia": [56.9496, 24.1052], "Lebanon": [33.8938, 35.5018], "Liberia": [6.3004, -10.7969], "Libya": [32.8872, 13.1913], "Lithuania": [54.6872, 25.2797], "Luxembourg": [49.6116, 6.1319], "Macau": [22.1987, 113.5439], "Madagascar": [-18.8792, 47.5079], "Malawi": [-13.9626, 33.7741], "Malaysia": [3.139, 101.6869], "Mali": [12.6392, -8.0029], "Malta": [35.8989, 14.5146], "Mexico": [19.4326, -99.1332], "Moldova": [47.0105, 28.8638], "Mongolia": [47.8864, 106.9057], "Morocco": [34.0209, -6.8417], "Mozambique": [-25.9692, 32.5732], "Myanmar": [16.8409, 96.1735], "Namibia": [-22.5609, 17.0658], "Nepal": [27.7172, 85.324], "Netherlands": [52.3676, 4.9041], "New Zealand": [-41.2865, 174.7762], "Nicaragua": [12.115, -86.2362], "Niger": [13.5116, 2.1254], "Nigeria": [6.5244, 3.3792], "North Macedonia": [41.9981, 21.4254], "Norway": [59.9139, 10.7522], "Oman": [23.588, 58.3829], "Pakistan": [33.6844, 73.0479], "Panama": [8.9824, -79.5199], "Paraguay": [-25.2637, -57.5759], "Peru": [-12.0464, -77.0428], "Philippines": [14.5995, 120.9842], "Poland": [52.2297, 21.0122], "Portugal": [38.7223, -9.1393], "Qatar": [25.2854, 51.531], "Romania": [44.4268, 26.1025], "Russia": [55.7558, 37.6173], "Rwanda": [-1.9441, 30.0619], "Saudi Arabia": [24.7136, 46.6753], "Senegal": [14.7167, -17.4677], "Serbia": [44.7866, 20.4489], "Sierra Leone": [8.4657, -13.2317], "Singapore": [1.3521, 103.8198], "Slovakia": [48.1486, 17.1077], "Slovenia": [46.0569, 14.5058], "Somalia": [2.0469, 45.3182], "South Africa": [-25.7479, 28.2293], "South Korea": [37.5665, 126.978], "Spain": [40.4168, -3.7038], "Sri Lanka": [6.9271, 79.8612], "Sudan": [15.5007, 32.5599], "Sweden": [59.3293, 18.0686], "Switzerland": [46.948, 7.4474], "Syria": [33.5138, 36.2765], "Taiwan": [25.033, 121.5654], "Tanzania": [-6.163, 35.7516], "Thailand": [13.7563, 100.5018], "Togo": [6.1725, 1.2314], "Trinidad and Tobago": [10.6549, -61.5019], "Tunisia": [36.8065, 10.1815], "Turkey": [39.9334, 32.8597], "Uganda": [0.3476, 32.5825], "Ukraine": [50.4501, 30.5234], "United Arab Emirates": [25.2048, 55.2708], "United Kingdom": [51.5074, -0.1278], "United States": [38.9072, -77.0369], "Uruguay": [-34.9011, -56.1645], "Uzbekistan": [41.2995, 69.2401], "Venezuela": [10.4806, -66.9036], "Vietnam": [21.0278, 105.8342], "Yemen": [15.3694, 44.191], "Zambia": [-15.3875, 28.3228], "Zimbabwe": [-17.8252, 31.0335] };
+        var token = sessionStorage.getItem('dhlAdminToken') || '';
+        var ships = [];
+        var boxOn = true;
+        var map, markerO, markerD, line;
+        var editingCode = null;
+
+        function $(id) { return document.getElementById(id); }
+        function flash(type, text) {
+            var el = $('flash');
+            el.className = 'msg ' + (type || '');
+            el.textContent = text || '';
+            el.style.display = text ? 'block' : 'none';
+        }
+        function headers() { return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }; }
+        async function api(path, opts) {
+            opts = opts || {};
+            var res = await fetch(API + path, Object.assign({}, opts, { headers: Object.assign(headers(), opts.headers || {}) }));
+            var data = {};
+            try { data = await res.json(); } catch (e) { }
+            if (!res.ok) throw new Error(data.error || data.message || ('HTTP ' + res.status));
+            return data;
+        }
+        function esc(t) { return String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;'); }
+        function countryOpts(sel) {
+            var names = Object.keys(COUNTRIES).sort();
+            if (!sel || !COUNTRIES[sel]) sel = 'Indonesia';
+            return names.map(function (n) {
+                return '<option value="' + esc(n) + '"' + (n === sel ? ' selected' : '') + '>' + esc(n) + '</option>';
+            }).join('');
+        }
+
+        if (!token) {
+            flash('err', 'Not logged in — redirecting…');
+            setTimeout(function () { location.href = '/admin.html'; }, 500);
+        } else {
+            $('logout').addEventListener('click', function () { sessionStorage.removeItem('dhlAdminToken'); });
+            init();
+        }
+
+        async function init() {
+            await loadList();
+            await refreshBox();
+            $('btnNew').addEventListener('click', function () { openEditor(null); });
+            $('btnBox').addEventListener('click', toggleBox);
+            $('btnSet').addEventListener('click', function () { $('pinIn').value = ''; $('pinErr').className = 'msg'; $('mPin').classList.add('show'); });
+            $('pinX').addEventListener('click', function () { $('mPin').classList.remove('show'); });
+            $('pinGo').addEventListener('click', function () {
+                if ($('pinIn').value.trim() !== '7799') { $('pinErr').className = 'msg err'; $('pinErr').textContent = 'Wrong PIN'; return; }
+                $('mPin').classList.remove('show');
+                $('setMsg').className = 'msg';
+                $('mSet').classList.add('show');
+            });
+            $('setX').addEventListener('click', function () { $('mSet').classList.remove('show'); });
+            $('setSave').addEventListener('click', saveSettings);
+        }
+
+        async function loadList() {
+            $('list').textContent = 'Loading…';
+            try {
+                ships = await api('/shipments');
+                if (!Array.isArray(ships)) ships = [];
+                if (!ships.length) { $('list').innerHTML = '<p class="sub">No shipments. Tap + New Shipment.</p>'; return; }
+                $('list').innerHTML = ships.map(function (s, i) {
+                    var code = s.code || '';
+                    var from = (s.sender && s.sender.name) || '?';
+                    var to = (s.receiver && s.receiver.name) || '?';
+                    var st = s.pinProtected ? '🔒 Locked' : ((s.history && s.history.length) ? s.history[s.history.length - 1].label : (s.status || ''));
+                    return '<div class="ship" data-i="' + i + '"><div class="code">' + esc(code) + (s.pinProtected ? ' 🔒' : '') + '</div>' +
+                        '<div class="meta">' + esc(from) + ' → ' + esc(to) + '</div><div class="meta">' + esc(st) + '</div></div>';
+                }).join('');
+                Array.prototype.forEach.call($('list').querySelectorAll('.ship'), function (el) {
+                    el.addEventListener('click', function () {
+                        Array.prototype.forEach.call($('list').querySelectorAll('.ship'), function (x) { x.classList.remove('on'); });
+                        el.classList.add('on');
+                        openShip(ships[+el.getAttribute('data-i')]);
+                    });
+                });
+            } catch (e) {
+                $('list').innerHTML = '<div class="msg err" style="display:block">' + esc(e.message) + '</div>';
             }
-        })();
+        }
+
+        async function openShip(s) {
+            if (s && s.pinProtected && s.code) {
+                var pin = prompt('Shipment locked. Enter 4-digit access PIN:');
+                if (pin === null) return;
+                try {
+                    s = await api('/shipments/' + encodeURIComponent(s.code) + '/unlock', { method: 'POST', body: JSON.stringify({ pin: pin }) });
+                } catch (e) {
+                    flash('err', e.message);
+                    return;
+                }
+            }
+            openEditor(s);
+        }
+
+        function openEditor(s) {
+            var isNew = !s;
+            editingCode = isNew ? null : (s.code || null);
+            var sender = (s && s.sender) || {};
+            var receiver = (s && s.receiver) || {};
+            var pack = (s && s.package) || {};
+            var pay = (s && s.payment) || {};
+            var route = (s && s.route) || {};
+            var oC = route.originCountry || 'Indonesia';
+            var dC = route.destCountry || route.destinationCountry || 'Singapore';
+            $('edTitle').textContent = isNew ? 'New shipment' : ('Edit ' + editingCode);
+            var hist = (s && s.history) || [];
+            var histHtml = hist.length ? hist.map(function (h) { return '<div>• ' + esc(h.label || h.status || '') + ' ' + (h.location ? ('— ' + esc(h.location)) : '') + '</div>'; }).join('') : '<div class="sub">No status yet</div>';
+
+            $('edBody').innerHTML =
+                '<label>Tracking code' + (isNew ? ' (empty = auto)' : '') + '</label>' +
+                '<input id="f_code" value="' + esc(editingCode || '') + '" ' + (isNew ? '' : 'readonly') + '>' +
+                '<label>Access PIN (4 digits — locks edit & chat)</label>' +
+                '<input id="f_pin" inputmode="numeric" maxlength="4" placeholder="1234">' +
+                '<div class="row2"><div><label>Sender name</label><input id="f_sn" value="' + esc(sender.name || '') + '"></div>' +
+                '<div><label>Sender phone</label><input id="f_sp" value="' + esc(sender.phone || '') + '"></div></div>' +
+                '<label>Sender address</label><input id="f_sa" value="' + esc(sender.address || '') + '">' +
+                '<div class="row2"><div><label>Receiver name</label><input id="f_rn" value="' + esc(receiver.name || '') + '"></div>' +
+                '<div><label>Receiver phone</label><input id="f_rp" value="' + esc(receiver.phone || '') + '"></div></div>' +
+                '<label>Receiver address</label><input id="f_ra" value="' + esc(receiver.address || '') + '">' +
+                '<div class="row2"><div><label>Origin country (required)</label><select id="f_o">' + countryOpts(oC) + '</select></div>' +
+                '<div><label>Destination country (required)</label><select id="f_d">' + countryOpts(dC) + '</select></div></div>' +
+                '<div id="map"></div>' +
+                '<div class="row2"><div><label>Weight kg</label><input id="f_w" value="' + esc(pack.weightKg || '') + '"></div>' +
+                '<div><label>Amount</label><input id="f_amt" value="' + esc(pay.amount || '') + '"></div></div>' +
+                '<div class="row2"><div><label>Currency</label><input id="f_cur" value="' + esc(pay.currency || 'USD') + '"></div>' +
+                '<div><label>Pay method</label><input id="f_meth" value="' + esc(pay.method || 'Card') + '"></div></div>' +
+                '<label>Add status update</label><input id="f_st" placeholder="e.g. In Transit">' +
+                '<label>Status history</label><div class="hist">' + histHtml + '</div>' +
+                '<div class="btns">' +
+                '<button type="button" class="save" id="f_save">Save</button>' +
+                '<button type="button" class="sec" id="f_close">Close</button>' +
+                (isNew ? '' : '<button type="button" class="del" id="f_del">Delete</button>') +
+                '</div><div id="edMsg" class="msg"></div>';
+
+            $('editor').classList.add('show');
+            setTimeout(function () {
+                $('editor').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                initMap(oC, dC);
+            }, 50);
+
+            $('f_o').addEventListener('change', function () { initMap($('f_o').value, $('f_d').value); });
+            $('f_d').addEventListener('change', function () { initMap($('f_o').value, $('f_d').value); });
+            $('f_close').addEventListener('click', function () { $('editor').classList.remove('show'); });
+            $('f_save').addEventListener('click', saveShip);
+            var del = $('f_del');
+            if (del) del.addEventListener('click', delShip);
+        }
+
+        function initMap(oName, dName) {
+            var o = COUNTRIES[oName] || COUNTRIES['Indonesia'];
+            var d = COUNTRIES[dName] || COUNTRIES['Singapore'];
+            if (map) { try { map.remove(); } catch (e) { } map = null; }
+            map = L.map('map').setView([(o.lat + d.lat) / 2, (o.lng + d.lng) / 2], 3);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(map);
+            markerO = L.marker([o.lat, o.lng]).addTo(map).bindPopup('Origin: ' + oName);
+            markerD = L.marker([d.lat, d.lng]).addTo(map).bindPopup('Destination: ' + dName);
+            line = L.polyline([[o.lat, o.lng], [d.lat, d.lng]], { color: '#D40511' }).addTo(map);
+            map.fitBounds(line.getBounds(), { padding: [30, 30] });
+            setTimeout(function () { map.invalidateSize(); }, 200);
+        }
+
+        async function saveShip() {
+            var msg = $('edMsg');
+            msg.className = 'msg';
+            var body = {
+                code: $('f_code').value.trim() || undefined,
+                accessPin: $('f_pin').value.trim() || undefined,
+                sender: { name: $('f_sn').value.trim(), phone: $('f_sp').value.trim(), address: $('f_sa').value.trim() },
+                receiver: { name: $('f_rn').value.trim(), phone: $('f_rp').value.trim(), address: $('f_ra').value.trim() },
+                route: {
+                    originCountry: $('f_o').value,
+                    destCountry: $('f_d').value,
+                    destinationCountry: $('f_d').value
+                },
+                package: { weightKg: $('f_w').value },
+                payment: { amount: $('f_amt').value, currency: $('f_cur').value.trim() || 'USD', method: $('f_meth').value.trim() }
+            };
+            try {
+                if (!editingCode) {
+                    var created = await api('/shipments', { method: 'POST', body: JSON.stringify(body) });
+                    editingCode = created.code || body.code;
+                } else {
+                    await api('/shipments/' + encodeURIComponent(editingCode), { method: 'PUT', body: JSON.stringify(body) });
+                }
+                var st = $('f_st').value.trim();
+                if (st && editingCode) {
+                    try {
+                        await api('/shipments/' + encodeURIComponent(editingCode) + '/status', {
+                            method: 'POST', body: JSON.stringify({ label: st, location: $('f_d').value })
+                        });
+                    } catch (e2) { }
+                }
+                msg.className = 'msg ok';
+                msg.textContent = 'Saved. Public site uses this data after refresh.';
+                await loadList();
+            } catch (e) {
+                msg.className = 'msg err';
+                msg.textContent = e.message;
+            }
+        }
+
+        async function delShip() {
+            if (!editingCode) return;
+            if (!confirm('Permanently delete ' + editingCode + '?')) return;
+            try {
+                await api('/shipments/' + encodeURIComponent(editingCode), { method: 'DELETE' });
+                flash('ok', 'Deleted ' + editingCode);
+                $('editor').classList.remove('show');
+                loadList();
+            } catch (e) { flash('err', e.message); }
+        }
+
+        async function refreshBox() {
+            try {
+                var d = await api('/shipments/box-service');
+                boxOn = d.on !== false;
+                $('btnBox').textContent = boxOn ? 'Box: ON' : 'Box: OFF';
+                $('btnBox').style.color = boxOn ? '#15803d' : '#b91c1c';
+            } catch (e) { $('btnBox').textContent = 'Box: ?'; }
+        }
+        async function toggleBox() {
+            try {
+                var d = await api('/shipments/box-service', { method: 'PUT', body: JSON.stringify({ on: !boxOn }) });
+                boxOn = d.on !== false;
+                $('btnBox').textContent = boxOn ? 'Box: ON' : 'Box: OFF';
+                $('btnBox').style.color = boxOn ? '#15803d' : '#b91c1c';
+                flash('ok', 'Box video ' + (boxOn ? 'ON' : 'OFF'));
+            } catch (e) { flash('err', e.message); }
+        }
+
+        async function saveSettings() {
+            var msg = $('setMsg');
+            msg.className = 'msg';
+            try {
+                var data = await api('/auth/credentials', {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        currentPassword: $('cp').value,
+                        newUsername: $('nu').value.trim(),
+                        newPassword: $('np').value.trim(),
+                        newPin: $('nl').value.trim(),
+                        newChatPin: $('nc').value.trim()
+                    })
+                });
+                msg.className = 'msg ok';
+                msg.textContent = 'Saved. User: ' + (data.username || '');
+            } catch (e) {
+                msg.className = 'msg err';
+                msg.textContent = e.message;
+            }
+        }
     </script>
 </body>
 
