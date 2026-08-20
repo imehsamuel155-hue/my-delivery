@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <title> Office — Full Board</title>
+    <title>Office — Full Board</title>
     <meta name="robots" content="noindex,nofollow">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -56,6 +56,14 @@
         #langStrip,
         .dhl-footer {
             display: none !important;
+        }
+
+        .md-please-wait {
+            pointer-events: none !important;
+        }
+
+        .md-please-wait.show {
+            pointer-events: auto !important;
         }
 
         #adminDashboard {
@@ -343,13 +351,14 @@
                         status · box · settings. Same database as the public site.</p>
                 </div>
                 <div class="admin-top-actions">
-                    <button type="button" class="btn btn-outline" onclick="location.href='/chat.html'">💬 Chats</button>
-                    <button type="button" class="btn btn-outline" id="boxServiceToggleBtn"
+                    <button type="button" class="btn btn-outline" id="btnChats" onclick="location.href='/chat.html'">💬
+                        Chats</button>
+                    <button type="button" class="btn btn-outline" id="btnBoxToggle"
                         onclick="safeCall('toggleBoxService')">Box video</button>
-                    <button type="button" class="btn btn-red" onclick="safeCall('startNewShipment')">+ New
-                        Shipment</button>
-                    <button type="button" class="btn btn-outline" onclick="safeCall('openSettingsProtected')">⚙ Account
-                        Settings</button>
+                    <button type="button" class="btn btn-red" id="btnNewShip" onclick="safeCall('startNewShipment')">+
+                        New Shipment</button>
+                    <button type="button" class="btn btn-outline" id="btnSettings"
+                        onclick="safeCall('openSettingsProtected')">⚙ Account Settings</button>
                 </div>
             </div>
 
@@ -424,14 +433,15 @@
 
     <script>
         window.DEMO_OFFICE_BOARD = true;
-        // Token BEFORE script.js runs handlers
         (function () {
-            var t = sessionStorage.getItem('dhlAdminToken');
-            if (!t) { location.replace('/admin.html'); return; }
-            window.__pendingAdminToken = t;
+            try {
+                var t = sessionStorage.getItem('dhlAdminToken');
+                if (!t) { location.replace('/admin.html'); return; }
+                window.__pendingAdminToken = t;
+            } catch (e) { location.replace('/admin.html'); }
         })();
     </script>
-    <script src="/js/script.js?v=fullrestore2"></script>
+    <script src="/js/script.js?v=tapfix3"></script>
     <script>
         function openModal(id) {
             var m = document.getElementById(id);
@@ -441,21 +451,28 @@
             var m = document.getElementById(id);
             if (m) { m.classList.remove('show'); m.style.display = 'none'; }
         }
-        function safeCall(name, arg) {
+        function safeCall(name) {
+            var args = Array.prototype.slice.call(arguments, 1);
             try {
-                if (typeof window[name] === 'function') return window[name](arg);
-                if (typeof window[name] !== 'undefined') return;
-                alert(name + ' not loaded. Hard refresh (clear cache) and try again.');
+                var fn = window[name];
+                if (typeof fn !== 'function') {
+                    alert(name + ' missing — hard refresh the page.');
+                    return false;
+                }
+                return fn.apply(null, args);
             } catch (e) {
-                alert(e.message || String(e));
+                alert((e && e.message) ? e.message : String(e));
+                return false;
             }
-            return false;
         }
         (function boot() {
-            var tok = sessionStorage.getItem('dhlAdminToken') || window.__pendingAdminToken;
+            var tok = null;
+            try { tok = sessionStorage.getItem('dhlAdminToken'); } catch (e) { }
             if (!tok) { location.replace('/admin.html'); return; }
-            if (typeof adminToken !== 'undefined') adminToken = tok;
-            else window.adminToken = tok;
+
+            // Force token into script scope
+            try { adminToken = tok; } catch (e) { }
+            window.adminToken = tok;
 
             document.body.classList.add('admin-mode');
             var dash = document.getElementById('adminDashboard');
@@ -463,45 +480,63 @@
                 dash.classList.remove('hidden');
                 dash.style.display = 'block';
             }
-
-            // Export common fns if only declared as function
-            ['startNewShipment', 'selectShipment', 'saveShipment', 'toggleBoxService', 'openSettingsProtected',
-                'submitSettingsPin', 'handleCredentialsSubmit', 'renderShipList', 'renderShipDetail', 'initAdminMap'].forEach(function (n) {
-                    try {
-                        if (typeof window[n] !== 'function' && typeof eval(n) === 'function') window[n] = eval(n);
-                    } catch (e) { }
-                });
-
-            if (typeof renderShipList === 'function') {
-                renderShipList();
-            } else if (typeof window.renderShipList === 'function') {
-                window.renderShipList();
-            } else {
-                document.getElementById('shipList').innerHTML =
-                    '<p style="color:#b91c1c">Could not load full editor script. Deploy public/js/script.js and hard refresh.</p>';
+            // Never leave loading overlay blocking taps
+            var wait = document.getElementById('mdPleaseWait');
+            if (wait) {
+                wait.classList.remove('show');
+                wait.style.display = 'none';
+                wait.style.pointerEvents = 'none';
             }
 
-            // After list loads, fix map size when detail opens
-            var _rsd = window.renderShipDetail;
-            if (typeof _rsd === 'function') {
+            function goList() {
+                if (typeof renderShipList === 'function') renderShipList();
+                else if (typeof window.renderShipList === 'function') window.renderShipList();
+                else {
+                    var el = document.getElementById('shipList');
+                    if (el) el.innerHTML = '<p style="color:#b91c1c">script.js failed. Clear cache and reload.</p>';
+                }
+            }
+            goList();
+
+            // Wire top buttons with both click and touchend (mobile)
+            function wire(id, fn) {
+                var el = document.getElementById(id);
+                if (!el) return;
+                function run(e) {
+                    if (e) { e.preventDefault(); e.stopPropagation(); }
+                    try { fn(); } catch (err) { alert(err.message || err); }
+                }
+                el.onclick = run;
+                el.ontouchend = function (e) { run(e); };
+            }
+            wire('btnNewShip', function () { safeCall('startNewShipment'); });
+            wire('btnBoxToggle', function () { safeCall('toggleBoxService'); });
+            wire('btnSettings', function () { safeCall('openSettingsProtected'); });
+
+            // Patch renderShipDetail to always scroll + fix map after open
+            var orig = window.renderShipDetail;
+            if (typeof orig === 'function' && !window._boardPatchedDetail) {
+                window._boardPatchedDetail = true;
                 window.renderShipDetail = function (s) {
-                    var r = _rsd(s);
+                    var r = orig(s);
                     setTimeout(function () {
                         var p = document.getElementById('shipDetailPanel');
                         if (p) p.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        if (typeof adminMap !== 'undefined' && adminMap) {
-                            try { adminMap.invalidateSize(); } catch (e) { }
-                        }
-                        var box = document.getElementById('adminMapBox');
-                        if (box && typeof adminMap !== 'undefined' && adminMap) {
-                            try { adminMap.invalidateSize(); } catch (e) { }
-                        }
-                    }, 300);
+                        try {
+                            if (typeof adminMap !== 'undefined' && adminMap) adminMap.invalidateSize();
+                        } catch (e) { }
+                    }, 250);
+                    setTimeout(function () {
+                        try {
+                            if (typeof adminMap !== 'undefined' && adminMap) adminMap.invalidateSize();
+                        } catch (e) { }
+                    }, 700);
                     return r;
                 };
             }
         })();
     </script>
+
 </body>
 
 </html>

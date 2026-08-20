@@ -107,9 +107,13 @@ const API_BASE = (function () {
     return "https://my-delivery-w6xz.onrender.com/api";
 })();
 
-// Admin login token — kept in a plain JS variable only (no localStorage),
-// so you'll need to log in again after refreshing the page. That's expected.
+// Admin login token — sessionStorage so /board works after /admin login
 let adminToken = null;
+try {
+    var _tok = sessionStorage.getItem('dhlAdminToken');
+    if (_tok) adminToken = _tok;
+} catch (e) { }
+
 let _dhlSwReg = null;
 if (typeof navigator !== 'undefined' && navigator.serviceWorker) {
     navigator.serviceWorker.register('/sw.js').then(reg => { _dhlSwReg = reg; }).catch(() => { });
@@ -757,7 +761,7 @@ window.deleteShipment = async function deleteShipment(code) {
         alert("Couldn't delete shipment: " + err.message);
     }
 }
-async function addStatus(code) {
+window.addStatus = async function addStatus(code) {
     const label = document.getElementById('f_newStatus').value.trim();
     const location = document.getElementById('f_newLocation').value.trim() || "—";
     const date = document.getElementById('f_newDate').value || new Date().toISOString().slice(0, 10);
@@ -1258,6 +1262,9 @@ window.initAdminMap = function initAdminMap(shipment) {
     L.marker([dLat, dLng]).addTo(adminMap).bindPopup('Destination' + (r.destCountry ? ': ' + r.destCountry : ''));
     const line = L.polyline([[oLat, oLng], [dLat, dLng]], { color: '#FFCC00', weight: 3, dashArray: '6,8' }).addTo(adminMap);
     adminMap.fitBounds(line.getBounds(), { padding: [30, 30] });
+    setTimeout(function () { try { adminMap.invalidateSize(); } catch (e) { } }, 100);
+    setTimeout(function () { try { adminMap.invalidateSize(); } catch (e) { } }, 400);
+    setTimeout(function () { try { adminMap.invalidateSize(); } catch (e) { } }, 800);
     const icon = makeVehicleIcon(r.icon, oLat, oLng, dLat, dLng, r.flipOverride, r.rotationDeg, r.vehicleImg);
     const startProgress = computeLiveProgress(r);
     const pos = pointAlong(oLat, oLng, dLat, dLng, startProgress / 100);
