@@ -60,6 +60,25 @@ router.post("/guest/open", async (req, res) => {
             await thread.save();
         }
 
+        // Auto welcome if no messages yet
+        if (!thread.messages || thread.messages.length === 0) {
+            const recv = receiverName || "customer";
+            const now = new Date();
+            const timeStr = now.toLocaleString("en-US", { hour: "2-digit", minute: "2-digit" });
+            thread.messages = [
+                {
+                    from: "admin",
+                    text: "How can we help you today with your shipment? (" + timeStr + ")",
+                    image: "",
+                    createdAt: now,
+                    auto: true,
+                },
+            ];
+            thread.unreadGuest = 1;
+            thread.lastMessageAt = now;
+            await thread.save();
+        }
+
         res.json({
             threadId: thread._id,
             label: thread.label,
@@ -90,6 +109,36 @@ router.post("/guest/send", async (req, res) => {
         });
         thread.unreadAdmin = (thread.unreadAdmin || 0) + 1;
         thread.lastMessageAt = new Date();
+
+        // Auto-response until a human admin has replied at least once (non-auto)
+        const humanAdmin = (thread.messages || []).some(function (m) {
+            return m.from === "admin" && !m.auto;
+        });
+        if (!humanAdmin) {
+            const recv = (thread.receiverName || thread.guestDisplayName || "customer").split("/")[0].trim() || "customer";
+            const guestCount = (thread.messages || []).filter(function (m) { return m.from === "guest"; }).length;
+            let autoText;
+            if (guestCount <= 1) {
+                autoText = "How can we help you today with your shipment?";
+            } else {
+                autoText = "You have been added to the queue, " + recv + ". Our support team will attend to you shortly.";
+            }
+            // Don't spam identical auto if last was already auto
+            const last = thread.messages[thread.messages.length - 1];
+            const prev = thread.messages[thread.messages.length - 2];
+            const lastAuto = prev && prev.from === "admin" && prev.auto;
+            if (!lastAuto || guestCount === 1) {
+                thread.messages.push({
+                    from: "admin",
+                    text: autoText,
+                    image: "",
+                    createdAt: new Date(),
+                    auto: true,
+                });
+                thread.unreadGuest = (thread.unreadGuest || 0) + 1;
+            }
+        }
+
         await thread.save();
 
         res.json({ ok: true, messages: thread.messages, unreadGuest: thread.unreadGuest });
@@ -272,6 +321,23 @@ router.delete("/admin/threads", requireAdminOrChatPin, async (req, res) => {
 });
 
 /** Unlock a thread with shipment accessPin (4-digit) */
+
+/** Admin: clear messages in one thread (keep thread) */
+router.post("/admin/threads/:id/clear", requireAdminOrChatPin, async (req, res) => {
+    try {
+        const thread = await ChatThread.findById(req.params.id);
+        if (!thread) return res.status(404).json({ error: "Thread not found." });
+        thread.messages = [];
+        thread.unreadAdmin = 0;
+        thread.unreadGuest = 0;
+        thread.lastMessageAt = new Date();
+        await thread.save();
+        res.json({ ok: true, messages: [] });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 router.post("/admin/unlock-thread", requireAdminOrChatPin, async (req, res) => {
     try {
         const { threadId, password, pin } = req.body || {};
