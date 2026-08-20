@@ -141,7 +141,20 @@ router.get("/admin/threads", requireAdminOrChatPin, async (req, res) => {
                 preview: last ? (last.text || (last.image ? "[Photo]" : "")) : "",
             };
         });
-        res.json({ threads: list });
+        // One conversation per tracking code (keep latest)
+        const byCode = new Map();
+        const noCode = [];
+        for (const t of list) {
+            const key = (t.trackCode || "").trim();
+            if (!key) { noCode.push(t); continue; }
+            const prev = byCode.get(key);
+            if (!prev || new Date(t.lastMessageAt || 0) > new Date(prev.lastMessageAt || 0)) {
+                byCode.set(key, t);
+            }
+        }
+        const merged = Array.from(byCode.values()).concat(noCode);
+        merged.sort((a, b) => new Date(b.lastMessageAt || 0) - new Date(a.lastMessageAt || 0));
+        res.json({ threads: merged });
     } catch (e) {
         res.status(500).json({ error: e.message });
     }
@@ -258,24 +271,43 @@ router.delete("/admin/threads", requireAdminOrChatPin, async (req, res) => {
     }
 });
 
-/** Unlock a thread with shipment access code or chat password */
-router.post("/admin/unlock-thread", requireAdmin, async (req, res) => {
+/** Unlock a thread with shipment accessPin (4-digit) */
+router.post("/admin/unlock-thread", requireAdminOrChatPin, async (req, res) => {
     try {
-        const { threadId, password } = req.body || {};
+        const { threadId, password, pin } = req.body || {};
         const thread = await ChatThread.findById(threadId);
         if (!thread) return res.status(404).json({ error: "Thread not found." });
-        const s = await AdminSettings.findOne();
-        const pass = String(password || "").trim();
+        const pass = String(password || pin || "").trim();
         let ok = false;
-        if (s && s.chatThreadPassword && pass === String(s.chatThreadPassword)) ok = true;
+        let needsPin = false;
         if (thread.trackCode) {
             const ship = await Shipment.findOne({ code: thread.trackCode });
-            if (ship && ship.accessCode && pass === String(ship.accessCode)) ok = true;
-            if (ship && !ship.accessCode) ok = true; // no lock on shipment
+            if (ship && ship.accessPin) {
+                needsPin = true;
+                if (pass && pass === String(ship.accessPin)) ok = true;
+            } else {
+                ok = true; // no shipment PIN set
+            }
+        } else {
+            ok = true;
         }
-        if (!thread.trackCode && !s?.chatThreadPassword) ok = true;
-        if (!ok) return res.status(401).json({ error: "Wrong chat/shipment password." });
-        res.json({ ok: true, messages: thread.messages, label: thread.label });
+        if (!ok) {
+            return res.status(401).json({
+                error: needsPin ? "Enter this shipment's 4-digit access PIN to open the chat." : "Wrong PIN.",
+                needsPin: true
+            });
+        }
+        if (thread.unreadAdmin > 0) {
+            thread.unreadAdmin = 0;
+            await thread.save();
+        }
+        res.json({
+            ok: true,
+            id: thread._id,
+            label: thread.label,
+            trackCode: thread.trackCode,
+            messages: thread.messages || []
+        });
     } catch (e) {
         res.status(500).json({ error: e.message });
     }
