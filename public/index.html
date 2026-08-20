@@ -104,9 +104,22 @@
     </style>
 
     <script>
-        function openMenu() { var m = document.getElementById('mobileMenu'); var o = document.getElementById('overlay'); if (m) m.style.transform = 'translateX(0)'; if (o) o.style.display = 'block'; }
-        function closeMenu() { var m = document.getElementById('mobileMenu'); var o = document.getElementById('overlay'); if (m) m.style.transform = 'translateX(100%)'; if (o) o.style.display = 'none'; }
-        function toggleMobileMenu(e) { if (e && e.preventDefault) e.preventDefault(); var m = document.getElementById('mobileMenu'); if (!m) return false; var open = m.style.transform === 'translateX(0px)' || m.style.transform === 'translateX(0)'; if (open) closeMenu(); else openMenu(); return false; }
+        function openMenu() {
+            var m = document.getElementById('mobileMenu');
+            var o = document.getElementById('overlay');
+            if (m) { m.classList.add('open'); m.style.transform = 'translateX(0)'; }
+            if (o) { o.classList.add('show'); o.style.display = 'block'; }
+            document.body.classList.add('menu-open');
+        }
+        function closeMenu() {
+            var m = document.getElementById('mobileMenu');
+            var o = document.getElementById('overlay');
+            if (m) { m.classList.remove('open'); m.style.transform = 'translateX(100%)'; }
+            if (o) { o.classList.remove('show'); o.style.display = 'none'; }
+            document.body.classList.remove('menu-open');
+        }
+        function toggleMobileMenu(e) { if (e && e.preventDefault) e.preventDefault(); var m = document.getElementById('mobileMenu'); if (!m) return false; if (m.classList.contains('open')) closeMenu(); else openMenu(); return false; }
+
     </script>
 </head>
 
@@ -125,7 +138,7 @@
                         COURIER</span></span>
             </a>
             <div class="header-right-actions">
-                <button type="button" class="hamburger" onclick="openMenu();return false;">
+                <button type="button" class="hamburger" onclick="openMenu();return false;" aria-label="Menu">
                     <span></span><span></span><span></span>
                 </button>
             </div>
@@ -220,11 +233,12 @@
         <!-- Auto-scroll photo carousel (3 images) -->
         <section class="photo-carousel-sec" id="gallery">
             <div class="photo-carousel" id="photoCarousel">
-                <div class="pc-item active"><img src="/my-delivery/public/images/d4fa7bd2582b5d78c19c4976f5ff8225.jpg"
+                <div class="pc-item active"><img
+                        src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=800&q=80"
                         alt="Truck loading"></div>
                 <div class="pc-item"><img src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&q=80"
                         alt="Warehouse"></div>
-                <div class="pc-item"><img src="/my-delivery/public/images/268070077cca37f5d1f5e460ffd59dce.jpg"
+                <div class="pc-item"><img src="https://images.unsplash.com/photo-1521791136064-7986c2920216?w=800&q=80"
                         alt="Partnership"></div>
             </div>
         </section>

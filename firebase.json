@@ -4,12 +4,21 @@
     "ignore": [
       "firebase.json",
       "**/.*",
-      "**/node_modules/**",
-      "admin.html",
-      "board.html",
-      "chat.html"
+      "**/node_modules/**"
     ],
     "rewrites": [
+      {
+        "source": "/admin",
+        "destination": "/admin.html"
+      },
+      {
+        "source": "/board",
+        "destination": "/board.html"
+      },
+      {
+        "source": "/chat",
+        "destination": "/chat.html"
+      },
       {
         "source": "/receipt",
         "destination": "/receipt.html"
