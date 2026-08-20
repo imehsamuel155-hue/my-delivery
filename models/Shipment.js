@@ -58,7 +58,7 @@ const RouteSchema = new mongoose.Schema(
         destLng: Number,
         icon: { type: String, enum: ["truck", "plane", "ship", "warehouse"], default: "truck" },
         vehicleImg: { type: String, default: "" },
-        speed: { type: String, enum: ["slow", "normal", "fast"], default: "slow" },
+        speed: { type: String, enum: ["slow", "normal", "fast", "week", "five", "three", "two"], default: "week" },
         flipOverride: { type: Boolean, default: false },
         rotationDeg: { type: Number, default: null },
         progress: { type: Number, default: 0, min: 0, max: 100 }, // frozen progress when not moving

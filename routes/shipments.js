@@ -2,6 +2,7 @@ const express = require("express");
 const Shipment = require("../models/Shipment");
 const Notification = require("../models/Notification");
 const requireAdmin = require("../middleware/auth");
+const AdminSettings = require("../models/AdminSettings");
 
 async function pushNotify({ code, title, message, type, location }) {
     try {
@@ -21,6 +22,31 @@ const router = express.Router();
 
 /* ---------- PUBLIC: tracking lookup (what ship.html/the track page calls) ---------- */
 // GET /api/shipments/track/:code
+
+// Box video service ON/OFF (also under /api/shipments for reliability)
+router.get("/box-service", async (req, res) => {
+    try {
+        const settings = await AdminSettings.findOne();
+        const on = settings ? (settings.boxServiceOn !== false) : true;
+        res.json({ on });
+    } catch (err) {
+        res.json({ on: true });
+    }
+});
+router.put("/box-service", requireAdmin, async (req, res) => {
+    try {
+        let settings = await AdminSettings.findOne();
+        if (!settings) return res.status(500).json({ error: "Admin not set up." });
+        if (typeof req.body.on === "boolean") {
+            settings.boxServiceOn = req.body.on;
+            await settings.save();
+        }
+        res.json({ on: settings.boxServiceOn !== false });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 router.get("/track/:code", async (req, res) => {
     try {
         const shipment = await Shipment.findOne({
@@ -83,20 +109,12 @@ router.post("/notifications/read", requireAdmin, async (req, res) => {
 // are withheld until the correct 4-digit code is submitted via /unlock.
 router.get("/", requireAdmin, async (req, res) => {
     const shipments = await Shipment.find().sort({ createdAt: -1 });
+    // Admin board gets FULL data — access PIN stays on shipment but is not required again to edit
     const summarized = shipments.map(s => {
         const obj = s.toObject();
         const pinProtected = !!obj.accessPin;
-        if (pinProtected) {
-            return {
-                code: obj.code,
-                pinProtected: true,
-                senderName: obj.sender.name,
-                receiverName: obj.receiver.name,
-                latestStatus: obj.history.length ? obj.history[obj.history.length - 1].label : "Order Received",
-            };
-        }
         delete obj.accessPin;
-        return { ...obj, pinProtected: false };
+        return { ...obj, pinProtected };
     });
     res.json(summarized);
 });
@@ -148,9 +166,14 @@ router.post("/", requireAdmin, async (req, res) => {
 // PUT /api/shipments/:code - update sender/receiver/package/payment/mode
 router.put("/:code", requireAdmin, async (req, res) => {
     try {
+        const body = { ...(req.body || {}) };
+        delete body.code;
+        delete body._id;
+        delete body.__v;
+        // Allow clearing string fields (e.g. terms DDP → DBP)
         const shipment = await Shipment.findOneAndUpdate(
             { code: req.params.code.trim().toUpperCase() },
-            { $set: req.body },
+            { $set: body },
             { new: true, runValidators: true }
         );
         if (!shipment) return res.status(404).json({ error: "Shipment not found." });
