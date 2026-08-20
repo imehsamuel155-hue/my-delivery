@@ -364,7 +364,7 @@
 
 <body>
     <div class="top">
-        <span><b></b> · Office board</span>
+        <span><b>DEMO</b> · Office board</span>
         <span><a href="/chat.html">Chat</a><a href="/admin.html" id="logout">Log out</a></span>
     </div>
     <div class="page">
@@ -390,7 +390,7 @@
     <div class="modal" id="modalPin">
         <div class="mbox">
             <h3>Settings PIN</h3>
-            <p class="hint">Enter <strong>0000</strong></p>
+            <p class="hint">Enter <strong>7799</strong></p>
             <input id="pinVal" type="password" inputmode="numeric" maxlength="8">
             <div class="actions"><button type="button" class="save" id="pinOk">Open</button><button type="button"
                     class="sec" id="pinCancel">Cancel</button></div>
@@ -522,8 +522,9 @@
                 $('ed').innerHTML =
                     '<label>Tracking code' + (isNew ? ' (required or leave blank if server allows auto)' : '') + '</label>' +
                     '<input id="f_code" value="' + esc(codeEdit || '') + '" ' + (isNew ? '' : 'readonly') + '>' +
-                    '<label>Access PIN (4 digits — optional; keeps lock, no re-entry needed to edit here)</label>' +
-                    '<input id="f_pin" inputmode="numeric" maxlength="4" placeholder="' + (s && s.pinProtected ? 'Leave blank to keep existing PIN' : 'e.g. 1234') + '">' +
+                    '<label>Shipment access PIN (4 digits) — <span style="color:#b91c1c">required for new</span>; also unlocks this shipment’s chat only on /chat</label>' +
+                    '<input id="f_pin" inputmode="numeric" maxlength="4" placeholder="' + (s && s.pinProtected ? 'Leave blank to keep existing PIN' : 'Required e.g. 1234') + '" ' + (isNew ? 'required' : '') + '>' +
+                    '<p class="hint">This PIN stays on the shipment. On /chat, only this PIN opens this tracking code’s conversation — not other customers’ chats.</p>' +
                     '<h3 style="font-size:14px;margin:16px 0 0">Sender</h3>' +
                     '<div class="two"><div><label>Name</label><input id="f_sn" value="' + esc(sender.name || '') + '"></div><div><label>Phone</label><input id="f_sp" value="' + esc(sender.phone || '') + '"></div></div>' +
                     '<label>Email</label><input id="f_se" value="' + esc(sender.email || '') + '">' +
@@ -532,8 +533,14 @@
                     '<div class="two"><div><label>Name</label><input id="f_rn" value="' + esc(receiver.name || '') + '"></div><div><label>Phone</label><input id="f_rp" value="' + esc(receiver.phone || '') + '"></div></div>' +
                     '<label>Email</label><input id="f_re" value="' + esc(receiver.email || '') + '">' +
                     '<label>Address</label><input id="f_ra" value="' + esc(receiver.address || '') + '">' +
-                    '<h3 style="font-size:14px;margin:16px 0 0">Package &amp; receipt</h3>' +
-                    '<div class="two"><div><label>Weight kg</label><input id="f_w" value="' + esc(pack.weightKg || '') + '"></div><div><label>Description</label><input id="f_desc" value="' + esc(pack.description || '') + '"></div></div>' +
+                    '<h3 style="font-size:14px;margin:16px 0 0">Box / package dimensions</h3>' +
+                    '<div class="two"><div><label>Weight (kg)</label><input id="f_w" type="number" step="0.01" value="' + esc(pack.weightKg || '') + '"></div>' +
+                    '<div><label>Description</label><input id="f_desc" value="' + esc(pack.description || '') + '"></div></div>' +
+                    '<div class="two"><div><label>Length (cm)</label><input id="f_len" type="number" step="0.1" value="' + esc(pack.length || '') + '"></div>' +
+                    '<div><label>Width (cm)</label><input id="f_wid" type="number" step="0.1" value="' + esc(pack.width || '') + '"></div></div>' +
+                    '<div class="two"><div><label>Height (cm)</label><input id="f_hei" type="number" step="0.1" value="' + esc(pack.height || '') + '"></div>' +
+                    '<div><label>Pieces</label><input id="f_pieces" type="number" min="1" value="' + esc((s && s.pieces) || 1) + '"></div></div>' +
+                    '<h3 style="font-size:14px;margin:16px 0 0">Receipt / payment</h3>' +
                     '<div class="two"><div><label>Amount</label><input id="f_amt" value="' + esc(pay.amount || '') + '"></div><div><label>Currency</label><input id="f_cur" value="' + esc(pay.currency || 'USD') + '"></div></div>' +
                     '<div class="two"><div><label>Method</label><input id="f_meth" value="' + esc(pay.method || 'Card') + '"></div><div><label>Pay status</label><input id="f_payst" value="' + esc(pay.status || 'Unpaid') + '"></div></div>' +
                     '<label>Waybill</label><input id="f_way" value="' + esc((s && s.waybillNumber) || '') + '">' +
@@ -620,7 +627,7 @@
                     code: codeEdit, history: historyLocal,
                     sender: { name: $('f_sn').value, phone: $('f_sp').value, email: $('f_se').value, address: $('f_sa').value },
                     receiver: { name: $('f_rn').value, phone: $('f_rp').value, email: $('f_re').value, address: $('f_ra').value },
-                    package: { weightKg: $('f_w').value, description: $('f_desc').value },
+                    package: { weightKg: $('f_w').value, length: $('f_len') && $('f_len').value, width: $('f_wid') && $('f_wid').value, height: $('f_hei') && $('f_hei').value, description: $('f_desc').value },
                     payment: { amount: $('f_amt').value, currency: $('f_cur').value, method: $('f_meth').value, status: $('f_payst').value },
                     route: { originCountry: $('f_o').value, destCountry: $('f_d').value, icon: $('f_icon').value, speed: $('f_speed').value, progress: progress, isMoving: isMoving, movingSince: movingSince, rotationDeg: rotationDeg },
                     waybillNumber: $('f_way').value, serviceType: $('f_svc').value, termsOfTrade: $('f_terms').value, carrier: $('f_car').value,
@@ -746,7 +753,8 @@
                     code: $('f_code').value.trim() || undefined,
                     sender: { name: $('f_sn').value.trim(), phone: $('f_sp').value.trim(), email: $('f_se').value.trim(), address: $('f_sa').value.trim() },
                     receiver: { name: $('f_rn').value.trim(), phone: $('f_rp').value.trim(), email: $('f_re').value.trim(), address: $('f_ra').value.trim() },
-                    package: { weightKg: $('f_w').value, description: $('f_desc').value.trim() },
+                    package: { weightKg: $('f_w').value, length: ($('f_len') || {}).value, width: ($('f_wid') || {}).value, height: ($('f_hei') || {}).value, description: $('f_desc').value.trim() },
+                    pieces: Number(($('f_pieces') || {}).value || 1),
                     payment: { amount: $('f_amt').value, currency: $('f_cur').value.trim() || 'USD', method: $('f_meth').value.trim(), status: $('f_payst').value.trim() },
                     waybillNumber: $('f_way').value.trim(), serviceType: $('f_svc').value.trim(), termsOfTrade: $('f_terms').value.trim(),
                     carrier: $('f_car').value.trim(), shipmentDate: $('f_sdate').value, estimatedDelivery: $('f_eta').value,
@@ -760,7 +768,17 @@
                     }
                 };
                 var pin = $('f_pin').value.trim();
-                if (pin) body.accessPin = pin;
+                if (!codeEdit) {
+                    if (!/^[0-9]{4}$/.test(pin)) {
+                        msg.className = 'toast err'; msg.textContent = 'New shipment needs a 4-digit access PIN (also used for /chat).';
+                        toast('err', 'Access PIN required (4 digits)');
+                        return;
+                    }
+                    body.accessPin = pin;
+                } else if (pin) {
+                    if (!/^[0-9]{4}$/.test(pin)) { msg.className = 'toast err'; msg.textContent = 'Access PIN must be 4 digits'; return; }
+                    body.accessPin = pin;
+                }
                 try {
                     var saved;
                     if (!codeEdit) {

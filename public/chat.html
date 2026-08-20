@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <title>Chat</title>
+  <title>Demo Chat</title>
   <style>
     * {
       box-sizing: border-box
@@ -322,7 +322,7 @@
     <div id="pinGate">
       <div class="card">
         <h1>Chat access</h1>
-        <p>Enter chat PIN </p>
+        <p>Enter chat PIN</p>
         <input id="gatePin" type="password" inputmode="numeric" maxlength="8" placeholder="Chat PIN">
         <button type="button" id="gateBtn">Enter</button>
         <p class="err" id="gateErr"></p>
@@ -352,9 +352,10 @@
 
   <div id="unlockModal">
     <div class="card">
-      <h1 style="font-size:18px">Shipment PIN</h1>
-      <p>Enter the 4-digit PIN for this tracking code to open the conversation.</p>
-      <input id="shipPin" type="password" inputmode="numeric" maxlength="8" placeholder="Shipment PIN">
+      <h1 style="font-size:18px">Shipment access PIN</h1>
+      <p>Enter the shipment access PIN set on the admin board for this tracking code only. That PIN unlocks this chat —
+        not other customers’ conversations.</p>
+      <input id="shipPin" type="password" inputmode="numeric" maxlength="8" placeholder="Shipment access PIN">
       <button type="button" id="unlockBtn">Unlock chat</button>
       <button type="button" class="danger" id="unlockCancel">Cancel</button>
       <p class="err" id="unlockErr"></p>

@@ -347,15 +347,24 @@ router.post("/admin/unlock-thread", requireAdminOrChatPin, async (req, res) => {
         let ok = false;
         let needsPin = false;
         if (thread.trackCode) {
-            const ship = await Shipment.findOne({ code: thread.trackCode });
-            if (ship && ship.accessPin) {
-                needsPin = true;
-                if (pass && pass === String(ship.accessPin)) ok = true;
-            } else {
-                ok = true; // no shipment PIN set
+            const ship = await Shipment.findOne({ code: String(thread.trackCode).trim().toUpperCase() });
+            needsPin = true;
+            if (!ship) {
+                return res.status(404).json({ error: "Shipment for this chat not found.", needsPin: true });
             }
+            if (!ship.accessPin) {
+                return res.status(403).json({
+                    error: "This shipment has no access PIN. Set one on the admin board first.",
+                    needsPin: true
+                });
+            }
+            // ONLY this shipment's access PIN unlocks this chat — not other shipments
+            if (pass && pass === String(ship.accessPin).trim()) ok = true;
         } else {
-            ok = true;
+            return res.status(403).json({
+                error: "This chat has no tracking code. Link a shipment access PIN first.",
+                needsPin: true
+            });
         }
         if (!ok) {
             return res.status(401).json({
