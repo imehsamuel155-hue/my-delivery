@@ -478,8 +478,10 @@ window.startNewShipment = function startNewShipment() {
     activeCode = null;
     renderShipListRows();
     renderShipDetail(null);
-    var p = document.getElementById('shipDetailPanel');
-    if (p) p.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setTimeout(function () {
+        var p = document.getElementById('shipDetailPanel');
+        if (p) p.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
 }
 
 function renderShipDetail(shipment) {
