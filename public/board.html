@@ -17,7 +17,6 @@
         html,
         body {
             margin: 0;
-            padding: 0;
             font-family: system-ui, -apple-system, sans-serif;
             background: #eef1f4;
             color: #0f172a;
@@ -54,7 +53,7 @@
         }
 
         h1 {
-            font-size: 1.3rem;
+            font-size: 1.25rem;
             margin: 0 0 4px
         }
 
@@ -108,7 +107,7 @@
             margin: 0 0 10px;
             font-size: 12px;
             text-transform: uppercase;
-            letter-spacing: .06em;
+            letter-spacing: .05em;
             color: #64748b
         }
 
@@ -140,7 +139,6 @@
             display: none
         }
 
-        #editor.show,
         #editor.show {
             display: block
         }
@@ -159,8 +157,7 @@
             padding: 12px;
             border: 1px solid #cbd5e1;
             border-radius: 8px;
-            font-size: 16px;
-            background: #fff
+            font-size: 16px
         }
 
         .two {
@@ -177,11 +174,62 @@
         }
 
         #map {
-            height: 240px;
+            height: 260px;
             width: 100%;
             border-radius: 10px;
             background: #d1d5db;
+            margin: 8px 0;
+            touch-action: none
+        }
+
+        .bar-wrap {
+            margin: 12px 0 6px
+        }
+
+        .bar-track {
+            height: 14px;
+            background: #e5e7eb;
+            border-radius: 999px;
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+            touch-action: none
+        }
+
+        .bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #fbbf24, #eab308);
+            width: 0%;
+            border-radius: 999px;
+            transition: width .05s linear
+        }
+
+        .pct {
+            font-size: 13px;
+            color: #64748b;
+            margin-top: 6px
+        }
+
+        .map-ctrls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
             margin: 10px 0
+        }
+
+        .map-ctrls button {
+            min-height: 44px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            background: #f8fafc;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 13px
+        }
+
+        .map-ctrls .go {
+            background: #eab308;
+            border: none
         }
 
         .chips {
@@ -200,10 +248,6 @@
             cursor: pointer
         }
 
-        .chips button:active {
-            background: #e2e8f0
-        }
-
         .actions {
             display: flex;
             flex-wrap: wrap;
@@ -213,13 +257,12 @@
 
         .actions button {
             flex: 1;
-            min-width: 120px;
+            min-width: 110px;
             min-height: 48px;
             padding: 12px;
             border: 0;
             border-radius: 10px;
             font-weight: 700;
-            font-size: 15px;
             cursor: pointer
         }
 
@@ -234,13 +277,12 @@
         }
 
         .actions .sec {
-            background: #e2e8f0;
-            color: #0f172a
+            background: #e2e8f0
         }
 
         .toast {
             display: none;
-            padding: 10px 12px;
+            padding: 10px;
             border-radius: 8px;
             font-size: 13px;
             margin: 8px 0
@@ -258,6 +300,12 @@
             color: #15803d
         }
 
+        .toast.wait {
+            display: block;
+            background: #f1f5f9;
+            color: #334155
+        }
+
         .timeline {
             border-left: 3px solid #22c55e;
             margin: 10px 0 10px 8px;
@@ -267,10 +315,6 @@
         .timeline .step {
             margin-bottom: 10px;
             font-size: 13px
-        }
-
-        .timeline .step strong {
-            display: block
         }
 
         .modal {
@@ -308,6 +352,13 @@
                 border-radius: 14px
             }
         }
+
+        .veh-marker {
+            font-size: 28px;
+            line-height: 1;
+            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .35));
+            transform-origin: center center
+        }
     </style>
 </head>
 
@@ -318,8 +369,7 @@
     </div>
     <div class="page">
         <h1>Office Dashboard</h1>
-        <p class="hint">Sender · receiver · receipt · live map · origin/destination · status · box · settings. Same live
-            database.</p>
+        <p class="hint">Full editor. Map + fill bar at the bottom. Changes sync to public track, receipt &amp; box.</p>
         <div class="grid-btns">
             <a href="/chat.html">💬 Chats</a>
             <button type="button" id="btnBox">Box: …</button>
@@ -327,14 +377,12 @@
             <button type="button" id="btnSettings">⚙ Account Settings</button>
         </div>
         <div id="toast" class="toast"></div>
-
         <div class="card">
             <h2>All shipments</h2>
             <div id="list">Loading…</div>
         </div>
-
         <div class="card" id="editor">
-            <h2 id="edTitle">Shipment editor</h2>
+            <h2 id="edTitle">Shipment</h2>
             <div id="ed"></div>
         </div>
     </div>
@@ -343,11 +391,9 @@
         <div class="mbox">
             <h3>Settings PIN</h3>
             <p class="hint">Enter <strong>7799</strong></p>
-            <input id="pinVal" type="password" inputmode="numeric" maxlength="8" placeholder="7799">
-            <div class="actions">
-                <button type="button" class="save" id="pinOk">Open</button>
-                <button type="button" class="sec" id="pinCancel">Cancel</button>
-            </div>
+            <input id="pinVal" type="password" inputmode="numeric" maxlength="8">
+            <div class="actions"><button type="button" class="save" id="pinOk">Open</button><button type="button"
+                    class="sec" id="pinCancel">Cancel</button></div>
             <div id="pinErr" class="toast"></div>
         </div>
     </div>
@@ -359,11 +405,9 @@
             <label>New login PIN</label><input id="sLoginPin" type="password" inputmode="numeric" maxlength="8">
             <label>New chat PIN</label><input id="sChatPin" type="password" inputmode="numeric" maxlength="8"
                 placeholder="4422">
-            <label>Current password (required)</label><input id="sCur" type="password">
-            <div class="actions">
-                <button type="button" class="save" id="sSave">Save</button>
-                <button type="button" class="sec" id="sClose">Close</button>
-            </div>
+            <label>Current password</label><input id="sCur" type="password">
+            <div class="actions"><button type="button" class="save" id="sSave">Save</button><button type="button"
+                    class="sec" id="sClose">Close</button></div>
             <div id="sMsg" class="toast"></div>
         </div>
     </div>
@@ -373,26 +417,20 @@
             var API = 'https://my-delivery-w6xz.onrender.com/api';
             var COUNTRIES = { "Afghanistan": { "lat": 34.5553, "lng": 69.2075 }, "Albania": { "lat": 41.3275, "lng": 19.8187 }, "Algeria": { "lat": 36.7538, "lng": 3.0588 }, "Angola": { "lat": -8.839, "lng": 13.2894 }, "Argentina": { "lat": -34.6037, "lng": -58.3816 }, "Armenia": { "lat": 40.1792, "lng": 44.4991 }, "Australia": { "lat": -35.2809, "lng": 149.13 }, "Austria": { "lat": 48.2082, "lng": 16.3738 }, "Azerbaijan": { "lat": 40.4093, "lng": 49.8671 }, "Bahrain": { "lat": 26.2285, "lng": 50.586 }, "Bangladesh": { "lat": 23.8103, "lng": 90.4125 }, "Belarus": { "lat": 53.9045, "lng": 27.5615 }, "Belgium": { "lat": 50.8503, "lng": 4.3517 }, "Benin": { "lat": 6.4969, "lng": 2.6289 }, "Bolivia": { "lat": -16.4897, "lng": -68.1193 }, "Bosnia and Herzegovina": { "lat": 43.8563, "lng": 18.4131 }, "Botswana": { "lat": -24.6282, "lng": 25.9231 }, "Brazil": { "lat": -15.8267, "lng": -47.9218 }, "Bulgaria": { "lat": 42.6977, "lng": 23.3219 }, "Burkina Faso": { "lat": 12.3714, "lng": -1.5197 }, "Cambodia": { "lat": 11.5564, "lng": 104.9282 }, "Cameroon": { "lat": 3.848, "lng": 11.5021 }, "Canada": { "lat": 45.4215, "lng": -75.6972 }, "Chile": { "lat": -33.4489, "lng": -70.6693 }, "China": { "lat": 39.9042, "lng": 116.4074 }, "Colombia": { "lat": 4.711, "lng": -74.0721 }, "Congo": { "lat": -4.2634, "lng": 15.2429 }, "Costa Rica": { "lat": 9.9281, "lng": -84.0907 }, "Croatia": { "lat": 45.815, "lng": 15.9819 }, "Cuba": { "lat": 23.1136, "lng": -82.3666 }, "Cyprus": { "lat": 35.1856, "lng": 33.3823 }, "Czech Republic": { "lat": 50.0755, "lng": 14.4378 }, "Denmark": { "lat": 55.6761, "lng": 12.5683 }, "Dominican Republic": { "lat": 18.4861, "lng": -69.9312 }, "Ecuador": { "lat": -0.1807, "lng": -78.4678 }, "Egypt": { "lat": 30.0444, "lng": 31.2357 }, "El Salvador": { "lat": 13.6929, "lng": -89.2182 }, "Estonia": { "lat": 59.437, "lng": 24.7536 }, "Ethiopia": { "lat": 9.025, "lng": 38.7469 }, "Finland": { "lat": 60.1699, "lng": 24.9384 }, "France": { "lat": 48.8566, "lng": 2.3522 }, "Gabon": { "lat": 0.4162, "lng": 9.4673 }, "Gambia": { "lat": 13.4549, "lng": -16.579 }, "Georgia": { "lat": 41.7151, "lng": 44.8271 }, "Germany": { "lat": 52.52, "lng": 13.405 }, "Ghana": { "lat": 5.6037, "lng": -0.187 }, "Greece": { "lat": 37.9838, "lng": 23.7275 }, "Guatemala": { "lat": 14.6349, "lng": -90.5069 }, "Guinea": { "lat": 9.6412, "lng": -13.5784 }, "Haiti": { "lat": 18.5944, "lng": -72.3074 }, "Honduras": { "lat": 14.0723, "lng": -87.1921 }, "Hong Kong": { "lat": 22.3193, "lng": 114.1694 }, "Hungary": { "lat": 47.4979, "lng": 19.0402 }, "Iceland": { "lat": 64.1466, "lng": -21.9426 }, "India": { "lat": 28.6139, "lng": 77.209 }, "Indonesia": { "lat": -6.2088, "lng": 106.8456 }, "Iran": { "lat": 35.6892, "lng": 51.389 }, "Iraq": { "lat": 33.3152, "lng": 44.3661 }, "Ireland": { "lat": 53.3498, "lng": -6.2603 }, "Israel": { "lat": 31.7683, "lng": 35.2137 }, "Italy": { "lat": 41.9028, "lng": 12.4964 }, "Ivory Coast": { "lat": 5.36, "lng": -4.0083 }, "Jamaica": { "lat": 18.0179, "lng": -76.8099 }, "Japan": { "lat": 35.6762, "lng": 139.6503 }, "Jordan": { "lat": 31.9454, "lng": 35.9284 }, "Kazakhstan": { "lat": 51.1694, "lng": 71.4491 }, "Kenya": { "lat": -1.2921, "lng": 36.8219 }, "Kuwait": { "lat": 29.3759, "lng": 47.9774 }, "Latvia": { "lat": 56.9496, "lng": 24.1052 }, "Lebanon": { "lat": 33.8938, "lng": 35.5018 }, "Liberia": { "lat": 6.3004, "lng": -10.7969 }, "Libya": { "lat": 32.8872, "lng": 13.1913 }, "Lithuania": { "lat": 54.6872, "lng": 25.2797 }, "Luxembourg": { "lat": 49.6116, "lng": 6.1319 }, "Macau": { "lat": 22.1987, "lng": 113.5439 }, "Madagascar": { "lat": -18.8792, "lng": 47.5079 }, "Malawi": { "lat": -13.9626, "lng": 33.7741 }, "Malaysia": { "lat": 3.139, "lng": 101.6869 }, "Mali": { "lat": 12.6392, "lng": -8.0029 }, "Malta": { "lat": 35.8989, "lng": 14.5146 }, "Mexico": { "lat": 19.4326, "lng": -99.1332 }, "Moldova": { "lat": 47.0105, "lng": 28.8638 }, "Mongolia": { "lat": 47.8864, "lng": 106.9057 }, "Morocco": { "lat": 34.0209, "lng": -6.8417 }, "Mozambique": { "lat": -25.9692, "lng": 32.5732 }, "Myanmar": { "lat": 16.8409, "lng": 96.1735 }, "Namibia": { "lat": -22.5609, "lng": 17.0658 }, "Nepal": { "lat": 27.7172, "lng": 85.324 }, "Netherlands": { "lat": 52.3676, "lng": 4.9041 }, "New Zealand": { "lat": -41.2865, "lng": 174.7762 }, "Nicaragua": { "lat": 12.115, "lng": -86.2362 }, "Niger": { "lat": 13.5116, "lng": 2.1254 }, "Nigeria": { "lat": 6.5244, "lng": 3.3792 }, "North Macedonia": { "lat": 41.9981, "lng": 21.4254 }, "Norway": { "lat": 59.9139, "lng": 10.7522 }, "Oman": { "lat": 23.588, "lng": 58.3829 }, "Pakistan": { "lat": 33.6844, "lng": 73.0479 }, "Panama": { "lat": 8.9824, "lng": -79.5199 }, "Paraguay": { "lat": -25.2637, "lng": -57.5759 }, "Peru": { "lat": -12.0464, "lng": -77.0428 }, "Philippines": { "lat": 14.5995, "lng": 120.9842 }, "Poland": { "lat": 52.2297, "lng": 21.0122 }, "Portugal": { "lat": 38.7223, "lng": -9.1393 }, "Qatar": { "lat": 25.2854, "lng": 51.531 }, "Romania": { "lat": 44.4268, "lng": 26.1025 }, "Russia": { "lat": 55.7558, "lng": 37.6173 }, "Rwanda": { "lat": -1.9441, "lng": 30.0619 }, "Saudi Arabia": { "lat": 24.7136, "lng": 46.6753 }, "Senegal": { "lat": 14.7167, "lng": -17.4677 }, "Serbia": { "lat": 44.7866, "lng": 20.4489 }, "Sierra Leone": { "lat": 8.4657, "lng": -13.2317 }, "Singapore": { "lat": 1.3521, "lng": 103.8198 }, "Slovakia": { "lat": 48.1486, "lng": 17.1077 }, "Slovenia": { "lat": 46.0569, "lng": 14.5058 }, "Somalia": { "lat": 2.0469, "lng": 45.3182 }, "South Africa": { "lat": -25.7479, "lng": 28.2293 }, "South Korea": { "lat": 37.5665, "lng": 126.978 }, "Spain": { "lat": 40.4168, "lng": -3.7038 }, "Sri Lanka": { "lat": 6.9271, "lng": 79.8612 }, "Sudan": { "lat": 15.5007, "lng": 32.5599 }, "Sweden": { "lat": 59.3293, "lng": 18.0686 }, "Switzerland": { "lat": 46.948, "lng": 7.4474 }, "Syria": { "lat": 33.5138, "lng": 36.2765 }, "Taiwan": { "lat": 25.033, "lng": 121.5654 }, "Tanzania": { "lat": -6.163, "lng": 35.7516 }, "Thailand": { "lat": 13.7563, "lng": 100.5018 }, "Togo": { "lat": 6.1725, "lng": 1.2314 }, "Trinidad and Tobago": { "lat": 10.6549, "lng": -61.5019 }, "Tunisia": { "lat": 36.8065, "lng": 10.1815 }, "Turkey": { "lat": 39.9334, "lng": 32.8597 }, "Uganda": { "lat": 0.3476, "lng": 32.5825 }, "Ukraine": { "lat": 50.4501, "lng": 30.5234 }, "United Arab Emirates": { "lat": 25.2048, "lng": 55.2708 }, "United Kingdom": { "lat": 51.5074, "lng": -0.1278 }, "United States": { "lat": 38.9072, "lng": -77.0369 }, "Uruguay": { "lat": -34.9011, "lng": -56.1645 }, "Uzbekistan": { "lat": 41.2995, "lng": 69.2401 }, "Venezuela": { "lat": 10.4806, "lng": -66.9036 }, "Vietnam": { "lat": 21.0278, "lng": 105.8342 }, "Yemen": { "lat": 15.3694, "lng": 44.191 }, "Zambia": { "lat": -15.3875, "lng": 28.3228 }, "Zimbabwe": { "lat": -17.8252, "lng": 31.0335 } };
             var STATUSES = ["Order Received", "Dispatched", "Picked Up", "In Transit", "Arrived At Hub", "Customs Clearance", "Out For Delivery", "Delivered", "On Hold"];
+            var SPEED_MS = { week: 7 * 864e5, five: 5 * 864e5, three: 3 * 864e5, two: 2 * 864e5, slow: 7 * 864e5, normal: 4 * 864e5, fast: 2 * 864e5 };
+            var ICONS = { plane: '✈️', truck: '🚚', ship: '🚢', warehouse: '🏭' };
             var token = '';
             try { token = sessionStorage.getItem('dhlAdminToken') || ''; } catch (e) { }
-            var ships = [];
-            var boxOn = true;
-            var map = null;
-            var codeEdit = null;
-            var historyLocal = [];
+            var ships = [], boxOn = true, map = null, marker = null, line = null;
+            var codeEdit = null, historyLocal = [], progress = 0, rotationDeg = null, animTimer = null, isMoving = false, movingSince = null, baseProgress = 0;
 
             function $(id) { return document.getElementById(id); }
-            function toast(type, msg) {
-                var t = $('toast');
-                t.className = 'toast ' + (type || '');
-                t.textContent = msg || '';
-            }
+            function toast(type, msg) { var t = $('toast'); t.className = 'toast ' + (type || ''); t.textContent = msg || ''; }
             function headers() { return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }; }
             async function api(path, opts) {
                 opts = opts || {};
                 var res = await fetch(API + path, Object.assign({}, opts, { headers: Object.assign(headers(), opts.headers || {}) }));
-                var data = {};
-                try { data = await res.json(); } catch (e) { }
+                var data = {}; try { data = await res.json(); } catch (e) { }
                 if (!res.ok) throw new Error(data.error || data.message || ('Error ' + res.status));
                 return data;
             }
@@ -402,280 +440,368 @@
                 if (!sel || !COUNTRIES[sel]) sel = 'Indonesia';
                 return names.map(function (n) { return '<option value="' + esc(n) + '"' + (n === sel ? ' selected' : '') + '>' + esc(n) + '</option>'; }).join('');
             }
-
-            if (!token) {
-                toast('err', 'Not logged in…');
-                setTimeout(function () { location.href = '/admin.html'; }, 400);
-                return;
+            function liveProgress() {
+                if (!isMoving || !movingSince) return progress;
+                var speed = ($('f_speed') && $('f_speed').value) || 'week';
+                var dur = SPEED_MS[speed] || SPEED_MS.week;
+                var elapsed = Date.now() - new Date(movingSince).getTime();
+                var add = (elapsed / dur) * 100;
+                return Math.min(100, Math.max(0, baseProgress + add));
             }
+            function bearing(lat1, lng1, lat2, lng2) {
+                var toRad = Math.PI / 180, toDeg = 180 / Math.PI;
+                var φ1 = lat1 * toRad, φ2 = lat2 * toRad, Δλ = (lng2 - lng1) * toRad;
+                var y = Math.sin(Δλ) * Math.cos(φ2);
+                var x = Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ);
+                return (Math.atan2(y, x) * toDeg + 360) % 360;
+            }
+            function lerp(a, b, t) { return a + (b - a) * t; }
 
+            if (!token) { toast('err', 'Not logged in…'); setTimeout(function () { location.href = '/admin.html'; }, 400); return; }
             $('logout').addEventListener('click', function () { try { sessionStorage.removeItem('dhlAdminToken'); } catch (e) { } });
-
             $('btnNew').addEventListener('click', function () { openForm(null); });
             $('btnBox').addEventListener('click', toggleBox);
-            $('btnSettings').addEventListener('click', function () {
-                $('pinVal').value = ''; $('pinErr').className = 'toast'; $('modalPin').classList.add('open');
-            });
+            $('btnSettings').addEventListener('click', function () { $('pinVal').value = ''; $('pinErr').className = 'toast'; $('modalPin').classList.add('open'); });
             $('pinCancel').addEventListener('click', function () { $('modalPin').classList.remove('open'); });
             $('pinOk').addEventListener('click', function () {
                 if ($('pinVal').value.trim() !== '7799') { $('pinErr').className = 'toast err'; $('pinErr').textContent = 'Wrong PIN'; return; }
-                $('modalPin').classList.remove('open');
-                $('sMsg').className = 'toast'; $('modalSet').classList.add('open');
+                $('modalPin').classList.remove('open'); $('sMsg').className = 'toast'; $('modalSet').classList.add('open');
             });
             $('sClose').addEventListener('click', function () { $('modalSet').classList.remove('open'); });
             $('sSave').addEventListener('click', saveSettings);
-
-            loadList();
-            refreshBox();
+            loadList(); refreshBox();
 
             async function loadList() {
-                $('list').textContent = 'Loading…';
+                $('list').textContent = '...... loading';
                 try {
                     ships = await api('/shipments');
                     if (!Array.isArray(ships)) ships = [];
-                    if (!ships.length) { $('list').innerHTML = '<p class="hint">No shipments yet.</p>'; return; }
+                    if (!ships.length) { $('list').innerHTML = '<p class="hint">No shipments.</p>'; return; }
                     $('list').innerHTML = ships.map(function (s, i) {
                         var from = (s.sender && s.sender.name) || '?';
                         var to = (s.receiver && s.receiver.name) || '?';
-                        var st = s.pinProtected ? '🔒 Locked' : ((s.history && s.history.length) ? s.history[s.history.length - 1].label : (s.status || ''));
-                        return '<div class="item" data-i="' + i + '"><div class="c">' + esc(s.code || '') + (s.pinProtected ? ' 🔒' : '') + '</div>' +
-                            '<div class="m">' + esc(from) + ' → ' + esc(to) + '</div><div class="m">' + esc(st) + '</div></div>';
+                        var o = (s.route && s.route.originCountry) || s.originCountry || '—';
+                        var d = (s.route && s.route.destCountry) || s.destCountryLabel || '—';
+                        var st = s.pinProtected ? '🔒 ' : '';
+                        var latest = (s.history && s.history.length) ? s.history[s.history.length - 1].label : (s.status || '');
+                        return '<div class="item" data-i="' + i + '"><div class="c">' + st + esc(s.code || '') + '</div>' +
+                            '<div class="m">' + esc(from) + ' → ' + esc(to) + '</div>' +
+                            '<div class="m">Origin: ' + esc(o) + ' · Destination: ' + esc(d) + '</div>' +
+                            '<div class="m">' + esc(latest) + '</div></div>';
                     }).join('');
                     Array.prototype.forEach.call($('list').querySelectorAll('.item'), function (el) {
                         el.addEventListener('click', function () {
                             Array.prototype.forEach.call($('list').querySelectorAll('.item'), function (x) { x.classList.remove('active'); });
                             el.classList.add('active');
-                            pickShip(ships[+el.getAttribute('data-i')]);
+                            openForm(ships[+el.getAttribute('data-i')]);
                         });
                     });
-                } catch (e) {
-                    $('list').innerHTML = '<div class="toast err" style="display:block">' + esc(e.message) + '</div>';
-                }
-            }
-
-            async function pickShip(s) {
-                if (s && s.pinProtected && s.code) {
-                    var pin = prompt('Locked shipment. Enter 4-digit access PIN:');
-                    if (pin === null) return;
-                    try {
-                        s = await api('/shipments/' + encodeURIComponent(s.code) + '/unlock', { method: 'POST', body: JSON.stringify({ pin: pin }) });
-                    } catch (e) { toast('err', e.message); return; }
-                }
-                openForm(s);
+                } catch (e) { $('list').innerHTML = '<div class="toast err" style="display:block">' + esc(e.message) + '</div>'; }
             }
 
             function openForm(s) {
+                stopAnim();
                 var isNew = !s;
                 codeEdit = isNew ? null : s.code;
                 historyLocal = (s && s.history) ? s.history.slice() : [];
                 var sender = (s && s.sender) || {}, receiver = (s && s.receiver) || {}, pack = (s && s.package) || {}, pay = (s && s.payment) || {}, route = (s && s.route) || {};
-                var oC = route.originCountry || 'Indonesia';
-                var dC = route.destCountry || route.destinationCountry || 'Singapore';
+                var oC = route.originCountry || 'Indonesia', dC = route.destCountry || 'Singapore';
+                progress = Number(route.progress) || 0;
+                isMoving = !!route.isMoving;
+                movingSince = route.movingSince || null;
+                baseProgress = progress;
+                rotationDeg = (route.rotationDeg != null) ? Number(route.rotationDeg) : null;
 
                 $('edTitle').textContent = isNew ? 'New shipment' : ('Edit ' + codeEdit);
-
-                var histHtml = historyLocal.length
-                    ? historyLocal.map(function (h, i) {
-                        return '<div class="step"><strong>' + esc(h.label || '') + '</strong>' + esc(h.date || '') + ' — ' + esc(h.location || '') +
-                            ' <button type="button" data-rm="' + i + '" style="font-size:11px">Remove</button></div>';
-                    }).join('')
-                    : '<p class="hint">No status yet — use chips or Add.</p>';
-
+                var histHtml = historyLocal.length ? historyLocal.map(function (h, i) {
+                    return '<div class="step"><strong>' + esc(h.label || '') + '</strong>' + esc(h.date || '') + (h.time ? (' ' + esc(h.time)) : '') + ' — ' + esc(h.location || '') +
+                        ' <button type="button" data-rm="' + i + '" style="font-size:11px">Remove</button></div>';
+                }).join('') : '<p class="hint">No status yet.</p>';
                 var chips = STATUSES.map(function (st) { return '<button type="button" data-st="' + esc(st) + '">' + esc(st) + '</button>'; }).join('');
 
                 $('ed').innerHTML =
-                    '<label>Tracking code' + (isNew ? ' (leave empty to auto-generate)' : '') + '</label>' +
+                    '<label>Tracking code' + (isNew ? ' (required or leave blank if server allows auto)' : '') + '</label>' +
                     '<input id="f_code" value="' + esc(codeEdit || '') + '" ' + (isNew ? '' : 'readonly') + '>' +
-                    '<label>Access PIN (4 digits — locks edit & chat)</label>' +
-                    '<input id="f_pin" inputmode="numeric" maxlength="4" placeholder="e.g. 1234">' +
-                    '<h3 style="margin:16px 0 0;font-size:14px">Sender</h3>' +
-                    '<div class="two"><div><label>Name</label><input id="f_sn" value="' + esc(sender.name || '') + '"></div>' +
-                    '<div><label>Phone</label><input id="f_sp" value="' + esc(sender.phone || '') + '"></div></div>' +
+                    '<label>Access PIN (4 digits — optional; keeps lock, no re-entry needed to edit here)</label>' +
+                    '<input id="f_pin" inputmode="numeric" maxlength="4" placeholder="' + (s && s.pinProtected ? 'Leave blank to keep existing PIN' : 'e.g. 1234') + '">' +
+                    '<h3 style="font-size:14px;margin:16px 0 0">Sender</h3>' +
+                    '<div class="two"><div><label>Name</label><input id="f_sn" value="' + esc(sender.name || '') + '"></div><div><label>Phone</label><input id="f_sp" value="' + esc(sender.phone || '') + '"></div></div>' +
                     '<label>Email</label><input id="f_se" value="' + esc(sender.email || '') + '">' +
                     '<label>Address</label><input id="f_sa" value="' + esc(sender.address || '') + '">' +
-                    '<h3 style="margin:16px 0 0;font-size:14px">Receiver</h3>' +
-                    '<div class="two"><div><label>Name</label><input id="f_rn" value="' + esc(receiver.name || '') + '"></div>' +
-                    '<div><label>Phone</label><input id="f_rp" value="' + esc(receiver.phone || '') + '"></div></div>' +
+                    '<h3 style="font-size:14px;margin:16px 0 0">Receiver</h3>' +
+                    '<div class="two"><div><label>Name</label><input id="f_rn" value="' + esc(receiver.name || '') + '"></div><div><label>Phone</label><input id="f_rp" value="' + esc(receiver.phone || '') + '"></div></div>' +
                     '<label>Email</label><input id="f_re" value="' + esc(receiver.email || '') + '">' +
                     '<label>Address</label><input id="f_ra" value="' + esc(receiver.address || '') + '">' +
-                    '<h3 style="margin:16px 0 0;font-size:14px">Package</h3>' +
-                    '<div class="two"><div><label>Weight (kg)</label><input id="f_w" value="' + esc(pack.weightKg || '') + '"></div>' +
-                    '<div><label>Description</label><input id="f_desc" value="' + esc(pack.description || '') + '"></div></div>' +
-                    '<h3 style="margin:16px 0 0;font-size:14px">Receipt / payment</h3>' +
-                    '<div class="two"><div><label>Amount</label><input id="f_amt" value="' + esc(pay.amount || '') + '"></div>' +
-                    '<div><label>Currency</label><input id="f_cur" value="' + esc(pay.currency || 'USD') + '"></div></div>' +
-                    '<div class="two"><div><label>Method</label><input id="f_meth" value="' + esc(pay.method || 'Card') + '"></div>' +
-                    '<div><label>Payment status</label><input id="f_payst" value="' + esc(pay.status || 'Unpaid') + '"></div></div>' +
-                    '<label>Waybill number</label><input id="f_way" value="' + esc((s && s.waybillNumber) || '') + '">' +
+                    '<h3 style="font-size:14px;margin:16px 0 0">Package &amp; receipt</h3>' +
+                    '<div class="two"><div><label>Weight kg</label><input id="f_w" value="' + esc(pack.weightKg || '') + '"></div><div><label>Description</label><input id="f_desc" value="' + esc(pack.description || '') + '"></div></div>' +
+                    '<div class="two"><div><label>Amount</label><input id="f_amt" value="' + esc(pay.amount || '') + '"></div><div><label>Currency</label><input id="f_cur" value="' + esc(pay.currency || 'USD') + '"></div></div>' +
+                    '<div class="two"><div><label>Method</label><input id="f_meth" value="' + esc(pay.method || 'Card') + '"></div><div><label>Pay status</label><input id="f_payst" value="' + esc(pay.status || 'Unpaid') + '"></div></div>' +
+                    '<label>Waybill</label><input id="f_way" value="' + esc((s && s.waybillNumber) || '') + '">' +
                     '<label>Service type</label><input id="f_svc" value="' + esc((s && s.serviceType) || 'EXPRESS WORLDWIDE') + '">' +
-                    '<label>Terms of trade</label><input id="f_terms" value="' + esc((s && s.termsOfTrade) || '') + '" placeholder="DDP, DAP…">' +
-                    '<label>Carrier</label><input id="f_car" value="' + esc((s && s.carrier) || 'Express') + '">' +
-                    '<label>Est. delivery</label><input id="f_eta" value="' + esc((s && s.estimatedDelivery) || '') + '">' +
-                    '<h3 style="margin:16px 0 0;font-size:14px">Live map — origin & destination</h3>' +
+                    '<label>Terms</label><input id="f_terms" value="' + esc((s && s.termsOfTrade) || '') + '">' +
+                    '<label>Carrier</label><input id="f_car" value="' + esc((s && s.carrier) || '') + '">' +
+                    '<label>Shipment date</label><input id="f_sdate" type="date" value="' + esc((s && s.shipmentDate) || '') + '">' +
+                    '<label>Estimated delivery</label><input id="f_eta" type="date" value="' + esc((s && s.estimatedDelivery) || '') + '">' +
+                    '<h3 style="font-size:14px;margin:16px 0 0">Status timeline</h3>' +
+                    '<div class="chips" id="chips">' + chips + '</div>' +
+                    '<div class="two"><div><label>Status label</label><input id="f_st" placeholder="e.g. In Transit"></div><div><label>Location</label><input id="f_loc"></div></div>' +
+                    '<label>Status date &amp; time</label><input id="f_sttime" type="datetime-local">' +
+                    '<button type="button" id="btnAddSt" style="margin-top:8px;width:100%;min-height:44px;border:0;border-radius:10px;background:#eab308;font-weight:700">Add status</button>' +
+                    '<div class="timeline" id="tl">' + histHtml + '</div>' +
+                    '<h3 style="font-size:14px;margin:18px 0 0">Live map (last section)</h3>' +
                     '<div class="two"><div><label>Origin country</label><select id="f_o">' + optsCountry(oC) + '</select></div>' +
                     '<div><label>Destination country</label><select id="f_d">' + optsCountry(dC) + '</select></div></div>' +
+                    '<label>Vehicle</label><select id="f_icon"><option value="plane">✈️ Plane</option><option value="truck">🚚 Truck</option><option value="ship">🚢 Ship</option></select>' +
+                    '<label>Auto duration</label><select id="f_speed">' +
+                    '<option value="week">1 week</option><option value="five">5 days</option><option value="three">3 days</option><option value="two">2 days</option></select>' +
                     '<div id="map"></div>' +
-                    '<label>Vehicle</label><select id="f_icon"><option value="truck">🚚 Truck</option><option value="plane">✈️ Plane</option><option value="ship">🚢 Ship</option></select>' +
-                    '<h3 style="margin:16px 0 0;font-size:14px">Status timeline</h3>' +
-                    '<div class="chips" id="chips">' + chips + '</div>' +
-                    '<div class="two"><div><label>Custom status</label><input id="f_st" placeholder="e.g. In Transit"></div>' +
-                    '<div><label>Location</label><input id="f_loc" placeholder="City / hub"></div></div>' +
-                    '<button type="button" class="primary" id="btnAddSt" style="margin-top:8px;width:100%;min-height:44px;border:0;border-radius:10px;background:#eab308;font-weight:700">Add status</button>' +
-                    '<div class="timeline" id="tl">' + histHtml + '</div>' +
+                    '<div class="bar-wrap"><div class="bar-track" id="barTrack"><div class="bar-fill" id="barFill"></div></div>' +
+                    '<div class="pct" id="pctLabel">0% of the way there. You can zoom and pan the map to follow along.</div></div>' +
+                    '<div class="map-ctrls">' +
+                    '<button type="button" class="go" id="mPlay">▶ Play / Start</button>' +
+                    '<button type="button" id="mPause">⏸ Pause</button>' +
+                    '<button type="button" id="mReset">⟲ Restart</button>' +
+                    '<button type="button" id="mFace">Auto face destination</button>' +
+                    '<button type="button" id="mLeft">Turn left</button>' +
+                    '<button type="button" id="mRight">Turn right</button>' +
+                    '<button type="button" class="go" id="mDone" style="grid-column:1/-1">✓ Done — Save map &amp; fill bar</button></div>' +
+                    '<p class="hint">Drag the vehicle on the map to move it. Drag the fill bar to set %. Play continues auto movement from that % for the duration you chose.</p>' +
                     '<div class="actions">' +
-                    '<button type="button" class="save" id="btnSave">Save Shipment</button>' +
+                    '<button type="button" class="save" id="btnSave">Save shipment</button>' +
                     '<button type="button" class="sec" id="btnClose">Close</button>' +
                     (isNew ? '' : '<button type="button" class="del" id="btnDel">Delete</button>') +
                     '</div><div id="edToast" class="toast"></div>';
 
                 $('editor').style.display = 'block';
                 $('editor').classList.add('show');
+                if (route.icon) $('f_icon').value = route.icon;
+                if (route.speed) {
+                    var sp = route.speed;
+                    if (sp === 'slow') sp = 'week'; if (sp === 'normal') sp = 'three'; if (sp === 'fast') sp = 'two';
+                    $('f_speed').value = sp;
+                }
                 setTimeout(function () {
                     $('editor').scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    drawMap(oC, dC);
-                }, 60);
+                    setupMap(oC, dC);
+                    setProgressUI(liveProgress());
+                    if (isMoving) startAnim();
+                }, 80);
 
-                $('f_o').addEventListener('change', function () { drawMap($('f_o').value, $('f_d').value); });
-                $('f_d').addEventListener('change', function () { drawMap($('f_o').value, $('f_d').value); });
-                var ic = $('f_icon');
-                if (s && s.route && s.route.icon) ic.value = s.route.icon;
-
-                $('chips').addEventListener('click', function (e) {
-                    var b = e.target.closest('button[data-st]');
-                    if (!b) return;
-                    $('f_st').value = b.getAttribute('data-st');
-                });
+                $('f_o').addEventListener('change', function () { setupMap($('f_o').value, $('f_d').value); });
+                $('f_d').addEventListener('change', function () { setupMap($('f_o').value, $('f_d').value); });
+                $('f_icon').addEventListener('change', function () { placeVehicle(liveProgress()); });
+                $('chips').addEventListener('click', function (e) { var b = e.target.closest('[data-st]'); if (b) $('f_st').value = b.getAttribute('data-st'); });
                 $('btnAddSt').addEventListener('click', function () {
-                    var lab = $('f_st').value.trim();
-                    if (!lab) { alert('Enter or pick a status'); return; }
-                    historyLocal.push({ label: lab, location: $('f_loc').value.trim() || '—', date: new Date().toISOString().slice(0, 10) });
-                    openForm(Object.assign({}, s || {}, { code: codeEdit, history: historyLocal, sender: readSender(), receiver: readReceiver(), package: { weightKg: $('f_w').value, description: $('f_desc').value }, payment: readPay(), route: { originCountry: $('f_o').value, destCountry: $('f_d').value }, waybillNumber: $('f_way').value, serviceType: $('f_svc').value, termsOfTrade: $('f_terms').value, carrier: $('f_car').value, estimatedDelivery: $('f_eta').value }));
+                    var lab = $('f_st').value.trim(); if (!lab) { alert('Pick or type a status'); return; }
+                    var dt = $('f_sttime').value; var date = '', time = '';
+                    if (dt) { var p = dt.split('T'); date = p[0]; time = p[1] || ''; }
+                    else { date = new Date().toISOString().slice(0, 10); time = new Date().toTimeString().slice(0, 5); }
+                    historyLocal.push({ label: lab, location: $('f_loc').value.trim() || '—', date: date, time: time });
+                    openForm(collectDraft(s));
                 });
                 Array.prototype.forEach.call($('tl').querySelectorAll('[data-rm]'), function (btn) {
-                    btn.addEventListener('click', function () {
-                        historyLocal.splice(+btn.getAttribute('data-rm'), 1);
-                        openForm(Object.assign({}, s || {}, { code: codeEdit, history: historyLocal, sender: readSender(), receiver: readReceiver(), package: { weightKg: $('f_w').value, description: $('f_desc').value }, payment: readPay(), route: { originCountry: $('f_o').value, destCountry: $('f_d').value } }));
-                    });
+                    btn.addEventListener('click', function () { historyLocal.splice(+btn.getAttribute('data-rm'), 1); openForm(collectDraft(s)); });
                 });
-
-                $('btnClose').addEventListener('click', function () { $('editor').style.display = 'none'; });
-                $('btnSave').addEventListener('click', saveShip);
-                var d = $('btnDel');
-                if (d) d.addEventListener('click', delShip);
+                $('btnClose').addEventListener('click', function () { stopAnim(); $('editor').style.display = 'none'; });
+                $('btnSave').addEventListener('click', function () { saveShipment(false); });
+                var del = $('btnDel'); if (del) del.addEventListener('click', delShip);
+                $('mPlay').addEventListener('click', function () { playMove(); });
+                $('mPause').addEventListener('click', function () { pauseMove(); });
+                $('mReset').addEventListener('click', function () { resetMove(); });
+                $('mFace').addEventListener('click', function () { rotationDeg = null; placeVehicle(liveProgress()); });
+                $('mLeft').addEventListener('click', function () { rotationDeg = ((rotationDeg != null ? rotationDeg : 0) - 15 + 360) % 360; placeVehicle(liveProgress()); });
+                $('mRight').addEventListener('click', function () { rotationDeg = ((rotationDeg != null ? rotationDeg : 0) + 15) % 360; placeVehicle(liveProgress()); });
+                $('mDone').addEventListener('click', function () { saveMapOnly(); });
+                bindBarDrag();
             }
 
-            function readSender() { return { name: $('f_sn').value.trim(), phone: $('f_sp').value.trim(), email: $('f_se').value.trim(), address: $('f_sa').value.trim() }; }
-            function readReceiver() { return { name: $('f_rn').value.trim(), phone: $('f_rp').value.trim(), email: $('f_re').value.trim(), address: $('f_ra').value.trim() }; }
-            function readPay() { return { amount: $('f_amt').value, currency: $('f_cur').value.trim() || 'USD', method: $('f_meth').value.trim(), status: $('f_payst').value.trim() }; }
+            function collectDraft(s) {
+                return Object.assign({}, s || {}, {
+                    code: codeEdit, history: historyLocal,
+                    sender: { name: $('f_sn').value, phone: $('f_sp').value, email: $('f_se').value, address: $('f_sa').value },
+                    receiver: { name: $('f_rn').value, phone: $('f_rp').value, email: $('f_re').value, address: $('f_ra').value },
+                    package: { weightKg: $('f_w').value, description: $('f_desc').value },
+                    payment: { amount: $('f_amt').value, currency: $('f_cur').value, method: $('f_meth').value, status: $('f_payst').value },
+                    route: { originCountry: $('f_o').value, destCountry: $('f_d').value, icon: $('f_icon').value, speed: $('f_speed').value, progress: progress, isMoving: isMoving, movingSince: movingSince, rotationDeg: rotationDeg },
+                    waybillNumber: $('f_way').value, serviceType: $('f_svc').value, termsOfTrade: $('f_terms').value, carrier: $('f_car').value,
+                    shipmentDate: $('f_sdate').value, estimatedDelivery: $('f_eta').value, pinProtected: !!(s && s.pinProtected)
+                });
+            }
 
-            function drawMap(oName, dName) {
-                var o = COUNTRIES[oName] || COUNTRIES['Indonesia'];
-                var d = COUNTRIES[dName] || COUNTRIES['Singapore'];
-                if (map) { try { map.remove(); } catch (e) { } map = null; }
-                var el = $('map');
-                if (!el) return;
-                map = L.map(el).setView([(o.lat + d.lat) / 2, (o.lng + d.lng) / 2], 3);
+            function setupMap(oName, dName) {
+                var o = COUNTRIES[oName] || COUNTRIES.Indonesia, d = COUNTRIES[dName] || COUNTRIES.Singapore;
+                if (map) { try { map.remove(); } catch (e) { } map = null; marker = null; }
+                map = L.map('map', { zoomControl: true }).setView([(o.lat + d.lat) / 2, (o.lng + d.lng) / 2], 3);
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(map);
                 L.marker([o.lat, o.lng]).addTo(map).bindPopup('Origin: ' + oName);
                 L.marker([d.lat, d.lng]).addTo(map).bindPopup('Destination: ' + dName);
-                var line = L.polyline([[o.lat, o.lng], [d.lat, d.lng]], { color: '#D40511', weight: 3 }).addTo(map);
-                map.fitBounds(line.getBounds(), { padding: [28, 28] });
-                setTimeout(function () { try { map.invalidateSize(); } catch (e) { } }, 150);
-                setTimeout(function () { try { map.invalidateSize(); } catch (e) { } }, 500);
+                line = L.polyline([[o.lat, o.lng], [d.lat, d.lng]], { color: '#D40511', weight: 3, dashArray: '6,8' }).addTo(map);
+                map.fitBounds(line.getBounds(), { padding: [30, 30] });
+                placeVehicle(liveProgress());
+                setTimeout(function () { try { map.invalidateSize(); } catch (e) { } }, 200);
             }
 
-            async function saveShip() {
-                var msg = $('edToast');
-                msg.className = 'toast';
+            function placeVehicle(p) {
+                if (!map) return;
+                var o = COUNTRIES[$('f_o').value] || COUNTRIES.Indonesia;
+                var d = COUNTRIES[$('f_d').value] || COUNTRIES.Singapore;
+                var t = Math.min(1, Math.max(0, (p || 0) / 100));
+                var lat = lerp(o.lat, d.lat, t), lng = lerp(o.lng, d.lng, t);
+                var iconType = $('f_icon').value || 'truck';
+                var emoji = ICONS[iconType] || '🚚';
+                var deg = rotationDeg != null ? rotationDeg : bearing(o.lat, o.lng, d.lat, d.lng);
+                var html = '<div class="veh-marker" style="transform:rotate(' + deg + 'deg)">' + emoji + '</div>';
+                var ic = L.divIcon({ className: '', html: html, iconSize: [36, 36], iconAnchor: [18, 18] });
+                if (marker) { marker.setLatLng([lat, lng]); marker.setIcon(ic); }
+                else {
+                    marker = L.marker([lat, lng], { icon: ic, draggable: true }).addTo(map);
+                    marker.on('drag', function (ev) {
+                        var pos = ev.target.getLatLng();
+                        // project onto line o->d
+                        var t2 = projectT(o, d, pos.lat, pos.lng);
+                        progress = t2 * 100; baseProgress = progress; isMoving = false; movingSince = null; stopAnim();
+                        setProgressUI(progress);
+                        placeVehicle(progress);
+                    });
+                    marker.on('dragend', function () { /* stay */ });
+                }
+            }
+            function projectT(o, d, lat, lng) {
+                var ax = o.lng, ay = o.lat, bx = d.lng, by = d.lat;
+                var px = lng, py = lat;
+                var abx = bx - ax, aby = by - ay;
+                var apx = px - ax, apy = py - ay;
+                var ab2 = abx * abx + aby * aby || 1;
+                var t = (apx * abx + apy * aby) / ab2;
+                return Math.min(1, Math.max(0, t));
+            }
+            function setProgressUI(p) {
+                p = Math.min(100, Math.max(0, p));
+                progress = p;
+                var fill = $('barFill'), lab = $('pctLabel');
+                if (fill) fill.style.width = p + '%';
+                if (lab) lab.textContent = Math.round(p) + '% of the way there. You can zoom and pan the map to follow along.';
+                placeVehicle(p);
+            }
+            function bindBarDrag() {
+                var track = $('barTrack'); if (!track) return;
+                function setFromEvent(e) {
+                    var rect = track.getBoundingClientRect();
+                    var clientX = (e.touches && e.touches[0]) ? e.touches[0].clientX : (e.clientX);
+                    var t = (clientX - rect.left) / rect.width;
+                    t = Math.min(1, Math.max(0, t));
+                    progress = t * 100; baseProgress = progress;
+                    if (isMoving) { movingSince = new Date().toISOString(); }
+                    setProgressUI(progress);
+                }
+                track.addEventListener('pointerdown', function (e) { track.setPointerCapture(e.pointerId); setFromEvent(e); });
+                track.addEventListener('pointermove', function (e) { if (e.buttons || e.pressure) setFromEvent(e); });
+                track.addEventListener('touchstart', function (e) { setFromEvent(e); }, { passive: true });
+                track.addEventListener('touchmove', function (e) { setFromEvent(e); }, { passive: true });
+            }
+            function startAnim() {
+                stopAnim();
+                animTimer = setInterval(function () {
+                    var p = liveProgress();
+                    setProgressUI(p);
+                    if (p >= 100) { pauseMove(); }
+                }, 500);
+            }
+            function stopAnim() { if (animTimer) { clearInterval(animTimer); animTimer = null; } }
+            function playMove() {
+                baseProgress = progress; movingSince = new Date().toISOString(); isMoving = true; startAnim();
+                toast('ok', 'Movement playing…');
+            }
+            function pauseMove() {
+                progress = liveProgress(); baseProgress = progress; isMoving = false; movingSince = null; stopAnim(); setProgressUI(progress);
+                toast('ok', 'Paused at ' + Math.round(progress) + '%');
+            }
+            function resetMove() {
+                stopAnim(); progress = 0; baseProgress = 0; isMoving = false; movingSince = null; setProgressUI(0);
+                toast('ok', 'Restarted to 0%');
+            }
+
+            async function saveMapOnly() {
+                if (!codeEdit) { toast('err', 'Save shipment first, then save map.'); return; }
+                var msg = $('edToast'); msg.className = 'toast wait'; msg.textContent = '...... saving map';
+                try {
+                    var o = COUNTRIES[$('f_o').value], d = COUNTRIES[$('f_d').value];
+                    var body = {
+                        originCountry: $('f_o').value, destCountry: $('f_d').value,
+                        originLat: o && o.lat, originLng: o && o.lng, destLat: d && d.lat, destLng: d && d.lng,
+                        icon: $('f_icon').value, speed: $('f_speed').value,
+                        progress: liveProgress(), isMoving: isMoving, movingSince: movingSince,
+                        rotationDeg: rotationDeg
+                    };
+                    await api('/shipments/' + encodeURIComponent(codeEdit) + '/route', { method: 'PATCH', body: JSON.stringify(body) });
+                    msg.className = 'toast ok'; msg.textContent = 'Map & fill bar saved — shows on public track.';
+                    toast('ok', 'Map saved');
+                } catch (e) { msg.className = 'toast err'; msg.textContent = e.message; }
+            }
+
+            async function saveShipment() {
+                var msg = $('edToast'); msg.className = 'toast wait'; msg.textContent = '...... saving';
+                toast('wait', '...... saving');
                 var body = {
                     code: $('f_code').value.trim() || undefined,
-                    accessPin: $('f_pin').value.trim() || undefined,
-                    sender: readSender(),
-                    receiver: readReceiver(),
+                    sender: { name: $('f_sn').value.trim(), phone: $('f_sp').value.trim(), email: $('f_se').value.trim(), address: $('f_sa').value.trim() },
+                    receiver: { name: $('f_rn').value.trim(), phone: $('f_rp').value.trim(), email: $('f_re').value.trim(), address: $('f_ra').value.trim() },
                     package: { weightKg: $('f_w').value, description: $('f_desc').value.trim() },
-                    payment: readPay(),
+                    payment: { amount: $('f_amt').value, currency: $('f_cur').value.trim() || 'USD', method: $('f_meth').value.trim(), status: $('f_payst').value.trim() },
+                    waybillNumber: $('f_way').value.trim(), serviceType: $('f_svc').value.trim(), termsOfTrade: $('f_terms').value.trim(),
+                    carrier: $('f_car').value.trim(), shipmentDate: $('f_sdate').value, estimatedDelivery: $('f_eta').value,
+                    originCountry: $('f_o').value, destCountryLabel: $('f_d').value,
                     route: {
-                        originCountry: $('f_o').value,
-                        destCountry: $('f_d').value,
-                        destinationCountry: $('f_d').value,
-                        icon: $('f_icon').value
-                    },
-                    waybillNumber: $('f_way').value.trim(),
-                    serviceType: $('f_svc').value.trim(),
-                    termsOfTrade: $('f_terms').value.trim(),
-                    carrier: $('f_car').value.trim(),
-                    estimatedDelivery: $('f_eta').value.trim()
+                        originCountry: $('f_o').value, destCountry: $('f_d').value,
+                        originLat: (COUNTRIES[$('f_o').value] || {}).lat, originLng: (COUNTRIES[$('f_o').value] || {}).lng,
+                        destLat: (COUNTRIES[$('f_d').value] || {}).lat, destLng: (COUNTRIES[$('f_d').value] || {}).lng,
+                        icon: $('f_icon').value, speed: $('f_speed').value,
+                        progress: liveProgress(), isMoving: isMoving, movingSince: movingSince, rotationDeg: rotationDeg
+                    }
                 };
+                var pin = $('f_pin').value.trim();
+                if (pin) body.accessPin = pin;
                 try {
                     var saved;
                     if (!codeEdit) {
+                        if (!body.code) throw new Error('Enter a tracking code');
                         saved = await api('/shipments', { method: 'POST', body: JSON.stringify(body) });
-                        codeEdit = saved.code || body.code;
+                        codeEdit = saved.code;
                     } else {
                         saved = await api('/shipments/' + encodeURIComponent(codeEdit), { method: 'PUT', body: JSON.stringify(body) });
                     }
-                    // sync statuses that were only local: push any new labels via API if possible
                     for (var i = 0; i < historyLocal.length; i++) {
-                        var h = historyLocal[i];
-                        try {
-                            await api('/shipments/' + encodeURIComponent(codeEdit) + '/status', {
-                                method: 'POST', body: JSON.stringify({ label: h.label, location: h.location || '—', date: h.date })
-                            });
-                        } catch (e2) { }
+                        try { await api('/shipments/' + encodeURIComponent(codeEdit) + '/status', { method: 'POST', body: JSON.stringify(historyLocal[i]) }); } catch (e2) { }
                     }
-                    msg.className = 'toast ok';
-                    msg.textContent = 'Saved. Public site will show this after refresh.';
-                    toast('ok', 'Saved ' + codeEdit);
+                    try {
+                        await api('/shipments/' + encodeURIComponent(codeEdit) + '/route', { method: 'PATCH', body: JSON.stringify(body.route) });
+                    } catch (e3) { }
+                    msg.className = 'toast ok'; msg.textContent = 'Saved — public site, receipt & box use this data.';
+                    toast('ok', 'Saved');
                     await loadList();
-                } catch (e) {
-                    msg.className = 'toast err';
-                    msg.textContent = e.message;
-                    toast('err', e.message);
-                }
+                } catch (e) { msg.className = 'toast err'; msg.textContent = e.message; toast('err', e.message); }
             }
 
             async function delShip() {
-                if (!codeEdit) return;
-                if (!confirm('Permanently delete ' + codeEdit + '?')) return;
-                try {
-                    await api('/shipments/' + encodeURIComponent(codeEdit), { method: 'DELETE' });
-                    toast('ok', 'Deleted');
-                    $('editor').style.display = 'none';
-                    loadList();
-                } catch (e) { toast('err', e.message); }
+                if (!codeEdit || !confirm('Delete ' + codeEdit + ' permanently?')) return;
+                toast('wait', '...... deleting');
+                try { await api('/shipments/' + encodeURIComponent(codeEdit), { method: 'DELETE' }); toast('ok', 'Deleted'); $('editor').style.display = 'none'; loadList(); }
+                catch (e) { toast('err', e.message); }
             }
-
             async function refreshBox() {
-                try {
-                    var d = await api('/shipments/box-service');
-                    boxOn = d.on !== false;
-                    $('btnBox').textContent = boxOn ? 'Box: ON' : 'Box: OFF';
-                } catch (e) { $('btnBox').textContent = 'Box: ?'; }
+                try { var d = await api('/shipments/box-service'); boxOn = d.on !== false; $('btnBox').textContent = boxOn ? 'Box: ON' : 'Box: OFF'; }
+                catch (e) { $('btnBox').textContent = 'Box: ?'; }
             }
             async function toggleBox() {
-                try {
-                    var d = await api('/shipments/box-service', { method: 'PUT', body: JSON.stringify({ on: !boxOn }) });
-                    boxOn = d.on !== false;
-                    $('btnBox').textContent = boxOn ? 'Box: ON' : 'Box: OFF';
-                    toast('ok', 'Box ' + (boxOn ? 'ON' : 'OFF'));
-                } catch (e) { toast('err', e.message); }
+                toast('wait', '......');
+                try { var d = await api('/shipments/box-service', { method: 'PUT', body: JSON.stringify({ on: !boxOn }) }); boxOn = d.on !== false; $('btnBox').textContent = boxOn ? 'Box: ON' : 'Box: OFF'; toast('ok', 'Box ' + (boxOn ? 'ON' : 'OFF')); }
+                catch (e) { toast('err', e.message); }
             }
             async function saveSettings() {
-                var msg = $('sMsg');
-                msg.className = 'toast';
+                var msg = $('sMsg'); msg.className = 'toast wait'; msg.textContent = '...... saving';
                 try {
-                    var data = await api('/auth/credentials', {
-                        method: 'PUT',
-                        body: JSON.stringify({
-                            currentPassword: $('sCur').value,
-                            newUsername: $('sUser').value.trim(),
-                            newPassword: $('sPass').value.trim(),
-                            newPin: $('sLoginPin').value.trim(),
-                            newChatPin: $('sChatPin').value.trim()
-                        })
-                    });
-                    msg.className = 'toast ok';
-                    msg.textContent = 'Saved. Username: ' + (data.username || '');
+                    var data = await api('/auth/credentials', { method: 'PUT', body: JSON.stringify({ currentPassword: $('sCur').value, newUsername: $('sUser').value.trim(), newPassword: $('sPass').value.trim(), newPin: $('sLoginPin').value.trim(), newChatPin: $('sChatPin').value.trim() }) });
+                    msg.className = 'toast ok'; msg.textContent = 'Saved. User: ' + (data.username || '');
                 } catch (e) { msg.className = 'toast err'; msg.textContent = e.message; }
             }
         })();
