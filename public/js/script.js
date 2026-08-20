@@ -478,6 +478,8 @@ function startNewShipment() {
     activeCode = null;
     renderShipListRows();
     renderShipDetail(null);
+    var p = document.getElementById('shipDetailPanel');
+    if (p) p.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function renderShipDetail(shipment) {
@@ -2422,7 +2424,10 @@ async function adminLoadThreads() {
                 badge.classList.add('hidden');
             }
         }
-    } catch (e) { }
+    } catch (e) {
+        var list = document.getElementById('adminChatThreadList');
+        if (list) list.innerHTML = '<p style="padding:12px;color:#b91c1c;font-size:13px;">Chat error: ' + (e && e.message ? String(e.message) : 'failed') + '</p>';
+    }
 }
 
 async function adminOpenThread(id) {

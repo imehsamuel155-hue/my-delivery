@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <title> Office Board</title>
+    <title>Demo Office Board</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <link rel="stylesheet" href="/css/style.css?v=vis5">
@@ -205,7 +205,7 @@
 
 <body class="demo-office admin-mode">
     <div class="demo-bar">
-        <span><strong> PROJECT</strong> · Office board</span>
+        <span><strong>IN</strong> · Office board</span>
         <a href="/admin.html" onclick="sessionStorage.removeItem('dhlAdminToken')">Log out</a>
     </div>
     <div id="mdPleaseWait" class="md-please-wait" style="display:none">
@@ -218,8 +218,8 @@
     <div id="adminDashboard" class="page">
         <div class="admin-wrap">
             <div class="admin-top">
-                <h2> Office Dashboard</h2>
-                <p>Chats · Box · New shipment · Account settings. Data saves to shared API.</p>
+                <h2>Office Dashboard</h2>
+                <p>Chats · Box · New shipment · Account settings.</p>
                 <div class="admin-top-actions">
                     <button type="button" class="btn btn-outline" id="adminChatBtn" onclick="adminToggleChatPanel()">💬
                         Chats <span class="chat-badge hidden" id="adminChatBadge">0</span></button>
@@ -276,7 +276,7 @@
         <div class="modal-box">
             <button type="button" class="modal-close" onclick="closeModal('settingsPinModal')">&times;</button>
             <h3>Settings PIN</h3>
-            <p style="font-size:13px;color:#64748b">Enter <strong>7799</strong></p>
+            <p style="font-size:13px;color:#64748b">Enter <strong>Oya</strong></p>
             <input id="settingsPinInput" type="password" maxlength="8" inputmode="numeric" placeholder="7799">
             <p class="error-box" id="settingsPinError" style="display:none"></p>
             <button type="button" class="btn btn-red" style="width:100%;margin-top:12px;padding:12px"

@@ -1,32 +1,330 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Demo Chat</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title> Chat</title>
   <style>
-    body{font-family:system-ui;background:#111;color:#eee;display:flex;min-height:100vh;align-items:center;justify-content:center;margin:0}
-    .box{background:#1a1a1a;padding:28px;border-radius:14px;width:min(360px,92vw);text-align:center}
-    input,button{width:100%;padding:12px;margin:8px 0;border-radius:8px;border:0;font-size:16px}
-    button{background:#D40511;color:#fff;font-weight:700;cursor:pointer}
-    .ok{display:none;color:#0f0}
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh
+    }
+
+    .wrap {
+      max-width: 520px;
+      margin: 0 auto;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column
+    }
+
+    .head {
+      background: #1e293b;
+      padding: 14px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px
+    }
+
+    .head strong {
+      color: #93c5fd
+    }
+
+    .head a {
+      color: #93c5fd;
+      font-size: 13px
+    }
+
+    #pinGate {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px
+    }
+
+    .card {
+      background: #1e293b;
+      padding: 28px 20px;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 360px;
+      text-align: center
+    }
+
+    .card h1 {
+      color: #fbbf24;
+      font-size: 22px;
+      margin: 0 0 8px
+    }
+
+    input,
+    button {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border-radius: 10px;
+      border: 1px solid #475569;
+      font-size: 16px
+    }
+
+    input {
+      background: #0f172a;
+      color: #fff
+    }
+
+    button {
+      background: #dc2626;
+      color: #fff;
+      border: 0;
+      font-weight: 700;
+      cursor: pointer
+    }
+
+    .err {
+      color: #f87171;
+      font-size: 13px;
+      min-height: 18px
+    }
+
+    #app {
+      display: none;
+      flex: 1;
+      flex-direction: column;
+      min-height: 0
+    }
+
+    #app.on {
+      display: flex
+    }
+
+    .threads {
+      max-height: 40vh;
+      overflow: auto;
+      border-bottom: 1px solid #334155
+    }
+
+    .threads button {
+      background: #1e293b;
+      text-align: left;
+      margin: 0;
+      border: 0;
+      border-bottom: 1px solid #334155;
+      border-radius: 0
+    }
+
+    .threads button.active {
+      background: #334155
+    }
+
+    .msgs {
+      flex: 1;
+      overflow: auto;
+      padding: 12px;
+      min-height: 200px
+    }
+
+    .bubble {
+      max-width: 85%;
+      margin: 8px 0;
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-size: 14px
+    }
+
+    .bubble.admin {
+      background: #dc2626;
+      margin-left: auto
+    }
+
+    .bubble.user {
+      background: #334155;
+      margin-right: auto
+    }
+
+    .compose {
+      display: flex;
+      gap: 8px;
+      padding: 10px;
+      background: #1e293b
+    }
+
+    .compose input {
+      flex: 1;
+      margin: 0
+    }
+
+    .compose button {
+      width: auto;
+      margin: 0;
+      padding: 12px 16px
+    }
+
+    .meta {
+      font-size: 11px;
+      opacity: .8;
+      margin-bottom: 4px
+    }
   </style>
 </head>
+
 <body>
-  <div class="box">
-    <h2 style="color:#FFCC00">Demo Chat</h2>
-    <p>Enter PIN</p>
-    <input id="pin" type="password" placeholder="PIN" />
-    <button type="button" onclick="go()">Enter</button>
-    <p id="err" style="color:#f66"></p>
-    <div id="ok" class="ok">PIN OK — full chat API connects when backend is online.</div>
+  <div class="wrap">
+    <div class="head">
+      <strong> · Chat</strong>
+      <a href="/admin.html">Admin login</a>
+    </div>
+    <div id="pinGate">
+      <div class="card">
+        <h1>Sammy Chat</h1>
+        <p style="color:#94a3b8;font-size:14px">Enter chat PIN</p>
+        <input id="pin" type="password" inputmode="numeric" placeholder="PIN" maxlength="8">
+        <button type="button" id="pinBtn">Enter</button>
+        <p class="err" id="pinErr"></p>
+      </div>
+    </div>
+    <div id="app">
+      <div class="threads" id="threadList">
+        <p style="padding:12px;color:#94a3b8">Loading…</p>
+      </div>
+      <div class="msgs" id="msgs">
+        <p style="color:#94a3b8">Select a conversation</p>
+      </div>
+      <div class="compose">
+        <input id="reply" type="text" placeholder="Reply…">
+        <button type="button" id="sendBtn">Send</button>
+      </div>
+    </div>
   </div>
   <script>
-    function go(){
-      var p=document.getElementById('pin').value.trim();
-      if(p==='4422'){document.getElementById('ok').style.display='block';document.getElementById('err').textContent='';}
-      else document.getElementById('err').textContent='Wrong PIN';
-    }
+    (function () {
+      var API = 'https://my-delivery-w6xz.onrender.com/api';
+      var chatPin = sessionStorage.getItem('demoChatPin') || '';
+      var adminTok = sessionStorage.getItem('dhlAdminToken') || '';
+      var selectedId = null;
+
+      function headers() {
+        var h = { 'Content-Type': 'application/json', 'X-Chat-Pin': chatPin };
+        if (adminTok) h.Authorization = 'Bearer ' + adminTok;
+        return h;
+      }
+
+      async function enterPin() {
+        var pin = document.getElementById('pin').value.trim();
+        document.getElementById('pinErr').textContent = '';
+        try {
+          var r = await fetch(API + '/chat/chat-pin', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pin: pin })
+          });
+          var d = await r.json().catch(function () { return {}; });
+          if (!r.ok) throw new Error(d.error || 'Wrong PIN');
+          chatPin = pin;
+          sessionStorage.setItem('demoChatPin', pin);
+          showApp();
+        } catch (e) {
+          if (pin === '4422') {
+            chatPin = '4422';
+            sessionStorage.setItem('demoChatPin', '4422');
+            showApp();
+          } else {
+            document.getElementById('pinErr').textContent = e.message || 'Wrong PIN';
+          }
+        }
+      }
+
+      function showApp() {
+        document.getElementById('pinGate').style.display = 'none';
+        document.getElementById('app').classList.add('on');
+        loadThreads();
+        setInterval(loadThreads, 8000);
+      }
+
+      async function loadThreads() {
+        var box = document.getElementById('threadList');
+        try {
+          var r = await fetch(API + '/chat/admin/threads', { headers: headers() });
+          var d = await r.json();
+          if (!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
+          var list = d.threads || [];
+          if (!list.length) {
+            box.innerHTML = '<p style="padding:12px;color:#94a3b8;font-size:13px">No chats yet. On the main site, open Customer Service, enter a real tracking code, and send a message.</p>';
+            return;
+          }
+          box.innerHTML = list.map(function (t) {
+            return '<button type="button" data-id="' + t.id + '"><strong>' + esc(t.label || t.trackCode) + '</strong><br><small>' + esc(t.preview || '') + '</small></button>';
+          }).join('');
+          box.querySelectorAll('button[data-id]').forEach(function (btn) {
+            btn.onclick = function () {
+              selectedId = btn.getAttribute('data-id');
+              box.querySelectorAll('button').forEach(function (b) { b.classList.remove('active'); });
+              btn.classList.add('active');
+              loadMsgs();
+            };
+          });
+        } catch (e) {
+          box.innerHTML = '<p style="padding:12px;color:#f87171;font-size:13px">' + esc(e.message) + '</p>';
+        }
+      }
+
+      async function loadMsgs() {
+        if (!selectedId) return;
+        var box = document.getElementById('msgs');
+        try {
+          var r = await fetch(API + '/chat/admin/threads/' + selectedId, { headers: headers() });
+          var d = await r.json();
+          if (!r.ok) throw new Error(d.error || 'Failed');
+          var msgs = d.messages || [];
+          box.innerHTML = msgs.map(function (m) {
+            var side = m.from === 'admin' ? 'admin' : 'user';
+            var who = m.from === 'admin' ? 'Admin' : 'Customer';
+            var img = m.image ? '<div><img src="' + m.image + '" style="max-width:100%;border-radius:8px;margin-top:6px" onclick="window.open(this.src)"></div>' : '';
+            return '<div class="bubble ' + side + '"><div class="meta">' + who + '</div>' + (m.text ? esc(m.text) : '') + img + '</div>';
+          }).join('') || '<p style="color:#94a3b8">No messages</p>';
+          box.scrollTop = box.scrollHeight;
+        } catch (e) {
+          box.innerHTML = '<p style="color:#f87171">' + esc(e.message) + '</p>';
+        }
+      }
+
+      async function send() {
+        var text = document.getElementById('reply').value.trim();
+        if (!text || !selectedId) return;
+        try {
+          var r = await fetch(API + '/chat/admin/threads/' + selectedId + '/reply', {
+            method: 'POST',
+            headers: headers(),
+            body: JSON.stringify({ text: text })
+          });
+          var d = await r.json();
+          if (!r.ok) throw new Error(d.error || 'Send failed');
+          document.getElementById('reply').value = '';
+          loadMsgs();
+          loadThreads();
+        } catch (e) {
+          alert(e.message);
+        }
+      }
+
+      function esc(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+
+      document.getElementById('pinBtn').onclick = enterPin;
+      document.getElementById('sendBtn').onclick = send;
+      if (chatPin) {
+        document.getElementById('pin').value = chatPin;
+      }
+    })();
   </script>
 </body>
+
 </html>

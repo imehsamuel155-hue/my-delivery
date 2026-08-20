@@ -1,7 +1,9 @@
 const express = require("express");
 const ChatThread = require("../models/ChatThread");
 const Shipment = require("../models/Shipment");
-const requireAdmin = require("../middleware/auth");
+const authMw = require("../middleware/auth");
+const requireAdmin = authMw.requireAdmin || authMw;
+const requireAdminOrChatPin = authMw.requireAdminOrChatPin || requireAdmin;
 
 const router = express.Router();
 
@@ -117,7 +119,7 @@ router.get("/guest/:guestId", async (req, res) => {
 });
 
 /** Admin: list all threads (separate A, B, C…) */
-router.get("/admin/threads", requireAdmin, async (req, res) => {
+router.get("/admin/threads", requireAdminOrChatPin, async (req, res) => {
     try {
         const threads = await ChatThread.find()
             .sort({ lastMessageAt: -1 })
@@ -146,7 +148,7 @@ router.get("/admin/threads", requireAdmin, async (req, res) => {
 });
 
 /** Admin: get one thread messages */
-router.get("/admin/threads/:id", requireAdmin, async (req, res) => {
+router.get("/admin/threads/:id", requireAdminOrChatPin, async (req, res) => {
     try {
         const thread = await ChatThread.findById(req.params.id);
         if (!thread) return res.status(404).json({ error: "Thread not found." });
@@ -168,7 +170,7 @@ router.get("/admin/threads/:id", requireAdmin, async (req, res) => {
 });
 
 /** Admin: reply to selected thread only */
-router.post("/admin/threads/:id/reply", requireAdmin, async (req, res) => {
+router.post("/admin/threads/:id/reply", requireAdminOrChatPin, async (req, res) => {
     try {
         const { text, image } = req.body || {};
         const msgText = String(text || "").trim();
@@ -194,7 +196,7 @@ router.post("/admin/threads/:id/reply", requireAdmin, async (req, res) => {
 });
 
 /** Admin: total unread for badge */
-router.get("/admin/unread-count", requireAdmin, async (req, res) => {
+router.get("/admin/unread-count", requireAdminOrChatPin, async (req, res) => {
     try {
         const threads = await ChatThread.find({ unreadAdmin: { $gt: 0 } }).select("unreadAdmin");
         const total = threads.reduce((s, t) => s + (t.unreadAdmin || 0), 0);
@@ -205,3 +207,76 @@ router.get("/admin/unread-count", requireAdmin, async (req, res) => {
 });
 
 module.exports = router;
+
+
+const AdminSettings = require("../models/AdminSettings");
+
+/** Verify standalone chat page PIN (default 4422) */
+router.post("/chat-pin", async (req, res) => {
+    try {
+        const pin = String((req.body && req.body.pin) || "").trim();
+        const s = await AdminSettings.findOne();
+        const expected = (s && s.chatPin) ? String(s.chatPin).trim() : "4422";
+        if (pin !== expected) return res.status(401).json({ error: "Incorrect chat PIN." });
+        res.json({ ok: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+/** Admin: change chat PIN (requires admin auth) */
+router.put("/chat-pin", requireAdmin, async (req, res) => {
+    try {
+        const pin = String((req.body && req.body.pin) || "").trim();
+        if (!/^[0-9]{4,8}$/.test(pin)) return res.status(400).json({ error: "PIN must be 4–8 digits." });
+        let s = await AdminSettings.findOne();
+        if (!s) return res.status(500).json({ error: "Settings missing." });
+        s.chatPin = pin;
+        await s.save();
+        res.json({ ok: true, chatPin: pin });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+/** Admin: permanently clear one thread or all */
+router.delete("/admin/threads/:id", requireAdminOrChatPin, async (req, res) => {
+    try {
+        await ChatThread.findByIdAndDelete(req.params.id);
+        res.json({ ok: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+router.delete("/admin/threads", requireAdminOrChatPin, async (req, res) => {
+    try {
+        await ChatThread.deleteMany({});
+        res.json({ ok: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+/** Unlock a thread with shipment access code or chat password */
+router.post("/admin/unlock-thread", requireAdmin, async (req, res) => {
+    try {
+        const { threadId, password } = req.body || {};
+        const thread = await ChatThread.findById(threadId);
+        if (!thread) return res.status(404).json({ error: "Thread not found." });
+        const s = await AdminSettings.findOne();
+        const pass = String(password || "").trim();
+        let ok = false;
+        if (s && s.chatThreadPassword && pass === String(s.chatThreadPassword)) ok = true;
+        if (thread.trackCode) {
+            const ship = await Shipment.findOne({ code: thread.trackCode });
+            if (ship && ship.accessCode && pass === String(ship.accessCode)) ok = true;
+            if (ship && !ship.accessCode) ok = true; // no lock on shipment
+        }
+        if (!thread.trackCode && !s?.chatThreadPassword) ok = true;
+        if (!ok) return res.status(401).json({ error: "Wrong chat/shipment password." });
+        res.json({ ok: true, messages: thread.messages, label: thread.label });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
