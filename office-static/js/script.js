@@ -4,13 +4,13 @@ function dhlParseHistoryDate(h) {
   const raw = String((h && (h.date || h.createdAt)) || '').trim();
   let d = raw ? new Date(raw) : new Date();
   if (isNaN(d.getTime())) d = new Date();
-  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  const months = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
-  const hh = String(d.getHours()).padStart(2,'0');
-  const mm = String(d.getMinutes()).padStart(2,'0');
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const months = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
   return {
     day: days[d.getDay()],
-    dateLine: String(d.getDate()).padStart(2,'0') + ' ' + months[d.getMonth()] + ' ' + d.getFullYear(),
+    dateLine: String(d.getDate()).padStart(2, '0') + ' ' + months[d.getMonth()] + ' ' + d.getFullYear(),
     timeLine: hh + ':' + mm + ' Local time',
   };
 }
@@ -49,7 +49,7 @@ function dhlTimelineHtml(history) {
         <div class="dhl-tl-time">${esc(t.timeLine)}</div>
         <div class="dhl-tl-status ${statusClass}">${esc(label)}</div>
         ${loc ? `<div class="dhl-tl-loc">${esc(loc)}</div>` : ''}
-        <div class="dhl-tl-piece">1 Piece ID: ${esc((h.pieceId || '') )}</div>
+        <div class="dhl-tl-piece">1 Piece ID: ${esc((h.pieceId || ''))}</div>
       </div>
     </div>`;
   }).join('') + '</div>';
@@ -103,7 +103,7 @@ const API_BASE = (function () {
   try {
     const h = location.hostname;
     if (h === "localhost" || h === "127.0.0.1" || h === "") return "/api";
-  } catch (e) {}
+  } catch (e) { }
   return "https://my-delivery-w6xz.onrender.com/api";
 })();
 
@@ -112,63 +112,63 @@ const API_BASE = (function () {
 let adminToken = null;
 let _dhlSwReg = null;
 if (typeof navigator !== 'undefined' && navigator.serviceWorker) {
-  navigator.serviceWorker.register('/sw.js').then(reg => { _dhlSwReg = reg; }).catch(() => {});
+  navigator.serviceWorker.register('/sw.js').then(reg => { _dhlSwReg = reg; }).catch(() => { });
 }
 
 
 async function apiRequest(path, options = {}) {
-    const headers = Object.assign({ "Content-Type": "application/json" }, options.headers || {});
-    if (adminToken) headers.Authorization = "Bearer " + adminToken;
-    let res;
-    try {
-        res = await fetch(API_BASE + path, Object.assign({}, options, { headers }));
-    } catch (networkErr) {
-        throw new Error("Could not reach the backend. Is it running at " + API_BASE + "?");
-    }
-    let data = {};
-    try { data = await res.json(); } catch (e) { /* empty body is fine */ }
-    if (!res.ok) throw new Error(data.error || ("Request failed (" + res.status + ")"));
-    return data;
+  const headers = Object.assign({ "Content-Type": "application/json" }, options.headers || {});
+  if (adminToken) headers.Authorization = "Bearer " + adminToken;
+  let res;
+  try {
+    res = await fetch(API_BASE + path, Object.assign({}, options, { headers }));
+  } catch (networkErr) {
+    throw new Error("Could not reach the backend. Is it running at " + API_BASE + "?");
+  }
+  let data = {};
+  try { data = await res.json(); } catch (e) { /* empty body is fine */ }
+  if (!res.ok) throw new Error(data.error || ("Request failed (" + res.status + ")"));
+  return data;
 }
 
 const STATUS_LIBRARY = ["Order Received", "Dispatched", "Picked Up", "In Transit", "Arrived At Hub", "Customs Clearance", "Out For Delivery", "Delivered", "On Hold"];
 
 /* ---------- NAV / VIEW SWITCHING ---------- */
 function toggleMobileMenu(e) {
-    if (e && e.preventDefault) e.preventDefault();
-    var menu = document.getElementById('mobileMenu');
-    var overlay = document.getElementById('overlay');
-    if (!menu) {
-      console.warn('mobileMenu not found');
-      return false;
-    }
-    var open = !menu.classList.contains('open');
-    if (open) {
-      menu.classList.add('open');
-      document.body.classList.add('menu-open');
-      if (overlay) overlay.classList.add('show');
-    } else {
-      menu.classList.remove('open');
-      document.body.classList.remove('menu-open');
-      if (overlay) overlay.classList.remove('show');
-    }
+  if (e && e.preventDefault) e.preventDefault();
+  var menu = document.getElementById('mobileMenu');
+  var overlay = document.getElementById('overlay');
+  if (!menu) {
+    console.warn('mobileMenu not found');
     return false;
+  }
+  var open = !menu.classList.contains('open');
+  if (open) {
+    menu.classList.add('open');
+    document.body.classList.add('menu-open');
+    if (overlay) overlay.classList.add('show');
+  } else {
+    menu.classList.remove('open');
+    document.body.classList.remove('menu-open');
+    if (overlay) overlay.classList.remove('show');
+  }
+  return false;
 }
 window.toggleMobileMenu = toggleMobileMenu;
 function showSite() {
-    destroyPublicMap();
-    nsStopTrackWatch();
-    document.getElementById('siteView').classList.remove('hidden');
-    document.getElementById('trackPage').classList.add('hidden');
-    document.getElementById('adminDashboard').classList.add('hidden');
+  destroyPublicMap();
+  nsStopTrackWatch();
+  document.getElementById('siteView').classList.remove('hidden');
+  document.getElementById('trackPage').classList.add('hidden');
+  document.getElementById('adminDashboard').classList.add('hidden');
 }
 function goTrack() {
-    mdShowWait('Please wait……');
-    document.getElementById('siteView').classList.add('hidden');
-    document.getElementById('adminDashboard').classList.add('hidden');
-    document.getElementById('trackPage').classList.remove('hidden');
-    window.scrollTo(0, 0);
-    setTimeout(mdHideWait, 350);
+  mdShowWait('Please wait……');
+  document.getElementById('siteView').classList.add('hidden');
+  document.getElementById('adminDashboard').classList.add('hidden');
+  document.getElementById('trackPage').classList.remove('hidden');
+  window.scrollTo(0, 0);
+  setTimeout(mdHideWait, 350);
 }
 function openModal(id) {
   mdShowWait('Please wait……');
@@ -178,36 +178,36 @@ function closeModal(id) { document.getElementById(id).classList.remove('show'); 
 
 /* ---------- TRACKING (public, reads straight from MongoDB via the API) ---------- */
 async function trackFromHero() {
-    const code = document.getElementById('heroTrackInput').value.trim();
-    const msg = document.getElementById('heroTrackMsg');
-    if (!code) { msg.textContent = "Enter a tracking code first."; return; }
-    mdShowWait('Tracking your package……');
-    try {
-      goTrack();
-      document.getElementById('pageTrackInput').value = code;
-      await renderTrackResult(code);
-    } finally { mdHideWait(); }
+  const code = document.getElementById('heroTrackInput').value.trim();
+  const msg = document.getElementById('heroTrackMsg');
+  if (!code) { msg.textContent = "Enter a tracking code first."; return; }
+  mdShowWait('Tracking your package……');
+  try {
+    goTrack();
+    document.getElementById('pageTrackInput').value = code;
+    await renderTrackResult(code);
+  } finally { mdHideWait(); }
 }
 async function trackFromPage() {
-    const code = document.getElementById('pageTrackInput').value.trim();
-    if (!code) { document.getElementById('pageTrackMsg').textContent = "Enter a tracking code first."; return; }
-    mdShowWait('Tracking your package……');
-    try { await renderTrackResult(code); } finally { mdHideWait(); }
+  const code = document.getElementById('pageTrackInput').value.trim();
+  if (!code) { document.getElementById('pageTrackMsg').textContent = "Enter a tracking code first."; return; }
+  mdShowWait('Tracking your package……');
+  try { await renderTrackResult(code); } finally { mdHideWait(); }
 }
 async function renderTrackResult(code) {
-    const box = document.getElementById('trackResultBox');
-    const msg = document.getElementById('pageTrackMsg');
-    let shipment;
-    try {
-        shipment = await apiRequest('/shipments/track/' + encodeURIComponent(code));
-    } catch (err) {
-        msg.textContent = err.message.includes('backend') ? err.message : "No shipment found for that code. Double-check and try again.";
-        box.innerHTML = "";
-        return;
-    }
-    msg.textContent = "";
-    const current = shipment.history.length - 1;
-    box.innerHTML = `
+  const box = document.getElementById('trackResultBox');
+  const msg = document.getElementById('pageTrackMsg');
+  let shipment;
+  try {
+    shipment = await apiRequest('/shipments/track/' + encodeURIComponent(code));
+  } catch (err) {
+    msg.textContent = err.message.includes('backend') ? err.message : "No shipment found for that code. Double-check and try again.";
+    box.innerHTML = "";
+    return;
+  }
+  msg.textContent = "";
+  const current = shipment.history.length - 1;
+  box.innerHTML = `
     <div class="track-result">
       <div class="track-head">
         <div><div class="mono" style="font-size:13px;color:var(--gray);">TRACKING CODE</div><h3 class="mono" style="font-size:22px;">${esc(shipment.code)}</h3></div>
@@ -218,12 +218,12 @@ async function renderTrackResult(code) {
         <div class="party"><h4>Receiver</h4><p><strong>${esc(shipment.receiver.name)}</strong><br>${esc(shipment.receiver.address)}<br>${esc(shipment.receiver.phone || '')}${shipment.receiver.email ? '<br>' + esc(shipment.receiver.email) : ''}</p></div>
       </div>
       <div class="pkg-meta">
-        <div class="meta-chip">Shipment Date<b>${esc(shipment.shipmentDate || (shipment.history && shipment.history[0] && shipment.history[0].date) || (shipment.createdAt ? new Date(shipment.createdAt).toISOString().slice(0,10) : '—'))}</b></div>
+        <div class="meta-chip">Shipment Date<b>${esc(shipment.shipmentDate || (shipment.history && shipment.history[0] && shipment.history[0].date) || (shipment.createdAt ? new Date(shipment.createdAt).toISOString().slice(0, 10) : '—'))}</b></div>
         
         <div class="meta-chip">Service<b>${esc(shipment.serviceType || '—')}</b></div>
         
         <div class="meta-chip">Weight<b>${esc((shipment.package && shipment.package.weightKg) != null ? shipment.package.weightKg : '—')} kg</b></div>
-        <div class="meta-chip">Dimensions<b>${esc(shipment.package ? [shipment.package.length,shipment.package.width,shipment.package.height].filter(v=>v!=null&&v!=='').join('×') : '—')} cm</b></div>
+        <div class="meta-chip">Dimensions<b>${esc(shipment.package ? [shipment.package.length, shipment.package.width, shipment.package.height].filter(v => v != null && v !== '').join('×') : '—')} cm</b></div>
         
         <div class="meta-chip">Mode<b>${esc(shipment.mode || '—')}</b></div>
         <div class="meta-chip">Carrier<b>${esc(shipment.carrier || '—')}</b></div>
@@ -258,130 +258,138 @@ ${dhlTimelineHtml(shipment.history)}
       <div id="publicMapBox"></div>
     </div>`;
 
-    initPublicMap(shipment);
-    nsStartTrackWatch(shipment.code);
-    const rl = document.getElementById('receiptLink');
-    if (rl) {
-      rl.href = '/receipt?code=' + encodeURIComponent(shipment.code);
-      rl.textContent = 'Open receipt for ' + shipment.code + ' (print / PDF)';
-    }
+  initPublicMap(shipment);
+  nsStartTrackWatch(shipment.code);
+  const rl = document.getElementById('receiptLink');
+  if (rl) {
+    rl.href = '/receipt?code=' + encodeURIComponent(shipment.code);
+    rl.textContent = 'Open receipt for ' + shipment.code + ' (print / PDF)';
+  }
 }
 function esc(s) { return String(s ?? "").replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])); }
 
 /* ---------- CONTACT FORM (real POST to the backend) ---------- */
 async function handleContactSubmit(e) {
-    e.preventDefault();
-    const fields = ['cName', 'cEmail', 'cSubject', 'cMessage'];
-    let ok = true;
-    fields.forEach(id => {
-        const el = document.getElementById(id);
-        const err = document.getElementById('err-' + id);
-        const valid = id === 'cEmail' ? /\S+@\S+\.\S+/.test(el.value) : el.value.trim().length > 0;
-        err.style.display = valid ? 'none' : 'block';
-        if (!valid) ok = false;
+  e.preventDefault();
+  const fields = ['cName', 'cEmail', 'cSubject', 'cMessage'];
+  let ok = true;
+  fields.forEach(id => {
+    const el = document.getElementById(id);
+    const err = document.getElementById('err-' + id);
+    const valid = id === 'cEmail' ? /\S+@\S+\.\S+/.test(el.value) : el.value.trim().length > 0;
+    err.style.display = valid ? 'none' : 'block';
+    if (!valid) ok = false;
+  });
+  if (!ok) return false;
+  mdShowWait('Sending message……');
+  try {
+    await apiRequest('/contact', {
+      method: 'POST', body: JSON.stringify({
+        name: document.getElementById('cName').value.trim(),
+        email: document.getElementById('cEmail').value.trim(),
+        subject: document.getElementById('cSubject').value.trim(),
+        message: document.getElementById('cMessage').value.trim(),
+      })
     });
-    if (!ok) return false;
-    mdShowWait('Sending message……');
-    try {
-        await apiRequest('/contact', {
-            method: 'POST', body: JSON.stringify({
-                name: document.getElementById('cName').value.trim(),
-                email: document.getElementById('cEmail').value.trim(),
-                subject: document.getElementById('cSubject').value.trim(),
-                message: document.getElementById('cMessage').value.trim(),
-            })
-        });
-        document.getElementById('contactSuccess').style.display = 'block';
-        document.getElementById('contactForm').reset();
-    } catch (err) {
-        alert("Couldn't send your message: " + err.message);
-    } finally { mdHideWait(); }
-    return false;
+    document.getElementById('contactSuccess').style.display = 'block';
+    document.getElementById('contactForm').reset();
+  } catch (err) {
+    alert("Couldn't send your message: " + err.message);
+  } finally { mdHideWait(); }
+  return false;
 }
 
 /* ---------- LOGIN (real server-side check via JWT) ---------- */
 let pendingLoginTicket = null;
 
 async function handleLogin(e) {
-    e.preventDefault();
-    const u = document.getElementById('loginUser').value.trim();
-    const p = document.getElementById('loginPass').value;
-    const err = document.getElementById('loginError');
-    mdShowWait('Signing in……');
-    try {
-        const data = await apiRequest('/auth/login', { method: 'POST', body: JSON.stringify({ username: u, password: p }) });
-        err.style.display = 'none';
-        pendingLoginTicket = data.loginTicket;
-        closeModal('loginModal');
-        document.getElementById('pinInput').value = '';
-        openModal('pinModal');
-    } catch (err2) {
-        err.textContent = err2.message || 'Incorrect username or password.';
-        err.style.display = 'block';
-    } finally { mdHideWait(); }
-    return false;
+  e.preventDefault();
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  const err = document.getElementById('loginError');
+  mdShowWait('Signing in……');
+  try {
+    const data = await apiRequest('/auth/login', { method: 'POST', body: JSON.stringify({ username: u, password: p }) });
+    err.style.display = 'none';
+    pendingLoginTicket = data.loginTicket;
+    closeModal('loginModal');
+    document.getElementById('pinInput').value = '';
+    openModal('pinModal');
+  } catch (err2) {
+    err.textContent = err2.message || 'Incorrect username or password.';
+    err.style.display = 'block';
+  } finally { mdHideWait(); }
+  return false;
 }
 async function handlePinSubmit(e) {
-    e.preventDefault();
-    const pin = document.getElementById('pinInput').value.trim();
-    const err = document.getElementById('pinError');
-    mdShowWait('Verifying PIN……');
-    try {
-        const data = await apiRequest('/auth/verify-pin', { method: 'POST', body: JSON.stringify({ loginTicket: pendingLoginTicket, pin }) });
-        adminToken = data.token; sessionStorage.setItem("dhlAdminToken", data.token);
-        pendingLoginTicket = null;
-        err.style.display = 'none';
-        closeModal('pinModal');
-        document.getElementById('siteView').classList.add('hidden');
-        document.getElementById('trackPage').classList.add('hidden');
-        document.getElementById('adminDashboard').classList.remove('hidden');
-        if (typeof setAdminMode === 'function') setAdminMode(true);
-        await renderShipList();
-        nsLoadAdminNotifs();
-        if (window._nsAdminNotifTimer) clearInterval(window._nsAdminNotifTimer);
-        window._nsAdminNotifTimer = setInterval(nsLoadAdminNotifs, 8000);
-        window.scrollTo(0, 0);
-    } catch (err2) {
-        err.textContent = err2.message || 'Incorrect PIN.';
-        err.style.display = 'block';
-    } finally { mdHideWait(); }
-    return false;
+  e.preventDefault();
+  const pin = document.getElementById('pinInput').value.trim();
+  const err = document.getElementById('pinError');
+  mdShowWait('Verifying PIN……');
+  try {
+    const data = await apiRequest('/auth/verify-pin', { method: 'POST', body: JSON.stringify({ loginTicket: pendingLoginTicket, pin }) });
+    adminToken = data.token; sessionStorage.setItem("dhlAdminToken", data.token);
+    pendingLoginTicket = null;
+    err.style.display = 'none';
+    closeModal('pinModal');
+    document.getElementById('siteView').classList.add('hidden');
+    document.getElementById('trackPage').classList.add('hidden');
+    document.getElementById('adminDashboard').classList.remove('hidden');
+    if (typeof setAdminMode === 'function') setAdminMode(true);
+    await renderShipList();
+    nsLoadAdminNotifs();
+    if (window._nsAdminNotifTimer) clearInterval(window._nsAdminNotifTimer);
+    window._nsAdminNotifTimer = setInterval(nsLoadAdminNotifs, 8000);
+    window.scrollTo(0, 0);
+  } catch (err2) {
+    err.textContent = err2.message || 'Incorrect PIN.';
+    err.style.display = 'block';
+  } finally { mdHideWait(); }
+  return false;
 }
-function logoutAdmin() { destroyAdminMap(); adminToken = null; unlockedShipments = {}; showSite(); window.scrollTo(0, 0); const ls=document.getElementById('langStrip'); if(ls) ls.style.display=''; }
+function logoutAdmin() { destroyAdminMap(); adminToken = null; unlockedShipments = {}; showSite(); window.scrollTo(0, 0); const ls = document.getElementById('langStrip'); if (ls) ls.style.display = ''; }
 
 /* ---------- ACCOUNT SETTINGS: change admin username/password/PIN ---------- */
 async function handleCredentialsSubmit(e) {
-    e.preventDefault();
-    const err = document.getElementById('settingsError');
-    const ok = document.getElementById('settingsSuccess');
-    err.style.display = 'none'; ok.style.display = 'none';
-    try {
-        const data = await apiRequest('/auth/credentials', {
-            method: 'PUT', body: JSON.stringify({
-                currentPassword: document.getElementById('settingsCurrentPass').value,
-                newUsername: document.getElementById('settingsNewUser').value.trim(),
-                newPassword: document.getElementById('settingsNewPass').value.trim(),
-                newPin: document.getElementById('settingsNewPin').value.trim(),
-            })
-        });
-        ok.textContent = 'Saved. Username is now: ' + data.username;
-        ok.style.display = 'block';
-        document.getElementById('settingsCurrentPass').value = '';
-        document.getElementById('settingsNewUser').value = '';
-        document.getElementById('settingsNewPass').value = '';
-        document.getElementById('settingsNewPin').value = '';
-    } catch (err2) {
-        err.textContent = err2.message;
-        err.style.display = 'block';
+  e.preventDefault();
+  const err = document.getElementById('settingsError');
+  const ok = document.getElementById('settingsSuccess');
+  if (err) err.style.display = 'none';
+  if (ok) ok.style.display = 'none';
+  function val(id) {
+    const el = document.getElementById(id);
+    return el ? String(el.value || '').trim() : '';
+  }
+  try {
+    const body = {
+      currentPassword: val('settingsCurrentPass') || val('credCurrent'),
+      newUsername: val('settingsNewUser') || val('credUser'),
+      newPassword: val('settingsNewPass') || val('credPass'),
+      newPin: val('settingsNewPin') || val('credPin'),
+      newChatPin: val('settingsChatPin') || val('credChatPin'),
+    };
+    const data = await apiRequest('/auth/credentials', {
+      method: 'PUT', body: JSON.stringify(body)
+    });
+    if (ok) {
+      ok.textContent = 'Saved. Username is now: ' + (data.username || '');
+      ok.style.display = 'block';
     }
-    return false;
+    ['settingsCurrentPass', 'settingsNewUser', 'settingsNewPass', 'settingsNewPin', 'settingsChatPin', 'credCurrent', 'credUser', 'credPass', 'credPin', 'credChatPin'].forEach(function (id) {
+      const el = document.getElementById(id); if (el) el.value = '';
+    });
+  } catch (err2) {
+    if (err) { err.textContent = err2.message; err.style.display = 'block'; }
+    else alert(err2.message || 'Save failed');
+  }
+  return false;
 }
 
 /* ---------- SIGN UP: always fails, by design ---------- */
 async function handleSignup(e) {
-    e.preventDefault();
-    document.getElementById('signupError').style.display = 'block';
-    return false;
+  e.preventDefault();
+  document.getElementById('signupError').style.display = 'block';
+  return false;
 }
 
 /* ---------- ADMIN: SHIPMENT LIST + DETAIL ---------- */
@@ -390,62 +398,62 @@ let shipmentsCache = [];
 let unlockedShipments = {}; // code -> full shipment data, cached in memory once a PIN has been entered correctly this session
 
 async function renderShipList() {
-    const wrap = document.getElementById('shipList');
-    mdShowWait('Loading shipments……');
-    try {
-        shipmentsCache = await apiRequest('/shipments');
-    } catch (err) {
-        wrap.innerHTML = `<p style="color:var(--red);font-size:13px;">Couldn't load shipments: ${esc(err.message)}</p>`;
-        mdHideWait();
-        return;
-    } finally { mdHideWait(); }
-    if (shipmentsCache.length === 0) {
-        renderShipListRows();
-        document.getElementById('shipDetailPanel').innerHTML = '';
-        activeCode = null;
-        return;
-    }
-    const codeToShow = (activeCode && shipmentsCache.find(s => s.code === activeCode)) ? activeCode : shipmentsCache[0].code;
-    await selectShipment(codeToShow);
+  const wrap = document.getElementById('shipList');
+  mdShowWait('Loading shipments……');
+  try {
+    shipmentsCache = await apiRequest('/shipments');
+  } catch (err) {
+    wrap.innerHTML = `<p style="color:var(--red);font-size:13px;">Couldn't load shipments: ${esc(err.message)}</p>`;
+    mdHideWait();
+    return;
+  } finally { mdHideWait(); }
+  if (shipmentsCache.length === 0) {
+    renderShipListRows();
+    document.getElementById('shipDetailPanel').innerHTML = '';
+    activeCode = null;
+    return;
+  }
+  const codeToShow = (activeCode && shipmentsCache.find(s => s.code === activeCode)) ? activeCode : shipmentsCache[0].code;
+  await selectShipment(codeToShow);
 }
 function renderShipListRows() {
-    const wrap = document.getElementById('shipList');
-    if (shipmentsCache.length === 0) {
-        wrap.innerHTML = '<p style="color:var(--gray);font-size:13.5px;">No shipments yet — create one to get started.</p>';
-        return;
-    }
-    wrap.innerHTML = shipmentsCache.map(s => {
-        const senderName = s.pinProtected ? s.senderName : s.sender.name;
-        const receiverName = s.pinProtected ? s.receiverName : s.receiver.name;
-        const status = s.pinProtected ? s.latestStatus : (s.history.length ? s.history[s.history.length - 1].label : 'Order Received');
-        return `
+  const wrap = document.getElementById('shipList');
+  if (shipmentsCache.length === 0) {
+    wrap.innerHTML = '<p style="color:var(--gray);font-size:13.5px;">No shipments yet — create one to get started.</p>';
+    return;
+  }
+  wrap.innerHTML = shipmentsCache.map(s => {
+    const senderName = s.pinProtected ? s.senderName : s.sender.name;
+    const receiverName = s.pinProtected ? s.receiverName : s.receiver.name;
+    const status = s.pinProtected ? s.latestStatus : (s.history.length ? s.history[s.history.length - 1].label : 'Order Received');
+    return `
       <div class="ship-row ${s.code === activeCode ? 'active' : ''}" onclick="selectShipment('${esc(s.code)}')">
         <div class="code">${esc(s.code)} ${s.pinProtected ? '🔒' : ''}</div>
         <div class="who">${esc(senderName)} → ${esc(receiverName)}</div>
         <div class="who">${esc(status)}</div>
       </div>`;
-    }).join("");
+  }).join("");
 }
 async function selectShipment(code) {
-    activeCode = code;
-    renderShipListRows();
-    if (unlockedShipments[code]) {
-        renderShipDetail(unlockedShipments[code]);
-        return;
-    }
-    const summary = shipmentsCache.find(s => s.code === code);
-    if (!summary) return;
-    if (!summary.pinProtected) {
-        unlockedShipments[code] = summary;
-        renderShipDetail(summary);
-        return;
-    }
-    renderPinPrompt(code);
+  activeCode = code;
+  renderShipListRows();
+  if (unlockedShipments[code]) {
+    renderShipDetail(unlockedShipments[code]);
+    return;
+  }
+  const summary = shipmentsCache.find(s => s.code === code);
+  if (!summary) return;
+  if (!summary.pinProtected) {
+    unlockedShipments[code] = summary;
+    renderShipDetail(summary);
+    return;
+  }
+  renderPinPrompt(code);
 }
 function renderPinPrompt(code) {
-    destroyAdminMap();
-    const panel = document.getElementById('shipDetailPanel');
-    panel.innerHTML = `
+  destroyAdminMap();
+  const panel = document.getElementById('shipDetailPanel');
+  panel.innerHTML = `
     <h4 class="section-title">🔒 Locked Shipment</h4>
     <p style="font-size:13px;color:var(--gray);margin-bottom:14px;">This shipment has its own access code. Enter it to view or edit — sender, receiver, payment and map details stay hidden until it's correct.</p>
     <div class="field"><label>4-Digit Access Code</label><input id="unlockPinInput" class="mono" maxlength="4" inputmode="numeric" placeholder="0000"></div>
@@ -454,30 +462,30 @@ function renderPinPrompt(code) {
   `;
 }
 async function attemptUnlock(code) {
-    const pin = document.getElementById('unlockPinInput').value.trim();
-    const err = document.getElementById('unlockError');
-    try {
-        const full = await apiRequest('/shipments/' + encodeURIComponent(code) + '/unlock', { method: 'POST', body: JSON.stringify({ pin }) });
-        full.pinProtected = true;
-        unlockedShipments[code] = full;
-        renderShipDetail(full);
-    } catch (e) {
-        err.textContent = e.message;
-        err.style.display = 'block';
-    }
+  const pin = document.getElementById('unlockPinInput').value.trim();
+  const err = document.getElementById('unlockError');
+  try {
+    const full = await apiRequest('/shipments/' + encodeURIComponent(code) + '/unlock', { method: 'POST', body: JSON.stringify({ pin }) });
+    full.pinProtected = true;
+    unlockedShipments[code] = full;
+    renderShipDetail(full);
+  } catch (e) {
+    err.textContent = e.message;
+    err.style.display = 'block';
+  }
 }
 function startNewShipment() {
-    activeCode = null;
-    renderShipListRows();
-    renderShipDetail(null);
+  activeCode = null;
+  renderShipListRows();
+  renderShipDetail(null);
 }
 
 function renderShipDetail(shipment) {
-    const panel = document.getElementById('shipDetailPanel');
-    const isNew = !shipment;
-    const s = shipment || { code: '', sender: { name: '', address: '', phone: '', email: '' }, receiver: { name: '', address: '', phone: '', email: '' }, package: { weightKg: '', length: '', width: '', height: '', description: '' }, payment: { amount: '', method: 'Card', status: 'Unpaid' }, mode: 'Air Freight', estimatedDelivery: '', carrier: '', history: [] };
+  const panel = document.getElementById('shipDetailPanel');
+  const isNew = !shipment;
+  const s = shipment || { code: '', sender: { name: '', address: '', phone: '', email: '' }, receiver: { name: '', address: '', phone: '', email: '' }, package: { weightKg: '', length: '', width: '', height: '', description: '' }, payment: { amount: '', method: 'Card', status: 'Unpaid' }, mode: 'Air Freight', estimatedDelivery: '', carrier: '', history: [] };
 
-    panel.innerHTML = `
+  panel.innerHTML = `
     <h4 class="section-title">${isNew ? 'New Shipment' : 'Edit Shipment'}</h4>
     <div class="field">
       <label>Tracking Code</label>
@@ -662,110 +670,110 @@ function renderShipDetail(shipment) {
     <p id="routeSaveMsg" style="font-size:12px; color:var(--gray); margin-top:6px; display:none;"></p>
     ` : ''}
   `;
-    if (!isNew) initAdminMap(s); else destroyAdminMap();
+  if (!isNew) initAdminMap(s); else destroyAdminMap();
 }
 
 function collectFormShipment(existingCode) {
-    let code = document.getElementById('f_code').value.trim() || existingCode || '';
-    if (!code) code = generateTrackCode();
-    const codeEl = document.getElementById('f_code');
-    if (codeEl && !codeEl.value.trim()) codeEl.value = code;
-    const payload = {
-        code,
-        sender: { name: document.getElementById('f_senderName').value.trim(), address: document.getElementById('f_senderAddr').value.trim(), phone: document.getElementById('f_senderPhone').value.trim(), email: document.getElementById('f_senderEmail').value.trim() },
-        receiver: { name: document.getElementById('f_recvName').value.trim(), address: document.getElementById('f_recvAddr').value.trim(), phone: document.getElementById('f_recvPhone').value.trim(), email: document.getElementById('f_recvEmail').value.trim() },
-        package: { weightKg: document.getElementById('f_weight').value, length: document.getElementById('f_len').value, width: document.getElementById('f_wid').value, height: document.getElementById('f_hei').value, description: document.getElementById('f_desc').value.trim() },
-        payment: { amount: document.getElementById('f_amount').value, currency: document.getElementById('f_currency').value.trim() || 'USD', method: document.getElementById('f_method').value, status: document.getElementById('f_paystatus').value },
-        mode: document.getElementById('f_mode').value,
-        estimatedDelivery: document.getElementById('f_eta').value,
-        carrier: document.getElementById('f_carrier').value,
-            waybillNumber: (document.getElementById('f_waybill')||{}).value || '',
-            serviceType: (document.getElementById('f_service')||{}).value || '',
-            packagingType: (document.getElementById('f_pack')||{}).value || '',
-            pieces: Number((document.getElementById('f_pieces')||{}).value || 1),
-            termsOfTrade: (document.getElementById('f_terms')||{}).value || '',
-            billingAccount: (document.getElementById('f_billAcct')||{}).value || '',
-            declaredValue: (document.getElementById('f_decl')||{}).value || '',
-            specialServices: (document.getElementById('f_special')||{}).value || '',
-            reference: (document.getElementById('f_ref')||{}).value || '',
-            shipmentDate: (document.getElementById('f_shipDate')||{}).value || '',
+  let code = document.getElementById('f_code').value.trim() || existingCode || '';
+  if (!code) code = generateTrackCode();
+  const codeEl = document.getElementById('f_code');
+  if (codeEl && !codeEl.value.trim()) codeEl.value = code;
+  const payload = {
+    code,
+    sender: { name: document.getElementById('f_senderName').value.trim(), address: document.getElementById('f_senderAddr').value.trim(), phone: document.getElementById('f_senderPhone').value.trim(), email: document.getElementById('f_senderEmail').value.trim() },
+    receiver: { name: document.getElementById('f_recvName').value.trim(), address: document.getElementById('f_recvAddr').value.trim(), phone: document.getElementById('f_recvPhone').value.trim(), email: document.getElementById('f_recvEmail').value.trim() },
+    package: { weightKg: document.getElementById('f_weight').value, length: document.getElementById('f_len').value, width: document.getElementById('f_wid').value, height: document.getElementById('f_hei').value, description: document.getElementById('f_desc').value.trim() },
+    payment: { amount: document.getElementById('f_amount').value, currency: document.getElementById('f_currency').value.trim() || 'USD', method: document.getElementById('f_method').value, status: document.getElementById('f_paystatus').value },
+    mode: document.getElementById('f_mode').value,
+    estimatedDelivery: document.getElementById('f_eta').value,
+    carrier: document.getElementById('f_carrier').value,
+    waybillNumber: (document.getElementById('f_waybill') || {}).value || '',
+    serviceType: (document.getElementById('f_service') || {}).value || '',
+    packagingType: (document.getElementById('f_pack') || {}).value || '',
+    pieces: Number((document.getElementById('f_pieces') || {}).value || 1),
+    termsOfTrade: (document.getElementById('f_terms') || {}).value || '',
+    billingAccount: (document.getElementById('f_billAcct') || {}).value || '',
+    declaredValue: (document.getElementById('f_decl') || {}).value || '',
+    specialServices: (document.getElementById('f_special') || {}).value || '',
+    reference: (document.getElementById('f_ref') || {}).value || '',
+    shipmentDate: (document.getElementById('f_shipDate') || {}).value || '',
 
-    };
-    // Only include the access PIN if something was typed - leaving it blank
-    // means "keep whatever's already set," it does NOT clear existing protection.
-    const pinVal = document.getElementById('f_accessPin').value.trim();
-    if (pinVal) payload.accessPin = pinVal;
-    return payload;
-    // Note: route and history are intentionally left out here — they're saved
-    // through their own endpoints (saveRoute / addStatus) so this form never
-    // accidentally overwrites them.
+  };
+  // Only include the access PIN if something was typed - leaving it blank
+  // means "keep whatever's already set," it does NOT clear existing protection.
+  const pinVal = document.getElementById('f_accessPin').value.trim();
+  if (pinVal) payload.accessPin = pinVal;
+  return payload;
+  // Note: route and history are intentionally left out here — they're saved
+  // through their own endpoints (saveRoute / addStatus) so this form never
+  // accidentally overwrites them.
 }
 async function saveShipment(isNew) {
-    let code = document.getElementById('f_code').value.trim();
-    if (!code) {
-      code = generateTrackCode();
-      const el = document.getElementById('f_code');
-      if (el) el.value = code;
+  let code = document.getElementById('f_code').value.trim();
+  if (!code) {
+    code = generateTrackCode();
+    const el = document.getElementById('f_code');
+    if (el) el.value = code;
+  }
+  const pinVal = document.getElementById('f_accessPin').value.trim();
+  if (pinVal && !/^\d{4}$/.test(pinVal)) { alert('Shipment access code must be exactly 4 digits.'); return; }
+  const payload = collectFormShipment(code);
+  try {
+    let updated;
+    if (isNew) {
+      updated = await apiRequest('/shipments', { method: 'POST', body: JSON.stringify(payload) });
+    } else {
+      updated = await apiRequest('/shipments/' + encodeURIComponent(code), { method: 'PUT', body: JSON.stringify(payload) });
     }
-    const pinVal = document.getElementById('f_accessPin').value.trim();
-    if (pinVal && !/^\d{4}$/.test(pinVal)) { alert('Shipment access code must be exactly 4 digits.'); return; }
-    const payload = collectFormShipment(code);
-    try {
-        let updated;
-        if (isNew) {
-            updated = await apiRequest('/shipments', { method: 'POST', body: JSON.stringify(payload) });
-        } else {
-            updated = await apiRequest('/shipments/' + encodeURIComponent(code), { method: 'PUT', body: JSON.stringify(payload) });
-        }
-        activeCode = updated.code;
-        unlockedShipments[updated.code] = updated;
-        await renderShipList();
-    } catch (err) {
-        alert("Couldn't save shipment: " + err.message);
-    }
+    activeCode = updated.code;
+    unlockedShipments[updated.code] = updated;
+    await renderShipList();
+  } catch (err) {
+    alert("Couldn't save shipment: " + err.message);
+  }
 }
 async function removeShipmentPin(code) {
-    if (!confirm('Remove the access code from this shipment? Any admin will be able to open it without a code afterward.')) return;
-    try {
-        const updated = await apiRequest('/shipments/' + encodeURIComponent(code), { method: 'PUT', body: JSON.stringify({ accessPin: null }) });
-        unlockedShipments[updated.code] = updated;
-        await renderShipList();
-    } catch (err) {
-        alert("Couldn't remove the code: " + err.message);
-    }
+  if (!confirm('Remove the access code from this shipment? Any admin will be able to open it without a code afterward.')) return;
+  try {
+    const updated = await apiRequest('/shipments/' + encodeURIComponent(code), { method: 'PUT', body: JSON.stringify({ accessPin: null }) });
+    unlockedShipments[updated.code] = updated;
+    await renderShipList();
+  } catch (err) {
+    alert("Couldn't remove the code: " + err.message);
+  }
 }
 async function deleteShipment(code) {
-    if (!confirm('Delete shipment ' + code + '?')) return;
-    try {
-        await apiRequest('/shipments/' + encodeURIComponent(code), { method: 'DELETE' });
-        delete unlockedShipments[code];
-        activeCode = null;
-        await renderShipList();
-    } catch (err) {
-        alert("Couldn't delete shipment: " + err.message);
-    }
+  if (!confirm('Delete shipment ' + code + '?')) return;
+  try {
+    await apiRequest('/shipments/' + encodeURIComponent(code), { method: 'DELETE' });
+    delete unlockedShipments[code];
+    activeCode = null;
+    await renderShipList();
+  } catch (err) {
+    alert("Couldn't delete shipment: " + err.message);
+  }
 }
 async function addStatus(code) {
-    const label = document.getElementById('f_newStatus').value.trim();
-    const location = document.getElementById('f_newLocation').value.trim() || "—";
-    const date = document.getElementById('f_newDate').value || new Date().toISOString().slice(0, 10);
-    if (!label) { alert('Enter a status label first.'); return; }
-    try {
-        const updated = await apiRequest('/shipments/' + encodeURIComponent(code) + '/status', { method: 'POST', body: JSON.stringify({ label, location, date }) });
-        unlockedShipments[updated.code] = updated;
-        await renderShipList();
-    } catch (err) {
-        alert("Couldn't add status: " + err.message);
-    }
+  const label = document.getElementById('f_newStatus').value.trim();
+  const location = document.getElementById('f_newLocation').value.trim() || "—";
+  const date = document.getElementById('f_newDate').value || new Date().toISOString().slice(0, 10);
+  if (!label) { alert('Enter a status label first.'); return; }
+  try {
+    const updated = await apiRequest('/shipments/' + encodeURIComponent(code) + '/status', { method: 'POST', body: JSON.stringify({ label, location, date }) });
+    unlockedShipments[updated.code] = updated;
+    await renderShipList();
+  } catch (err) {
+    alert("Couldn't add status: " + err.message);
+  }
 }
 async function removeStatus(code, idx) {
-    try {
-        const updated = await apiRequest('/shipments/' + encodeURIComponent(code) + '/status/' + idx, { method: 'DELETE' });
-        unlockedShipments[updated.code] = updated;
-        await renderShipList();
-    } catch (err) {
-        alert("Couldn't remove status: " + err.message);
-    }
+  try {
+    const updated = await apiRequest('/shipments/' + encodeURIComponent(code) + '/status/' + idx, { method: 'DELETE' });
+    unlockedShipments[updated.code] = updated;
+    await renderShipList();
+  } catch (err) {
+    alert("Couldn't remove status: " + err.message);
+  }
 }
 
 /* ---------- LIVE MAP: moving truck/plane/ship along a route ---------- */
@@ -813,7 +821,7 @@ function onRotSliderInput(val) {
       const iconType = (document.getElementById('f_icon') || {}).value || 'truck';
       adminMarker.setIcon(makeVehicleIcon(iconType, o.lat, o.lng, d.lat, d.lng, false, deg, ''));
     }
-  } catch (e) {}
+  } catch (e) { }
   window._lastAdminRotation = deg;
   const hint = document.getElementById('rotHint');
   if (hint) hint.textContent = 'Facing ' + deg + '° — Pause or Done to lock direction.';
@@ -828,7 +836,7 @@ function nudgeVehicleRot(delta) {
       const o = COUNTRY_COORDS[document.getElementById('f_oCountry').value];
       const d = COUNTRY_COORDS[document.getElementById('f_dCountry').value];
       if (o && d) deg = bearingDeg(o.lat, o.lng, d.lat, d.lng);
-    } catch(e) {}
+    } catch (e) { }
   }
   deg = (deg + delta + 360) % 360;
   if (slider) slider.value = String(Math.round(deg));
@@ -844,7 +852,7 @@ function nudgeVehicleRot(delta) {
       const ic = makeVehicleIcon(iconType, o.lat, o.lng, d.lat, d.lng, false, deg, '');
       adminMarker.setIcon(ic);
     }
-  } catch(e) {}
+  } catch (e) { }
 }
 function setVehicleRotAuto() {
   const face = document.getElementById('f_face');
@@ -865,7 +873,7 @@ function setVehicleRotAuto() {
       const ic = makeVehicleIcon(iconType, o.lat, o.lng, d.lat, d.lng, false, null, '');
       adminMarker.setIcon(ic);
     }
-  } catch(e) {}
+  } catch (e) { }
 }
 
 function updateVehicleIconDisplay() {
@@ -892,7 +900,7 @@ function updateVehicleIconDisplay() {
       const oLng = parseFloat((document.getElementById('f_oCountry') && COUNTRY_COORDS[document.getElementById('f_oCountry').value] || {}).lng);
       const dLat = parseFloat((document.getElementById('f_dCountry') && COUNTRY_COORDS[document.getElementById('f_dCountry').value] || {}).lat);
       const dLng = parseFloat((document.getElementById('f_dCountry') && COUNTRY_COORDS[document.getElementById('f_dCountry').value] || {}).lng);
-      if (![oLat,oLng,dLat,dLng].some(isNaN)) {
+      if (![oLat, oLng, dLat, dLng].some(isNaN)) {
         const face = document.getElementById('f_face');
         const faceVal = face ? face.value : 'auto';
         const flip = faceVal === 'flip';
@@ -907,7 +915,7 @@ function updateVehicleIconDisplay() {
         adminMarker.setIcon(ic);
       }
     }
-  } catch (e) {}
+  } catch (e) { }
 }
 
 let adminMap = null, adminMarker = null, adminAnimTimer = null;
@@ -936,148 +944,148 @@ function filterCountrySelect(selectId, q) {
 }
 
 const COUNTRY_COORDS = {
-    "Afghanistan": { lat: 34.5553, lng: 69.2075 },
-    "Albania": { lat: 41.3275, lng: 19.8187 },
-    "Algeria": { lat: 36.7538, lng: 3.0588 },
-    "Angola": { lat: -8.839, lng: 13.2894 },
-    "Argentina": { lat: -34.6037, lng: -58.3816 },
-    "Armenia": { lat: 40.1792, lng: 44.4991 },
-    "Australia": { lat: -35.2809, lng: 149.13 },
-    "Austria": { lat: 48.2082, lng: 16.3738 },
-    "Azerbaijan": { lat: 40.4093, lng: 49.8671 },
-    "Bahrain": { lat: 26.2285, lng: 50.586 },
-    "Bangladesh": { lat: 23.8103, lng: 90.4125 },
-    "Belarus": { lat: 53.9045, lng: 27.5615 },
-    "Belgium": { lat: 50.8503, lng: 4.3517 },
-    "Benin": { lat: 6.4969, lng: 2.6289 },
-    "Bolivia": { lat: -16.4897, lng: -68.1193 },
-    "Bosnia and Herzegovina": { lat: 43.8563, lng: 18.4131 },
-    "Botswana": { lat: -24.6282, lng: 25.9231 },
-    "Brazil": { lat: -15.8267, lng: -47.9218 },
-    "Bulgaria": { lat: 42.6977, lng: 23.3219 },
-    "Burkina Faso": { lat: 12.3714, lng: -1.5197 },
-    "Cambodia": { lat: 11.5564, lng: 104.9282 },
-    "Cameroon": { lat: 3.848, lng: 11.5021 },
-    "Canada": { lat: 45.4215, lng: -75.6972 },
-    "Chile": { lat: -33.4489, lng: -70.6693 },
-    "China": { lat: 39.9042, lng: 116.4074 },
-    "Colombia": { lat: 4.711, lng: -74.0721 },
-    "Congo": { lat: -4.2634, lng: 15.2429 },
-    "Costa Rica": { lat: 9.9281, lng: -84.0907 },
-    "Croatia": { lat: 45.815, lng: 15.9819 },
-    "Cuba": { lat: 23.1136, lng: -82.3666 },
-    "Cyprus": { lat: 35.1856, lng: 33.3823 },
-    "Czech Republic": { lat: 50.0755, lng: 14.4378 },
-    "Denmark": { lat: 55.6761, lng: 12.5683 },
-    "Dominican Republic": { lat: 18.4861, lng: -69.9312 },
-    "Ecuador": { lat: -0.1807, lng: -78.4678 },
-    "Egypt": { lat: 30.0444, lng: 31.2357 },
-    "El Salvador": { lat: 13.6929, lng: -89.2182 },
-    "Estonia": { lat: 59.437, lng: 24.7536 },
-    "Ethiopia": { lat: 9.025, lng: 38.7469 },
-    "Finland": { lat: 60.1699, lng: 24.9384 },
-    "France": { lat: 48.8566, lng: 2.3522 },
-    "Gabon": { lat: 0.4162, lng: 9.4673 },
-    "Gambia": { lat: 13.4549, lng: -16.579 },
-    "Georgia": { lat: 41.7151, lng: 44.8271 },
-    "Germany": { lat: 52.52, lng: 13.405 },
-    "Ghana": { lat: 5.6037, lng: -0.187 },
-    "Greece": { lat: 37.9838, lng: 23.7275 },
-    "Guatemala": { lat: 14.6349, lng: -90.5069 },
-    "Guinea": { lat: 9.6412, lng: -13.5784 },
-    "Haiti": { lat: 18.5944, lng: -72.3074 },
-    "Honduras": { lat: 14.0723, lng: -87.1921 },
-    "Hong Kong": { lat: 22.3193, lng: 114.1694 },
-    "Hungary": { lat: 47.4979, lng: 19.0402 },
-    "Iceland": { lat: 64.1466, lng: -21.9426 },
-    "India": { lat: 28.6139, lng: 77.209 },
-    "Indonesia": { lat: -6.2088, lng: 106.8456 },
-    "Iran": { lat: 35.6892, lng: 51.389 },
-    "Iraq": { lat: 33.3152, lng: 44.3661 },
-    "Ireland": { lat: 53.3498, lng: -6.2603 },
-    "Israel": { lat: 31.7683, lng: 35.2137 },
-    "Italy": { lat: 41.9028, lng: 12.4964 },
-    "Ivory Coast": { lat: 5.36, lng: -4.0083 },
-    "Jamaica": { lat: 18.0179, lng: -76.8099 },
-    "Japan": { lat: 35.6762, lng: 139.6503 },
-    "Jordan": { lat: 31.9454, lng: 35.9284 },
-    "Kazakhstan": { lat: 51.1694, lng: 71.4491 },
-    "Kenya": { lat: -1.2921, lng: 36.8219 },
-    "Kuwait": { lat: 29.3759, lng: 47.9774 },
-    "Latvia": { lat: 56.9496, lng: 24.1052 },
-    "Lebanon": { lat: 33.8938, lng: 35.5018 },
-    "Liberia": { lat: 6.3004, lng: -10.7969 },
-    "Libya": { lat: 32.8872, lng: 13.1913 },
-    "Lithuania": { lat: 54.6872, lng: 25.2797 },
-    "Luxembourg": { lat: 49.6116, lng: 6.1319 },
-    "Macau": { lat: 22.1987, lng: 113.5439 },
-    "Madagascar": { lat: -18.8792, lng: 47.5079 },
-    "Malawi": { lat: -13.9626, lng: 33.7741 },
-    "Malaysia": { lat: 3.139, lng: 101.6869 },
-    "Mali": { lat: 12.6392, lng: -8.0029 },
-    "Malta": { lat: 35.8989, lng: 14.5146 },
-    "Mexico": { lat: 19.4326, lng: -99.1332 },
-    "Moldova": { lat: 47.0105, lng: 28.8638 },
-    "Mongolia": { lat: 47.8864, lng: 106.9057 },
-    "Morocco": { lat: 34.0209, lng: -6.8417 },
-    "Mozambique": { lat: -25.9692, lng: 32.5732 },
-    "Myanmar": { lat: 16.8409, lng: 96.1735 },
-    "Namibia": { lat: -22.5609, lng: 17.0658 },
-    "Nepal": { lat: 27.7172, lng: 85.324 },
-    "Netherlands": { lat: 52.3676, lng: 4.9041 },
-    "New Zealand": { lat: -41.2865, lng: 174.7762 },
-    "Nicaragua": { lat: 12.115, lng: -86.2362 },
-    "Niger": { lat: 13.5116, lng: 2.1254 },
-    "Nigeria": { lat: 6.5244, lng: 3.3792 },
-    "North Macedonia": { lat: 41.9981, lng: 21.4254 },
-    "Norway": { lat: 59.9139, lng: 10.7522 },
-    "Oman": { lat: 23.588, lng: 58.3829 },
-    "Pakistan": { lat: 33.6844, lng: 73.0479 },
-    "Panama": { lat: 8.9824, lng: -79.5199 },
-    "Paraguay": { lat: -25.2637, lng: -57.5759 },
-    "Peru": { lat: -12.0464, lng: -77.0428 },
-    "Philippines": { lat: 14.5995, lng: 120.9842 },
-    "Poland": { lat: 52.2297, lng: 21.0122 },
-    "Portugal": { lat: 38.7223, lng: -9.1393 },
-    "Qatar": { lat: 25.2854, lng: 51.531 },
-    "Romania": { lat: 44.4268, lng: 26.1025 },
-    "Russia": { lat: 55.7558, lng: 37.6173 },
-    "Rwanda": { lat: -1.9441, lng: 30.0619 },
-    "Saudi Arabia": { lat: 24.7136, lng: 46.6753 },
-    "Senegal": { lat: 14.7167, lng: -17.4677 },
-    "Serbia": { lat: 44.7866, lng: 20.4489 },
-    "Sierra Leone": { lat: 8.4657, lng: -13.2317 },
-    "Singapore": { lat: 1.3521, lng: 103.8198 },
-    "Slovakia": { lat: 48.1486, lng: 17.1077 },
-    "Slovenia": { lat: 46.0569, lng: 14.5058 },
-    "Somalia": { lat: 2.0469, lng: 45.3182 },
-    "South Africa": { lat: -25.7479, lng: 28.2293 },
-    "South Korea": { lat: 37.5665, lng: 126.978 },
-    "Spain": { lat: 40.4168, lng: -3.7038 },
-    "Sri Lanka": { lat: 6.9271, lng: 79.8612 },
-    "Sudan": { lat: 15.5007, lng: 32.5599 },
-    "Sweden": { lat: 59.3293, lng: 18.0686 },
-    "Switzerland": { lat: 46.948, lng: 7.4474 },
-    "Syria": { lat: 33.5138, lng: 36.2765 },
-    "Taiwan": { lat: 25.033, lng: 121.5654 },
-    "Tanzania": { lat: -6.163, lng: 35.7516 },
-    "Thailand": { lat: 13.7563, lng: 100.5018 },
-    "Togo": { lat: 6.1725, lng: 1.2314 },
-    "Trinidad and Tobago": { lat: 10.6549, lng: -61.5019 },
-    "Tunisia": { lat: 36.8065, lng: 10.1815 },
-    "Turkey": { lat: 39.9334, lng: 32.8597 },
-    "Uganda": { lat: 0.3476, lng: 32.5825 },
-    "Ukraine": { lat: 50.4501, lng: 30.5234 },
-    "United Arab Emirates": { lat: 25.2048, lng: 55.2708 },
-    "United Kingdom": { lat: 51.5074, lng: -0.1278 },
-    "United States": { lat: 38.9072, lng: -77.0369 },
-    "Uruguay": { lat: -34.9011, lng: -56.1645 },
-    "Uzbekistan": { lat: 41.2995, lng: 69.2401 },
-    "Venezuela": { lat: 10.4806, lng: -66.9036 },
-    "Vietnam": { lat: 21.0278, lng: 105.8342 },
-    "Yemen": { lat: 15.3694, lng: 44.191 },
-    "Zambia": { lat: -15.3875, lng: 28.3228 },
-    "Zimbabwe": { lat: -17.8252, lng: 31.0335 },
+  "Afghanistan": { lat: 34.5553, lng: 69.2075 },
+  "Albania": { lat: 41.3275, lng: 19.8187 },
+  "Algeria": { lat: 36.7538, lng: 3.0588 },
+  "Angola": { lat: -8.839, lng: 13.2894 },
+  "Argentina": { lat: -34.6037, lng: -58.3816 },
+  "Armenia": { lat: 40.1792, lng: 44.4991 },
+  "Australia": { lat: -35.2809, lng: 149.13 },
+  "Austria": { lat: 48.2082, lng: 16.3738 },
+  "Azerbaijan": { lat: 40.4093, lng: 49.8671 },
+  "Bahrain": { lat: 26.2285, lng: 50.586 },
+  "Bangladesh": { lat: 23.8103, lng: 90.4125 },
+  "Belarus": { lat: 53.9045, lng: 27.5615 },
+  "Belgium": { lat: 50.8503, lng: 4.3517 },
+  "Benin": { lat: 6.4969, lng: 2.6289 },
+  "Bolivia": { lat: -16.4897, lng: -68.1193 },
+  "Bosnia and Herzegovina": { lat: 43.8563, lng: 18.4131 },
+  "Botswana": { lat: -24.6282, lng: 25.9231 },
+  "Brazil": { lat: -15.8267, lng: -47.9218 },
+  "Bulgaria": { lat: 42.6977, lng: 23.3219 },
+  "Burkina Faso": { lat: 12.3714, lng: -1.5197 },
+  "Cambodia": { lat: 11.5564, lng: 104.9282 },
+  "Cameroon": { lat: 3.848, lng: 11.5021 },
+  "Canada": { lat: 45.4215, lng: -75.6972 },
+  "Chile": { lat: -33.4489, lng: -70.6693 },
+  "China": { lat: 39.9042, lng: 116.4074 },
+  "Colombia": { lat: 4.711, lng: -74.0721 },
+  "Congo": { lat: -4.2634, lng: 15.2429 },
+  "Costa Rica": { lat: 9.9281, lng: -84.0907 },
+  "Croatia": { lat: 45.815, lng: 15.9819 },
+  "Cuba": { lat: 23.1136, lng: -82.3666 },
+  "Cyprus": { lat: 35.1856, lng: 33.3823 },
+  "Czech Republic": { lat: 50.0755, lng: 14.4378 },
+  "Denmark": { lat: 55.6761, lng: 12.5683 },
+  "Dominican Republic": { lat: 18.4861, lng: -69.9312 },
+  "Ecuador": { lat: -0.1807, lng: -78.4678 },
+  "Egypt": { lat: 30.0444, lng: 31.2357 },
+  "El Salvador": { lat: 13.6929, lng: -89.2182 },
+  "Estonia": { lat: 59.437, lng: 24.7536 },
+  "Ethiopia": { lat: 9.025, lng: 38.7469 },
+  "Finland": { lat: 60.1699, lng: 24.9384 },
+  "France": { lat: 48.8566, lng: 2.3522 },
+  "Gabon": { lat: 0.4162, lng: 9.4673 },
+  "Gambia": { lat: 13.4549, lng: -16.579 },
+  "Georgia": { lat: 41.7151, lng: 44.8271 },
+  "Germany": { lat: 52.52, lng: 13.405 },
+  "Ghana": { lat: 5.6037, lng: -0.187 },
+  "Greece": { lat: 37.9838, lng: 23.7275 },
+  "Guatemala": { lat: 14.6349, lng: -90.5069 },
+  "Guinea": { lat: 9.6412, lng: -13.5784 },
+  "Haiti": { lat: 18.5944, lng: -72.3074 },
+  "Honduras": { lat: 14.0723, lng: -87.1921 },
+  "Hong Kong": { lat: 22.3193, lng: 114.1694 },
+  "Hungary": { lat: 47.4979, lng: 19.0402 },
+  "Iceland": { lat: 64.1466, lng: -21.9426 },
+  "India": { lat: 28.6139, lng: 77.209 },
+  "Indonesia": { lat: -6.2088, lng: 106.8456 },
+  "Iran": { lat: 35.6892, lng: 51.389 },
+  "Iraq": { lat: 33.3152, lng: 44.3661 },
+  "Ireland": { lat: 53.3498, lng: -6.2603 },
+  "Israel": { lat: 31.7683, lng: 35.2137 },
+  "Italy": { lat: 41.9028, lng: 12.4964 },
+  "Ivory Coast": { lat: 5.36, lng: -4.0083 },
+  "Jamaica": { lat: 18.0179, lng: -76.8099 },
+  "Japan": { lat: 35.6762, lng: 139.6503 },
+  "Jordan": { lat: 31.9454, lng: 35.9284 },
+  "Kazakhstan": { lat: 51.1694, lng: 71.4491 },
+  "Kenya": { lat: -1.2921, lng: 36.8219 },
+  "Kuwait": { lat: 29.3759, lng: 47.9774 },
+  "Latvia": { lat: 56.9496, lng: 24.1052 },
+  "Lebanon": { lat: 33.8938, lng: 35.5018 },
+  "Liberia": { lat: 6.3004, lng: -10.7969 },
+  "Libya": { lat: 32.8872, lng: 13.1913 },
+  "Lithuania": { lat: 54.6872, lng: 25.2797 },
+  "Luxembourg": { lat: 49.6116, lng: 6.1319 },
+  "Macau": { lat: 22.1987, lng: 113.5439 },
+  "Madagascar": { lat: -18.8792, lng: 47.5079 },
+  "Malawi": { lat: -13.9626, lng: 33.7741 },
+  "Malaysia": { lat: 3.139, lng: 101.6869 },
+  "Mali": { lat: 12.6392, lng: -8.0029 },
+  "Malta": { lat: 35.8989, lng: 14.5146 },
+  "Mexico": { lat: 19.4326, lng: -99.1332 },
+  "Moldova": { lat: 47.0105, lng: 28.8638 },
+  "Mongolia": { lat: 47.8864, lng: 106.9057 },
+  "Morocco": { lat: 34.0209, lng: -6.8417 },
+  "Mozambique": { lat: -25.9692, lng: 32.5732 },
+  "Myanmar": { lat: 16.8409, lng: 96.1735 },
+  "Namibia": { lat: -22.5609, lng: 17.0658 },
+  "Nepal": { lat: 27.7172, lng: 85.324 },
+  "Netherlands": { lat: 52.3676, lng: 4.9041 },
+  "New Zealand": { lat: -41.2865, lng: 174.7762 },
+  "Nicaragua": { lat: 12.115, lng: -86.2362 },
+  "Niger": { lat: 13.5116, lng: 2.1254 },
+  "Nigeria": { lat: 6.5244, lng: 3.3792 },
+  "North Macedonia": { lat: 41.9981, lng: 21.4254 },
+  "Norway": { lat: 59.9139, lng: 10.7522 },
+  "Oman": { lat: 23.588, lng: 58.3829 },
+  "Pakistan": { lat: 33.6844, lng: 73.0479 },
+  "Panama": { lat: 8.9824, lng: -79.5199 },
+  "Paraguay": { lat: -25.2637, lng: -57.5759 },
+  "Peru": { lat: -12.0464, lng: -77.0428 },
+  "Philippines": { lat: 14.5995, lng: 120.9842 },
+  "Poland": { lat: 52.2297, lng: 21.0122 },
+  "Portugal": { lat: 38.7223, lng: -9.1393 },
+  "Qatar": { lat: 25.2854, lng: 51.531 },
+  "Romania": { lat: 44.4268, lng: 26.1025 },
+  "Russia": { lat: 55.7558, lng: 37.6173 },
+  "Rwanda": { lat: -1.9441, lng: 30.0619 },
+  "Saudi Arabia": { lat: 24.7136, lng: 46.6753 },
+  "Senegal": { lat: 14.7167, lng: -17.4677 },
+  "Serbia": { lat: 44.7866, lng: 20.4489 },
+  "Sierra Leone": { lat: 8.4657, lng: -13.2317 },
+  "Singapore": { lat: 1.3521, lng: 103.8198 },
+  "Slovakia": { lat: 48.1486, lng: 17.1077 },
+  "Slovenia": { lat: 46.0569, lng: 14.5058 },
+  "Somalia": { lat: 2.0469, lng: 45.3182 },
+  "South Africa": { lat: -25.7479, lng: 28.2293 },
+  "South Korea": { lat: 37.5665, lng: 126.978 },
+  "Spain": { lat: 40.4168, lng: -3.7038 },
+  "Sri Lanka": { lat: 6.9271, lng: 79.8612 },
+  "Sudan": { lat: 15.5007, lng: 32.5599 },
+  "Sweden": { lat: 59.3293, lng: 18.0686 },
+  "Switzerland": { lat: 46.948, lng: 7.4474 },
+  "Syria": { lat: 33.5138, lng: 36.2765 },
+  "Taiwan": { lat: 25.033, lng: 121.5654 },
+  "Tanzania": { lat: -6.163, lng: 35.7516 },
+  "Thailand": { lat: 13.7563, lng: 100.5018 },
+  "Togo": { lat: 6.1725, lng: 1.2314 },
+  "Trinidad and Tobago": { lat: 10.6549, lng: -61.5019 },
+  "Tunisia": { lat: 36.8065, lng: 10.1815 },
+  "Turkey": { lat: 39.9334, lng: 32.8597 },
+  "Uganda": { lat: 0.3476, lng: 32.5825 },
+  "Ukraine": { lat: 50.4501, lng: 30.5234 },
+  "United Arab Emirates": { lat: 25.2048, lng: 55.2708 },
+  "United Kingdom": { lat: 51.5074, lng: -0.1278 },
+  "United States": { lat: 38.9072, lng: -77.0369 },
+  "Uruguay": { lat: -34.9011, lng: -56.1645 },
+  "Uzbekistan": { lat: 41.2995, lng: 69.2401 },
+  "Venezuela": { lat: 10.4806, lng: -66.9036 },
+  "Vietnam": { lat: 21.0278, lng: 105.8342 },
+  "Yemen": { lat: 15.3694, lng: 44.191 },
+  "Zambia": { lat: -15.3875, lng: 28.3228 },
+  "Zimbabwe": { lat: -17.8252, lng: 31.0335 },
 };
 
 
@@ -1087,9 +1095,9 @@ const COUNTRY_COORDS = {
 // Duration in days regardless of distance — progress is linear over that time.
 const SPEED_DAYS = { slow: 7, normal: 4, fast: 2 };
 const SPEEDS = {
-    slow: { percentPerSecond: 100 / (7 * 24 * 3600) },   // 1 week
-    normal: { percentPerSecond: 100 / (4 * 24 * 3600) }, // 4 days
-    fast: { percentPerSecond: 100 / (2 * 24 * 3600) },   // 2 days
+  slow: { percentPerSecond: 100 / (7 * 24 * 3600) },   // 1 week
+  normal: { percentPerSecond: 100 / (4 * 24 * 3600) }, // 4 days
+  fast: { percentPerSecond: 100 / (2 * 24 * 3600) },   // 2 days
 };
 
 // Given a shipment's route from the database, compute how far along it is
@@ -1097,62 +1105,62 @@ const SPEEDS = {
 // movingSince — meaning the admin dashboard and the public tracking page
 // always agree on the current position, without needing to constantly poll.
 function computeLiveProgress(route) {
-    if (!route) return 0;
-    if (!route.isMoving || !route.movingSince) return route.progress || 0;
-    const rate = (SPEEDS[route.speed || 'slow'] || SPEEDS.slow).percentPerSecond;
-    const elapsedSec = (Date.now() - new Date(route.movingSince).getTime()) / 1000;
-    return Math.max(0, Math.min(100, (route.progress || 0) + elapsedSec * rate));
+  if (!route) return 0;
+  if (!route.isMoving || !route.movingSince) return route.progress || 0;
+  const rate = (SPEEDS[route.speed || 'slow'] || SPEEDS.slow).percentPerSecond;
+  const elapsedSec = (Date.now() - new Date(route.movingSince).getTime()) / 1000;
+  return Math.max(0, Math.min(100, (route.progress || 0) + elapsedSec * rate));
 }
 
 function pointAlong(oLat, oLng, dLat, dLng, t) {
-    return [oLat + (dLat - oLat) * t, oLng + (dLng - oLng) * t];
+  return [oLat + (dLat - oLat) * t, oLng + (dLng - oLng) * t];
 }
 // Projects a dragged lat/lng onto the origin→destination line, returns 0–1 progress
 function projectT(oLat, oLng, dLat, dLng, pLat, pLng) {
-    const dx = dLng - oLng, dy = dLat - oLat;
-    const len2 = dx * dx + dy * dy;
-    if (len2 === 0) return 0;
-    const t = ((pLng - oLng) * dx + (pLat - oLat) * dy) / len2;
-    return Math.max(0, Math.min(1, t));
+  const dx = dLng - oLng, dy = dLat - oLat;
+  const len2 = dx * dx + dy * dy;
+  if (len2 === 0) return 0;
+  const t = ((pLng - oLng) * dx + (pLat - oLat) * dy) / len2;
+  return Math.max(0, Math.min(1, t));
 }
 // Simple, reliable left/right facing (moving east flips the icon to face
 // right; moving west leaves it facing its default/left). The admin checkbox
 // lets you manually reverse it if your emoji font draws it the other way.
 function bearingDeg(oLat, oLng, dLat, dLng) {
-    const toRad = Math.PI / 180;
-    const y = Math.sin((dLng - oLng) * toRad) * Math.cos(dLat * toRad);
-    const x = Math.cos(oLat * toRad) * Math.sin(dLat * toRad) -
-              Math.sin(oLat * toRad) * Math.cos(dLat * toRad) * Math.cos((dLng - oLng) * toRad);
-    return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+  const toRad = Math.PI / 180;
+  const y = Math.sin((dLng - oLng) * toRad) * Math.cos(dLat * toRad);
+  const x = Math.cos(oLat * toRad) * Math.sin(dLat * toRad) -
+    Math.sin(oLat * toRad) * Math.cos(dLat * toRad) * Math.cos((dLng - oLng) * toRad);
+  return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
 }
 function emojiNoseOffset(iconType) {
-    // Emoji art faces a default way: plane/ship usually point RIGHT (east),
-    // truck usually points UP (north). CSS rotate(0) keeps that default.
-    // Geographic bearing is 0=north, 90=east — convert so the NOSE points
-    // toward the destination, not back toward origin.
-    const t = (iconType || 'truck').toLowerCase();
-    if (t === 'plane' || t === 'ship') return -90;
-    return 0;
+  // Emoji art faces a default way: plane/ship usually point RIGHT (east),
+  // truck usually points UP (north). CSS rotate(0) keeps that default.
+  // Geographic bearing is 0=north, 90=east — convert so the NOSE points
+  // toward the destination, not back toward origin.
+  const t = (iconType || 'truck').toLowerCase();
+  if (t === 'plane' || t === 'ship') return -90;
+  return 0;
 }
 function makeVehicleIcon(iconType, oLat, oLng, dLat, dLng, flipOverride, rotationDeg, customUrl) {
-    // Auto: nose points TO destination (never back to origin).
-    // Manual: exact rotationDeg. Flip: opposite of destination bearing.
-    const manual = rotationDeg !== null && rotationDeg !== undefined && rotationDeg !== '' && !isNaN(Number(rotationDeg));
-    let deg;
-    if (manual) {
-      deg = Number(rotationDeg);
-    } else {
-      // Bearing from origin → destination, adjusted for emoji default face
-      deg = bearingDeg(oLat, oLng, dLat, dLng) + emojiNoseOffset(iconType);
-      if (flipOverride) deg += 180;
-      deg = (deg % 360 + 360) % 360;
-    }
-    const emoji = ICONS[iconType || 'truck'] || '🚚';
-    const transform = 'rotate(' + deg + 'deg)';
-    return L.divIcon({
-      html: '<div style="font-size:34px;line-height:34px;transform:' + transform + ';transform-origin:center center;text-align:center;cursor:grab;">' + emoji + '</div>',
-      className: 'vehicle-dir-icon', iconSize: [34, 34], iconAnchor: [17, 17]
-    });
+  // Auto: nose points TO destination (never back to origin).
+  // Manual: exact rotationDeg. Flip: opposite of destination bearing.
+  const manual = rotationDeg !== null && rotationDeg !== undefined && rotationDeg !== '' && !isNaN(Number(rotationDeg));
+  let deg;
+  if (manual) {
+    deg = Number(rotationDeg);
+  } else {
+    // Bearing from origin → destination, adjusted for emoji default face
+    deg = bearingDeg(oLat, oLng, dLat, dLng) + emojiNoseOffset(iconType);
+    if (flipOverride) deg += 180;
+    deg = (deg % 360 + 360) % 360;
+  }
+  const emoji = ICONS[iconType || 'truck'] || '🚚';
+  const transform = 'rotate(' + deg + 'deg)';
+  return L.divIcon({
+    html: '<div style="font-size:34px;line-height:34px;transform:' + transform + ';transform-origin:center center;text-align:center;cursor:grab;">' + emoji + '</div>',
+    className: 'vehicle-dir-icon', iconSize: [34, 34], iconAnchor: [17, 17]
+  });
 }
 
 
@@ -1225,276 +1233,276 @@ function bindProgressBarDrag(fillId, opts) {
 
 /* ----- ADMIN MAP ----- */
 function destroyAdminMap() {
-    if (adminAnimTimer) { clearInterval(adminAnimTimer); adminAnimTimer = null; }
-    if (adminMap) { adminMap.remove(); adminMap = null; adminMarker = null; }
+  if (adminAnimTimer) { clearInterval(adminAnimTimer); adminAnimTimer = null; }
+  if (adminMap) { adminMap.remove(); adminMap = null; adminMarker = null; }
 }
 function initAdminMap(shipment) {
-    destroyAdminMap();
-    const box = document.getElementById('adminMapBox');
-    if (!box) return;
-    const r = shipment.route || {};
-    const oLat = parseFloat(r.originLat), oLng = parseFloat(r.originLng);
-    const dLat = parseFloat(r.destLat), dLng = parseFloat(r.destLng);
-    if ([oLat, oLng, dLat, dLng].some(isNaN)) {
-        box.innerHTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;color:var(--gray);font-size:13px;text-align:center;padding:10px;">Pick origin &amp; destination countries above, then hit Done to see the live map.</div>';
-        return;
+  destroyAdminMap();
+  const box = document.getElementById('adminMapBox');
+  if (!box) return;
+  const r = shipment.route || {};
+  const oLat = parseFloat(r.originLat), oLng = parseFloat(r.originLng);
+  const dLat = parseFloat(r.destLat), dLng = parseFloat(r.destLng);
+  if ([oLat, oLng, dLat, dLng].some(isNaN)) {
+    box.innerHTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;color:var(--gray);font-size:13px;text-align:center;padding:10px;">Pick origin &amp; destination countries above, then hit Done to see the live map.</div>';
+    return;
+  }
+  box.innerHTML = '';
+  adminMap = L.map(box, { scrollWheelZoom: false }).setView([(oLat + dLat) / 2, (oLng + dLng) / 2], 4);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors' }).addTo(adminMap);
+  L.marker([oLat, oLng]).addTo(adminMap).bindPopup('Origin' + (r.originCountry ? ': ' + r.originCountry : ''));
+  L.marker([dLat, dLng]).addTo(adminMap).bindPopup('Destination' + (r.destCountry ? ': ' + r.destCountry : ''));
+  const line = L.polyline([[oLat, oLng], [dLat, dLng]], { color: '#FFCC00', weight: 3, dashArray: '6,8' }).addTo(adminMap);
+  adminMap.fitBounds(line.getBounds(), { padding: [30, 30] });
+  const icon = makeVehicleIcon(r.icon, oLat, oLng, dLat, dLng, r.flipOverride, r.rotationDeg, r.vehicleImg);
+  const startProgress = computeLiveProgress(r);
+  const pos = pointAlong(oLat, oLng, dLat, dLng, startProgress / 100);
+  adminMarker = L.marker(pos, { icon, draggable: true }).addTo(adminMap);
+
+  adminMarker.on('drag', e => {
+    // Always snap to the origin→destination line — never leave the route
+    const ll = e.target.getLatLng();
+    const t = projectT(oLat, oLng, dLat, dLng, ll.lat, ll.lng);
+    const snapped = L.latLng(pointAlong(oLat, oLng, dLat, dLng, t));
+    e.target.setLatLng(snapped);
+    reflectAdminProgress(t * 100);
+  });
+  // Extra lock: if Leaflet drifts off-line, pull back next frame
+  adminMarker.on('move', e => {
+    const ll = e.target.getLatLng();
+    const t = projectT(oLat, oLng, dLat, dLng, ll.lat, ll.lng);
+    const snapped = pointAlong(oLat, oLng, dLat, dLng, t);
+    const dlat = Math.abs(ll.lat - snapped[0]);
+    const dlng = Math.abs(ll.lng - snapped[1]);
+    if (dlat > 0.00001 || dlng > 0.00001) {
+      e.target.setLatLng(snapped);
     }
-    box.innerHTML = '';
-    adminMap = L.map(box, { scrollWheelZoom: false }).setView([(oLat + dLat) / 2, (oLng + dLng) / 2], 4);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors' }).addTo(adminMap);
-    L.marker([oLat, oLng]).addTo(adminMap).bindPopup('Origin' + (r.originCountry ? ': ' + r.originCountry : ''));
-    L.marker([dLat, dLng]).addTo(adminMap).bindPopup('Destination' + (r.destCountry ? ': ' + r.destCountry : ''));
-    const line = L.polyline([[oLat, oLng], [dLat, dLng]], { color: '#FFCC00', weight: 3, dashArray: '6,8' }).addTo(adminMap);
-    adminMap.fitBounds(line.getBounds(), { padding: [30, 30] });
-    const icon = makeVehicleIcon(r.icon, oLat, oLng, dLat, dLng, r.flipOverride, r.rotationDeg, r.vehicleImg);
-    const startProgress = computeLiveProgress(r);
-    const pos = pointAlong(oLat, oLng, dLat, dLng, startProgress / 100);
-    adminMarker = L.marker(pos, { icon, draggable: true }).addTo(adminMap);
+  });
+  adminMarker.on('dragend', async e => {
+    const ll = e.target.getLatLng();
+    const t = projectT(oLat, oLng, dLat, dLng, ll.lat, ll.lng);
+    e.target.setLatLng(pointAlong(oLat, oLng, dLat, dLng, t));
+    stopAdminAnimation();
+    // Keep current facing when only moving position
+    const face = document.getElementById('f_face');
+    if (face) face.value = 'manual';
+    const sl = document.getElementById('f_rotSlider');
+    let rot = sl && sl.value !== '' && !isNaN(Number(sl.value)) ? Number(sl.value) : null;
+    try {
+      await apiRequest('/shipments/' + encodeURIComponent(shipment.code) + '/route', {
+        method: 'PATCH', body: JSON.stringify({
+          isMoving: false, movingSince: null, progress: t * 100,
+          rotationDeg: rot, flipOverride: false
+        })
+      });
+    } catch (err) { }
+  });
 
-    adminMarker.on('drag', e => {
-        // Always snap to the origin→destination line — never leave the route
-        const ll = e.target.getLatLng();
-        const t = projectT(oLat, oLng, dLat, dLng, ll.lat, ll.lng);
-        const snapped = L.latLng(pointAlong(oLat, oLng, dLat, dLng, t));
-        e.target.setLatLng(snapped);
-        reflectAdminProgress(t * 100);
-    });
-    // Extra lock: if Leaflet drifts off-line, pull back next frame
-    adminMarker.on('move', e => {
-        const ll = e.target.getLatLng();
-        const t = projectT(oLat, oLng, dLat, dLng, ll.lat, ll.lng);
-        const snapped = pointAlong(oLat, oLng, dLat, dLng, t);
-        const dlat = Math.abs(ll.lat - snapped[0]);
-        const dlng = Math.abs(ll.lng - snapped[1]);
-        if (dlat > 0.00001 || dlng > 0.00001) {
-          e.target.setLatLng(snapped);
-        }
-    });
-    adminMarker.on('dragend', async e => {
-        const ll = e.target.getLatLng();
-        const t = projectT(oLat, oLng, dLat, dLng, ll.lat, ll.lng);
-        e.target.setLatLng(pointAlong(oLat, oLng, dLat, dLng, t));
-        stopAdminAnimation();
-        // Keep current facing when only moving position
-        const face = document.getElementById('f_face');
-        if (face) face.value = 'manual';
-        const sl = document.getElementById('f_rotSlider');
-        let rot = sl && sl.value !== '' && !isNaN(Number(sl.value)) ? Number(sl.value) : null;
-        try {
-            await apiRequest('/shipments/' + encodeURIComponent(shipment.code) + '/route', {
-                method: 'PATCH', body: JSON.stringify({
-                  isMoving: false, movingSince: null, progress: t * 100,
-                  rotationDeg: rot, flipOverride: false
-                })
-            });
-        } catch (err) {}
-    });
-
-    // Hand-turn: drag LEFT/RIGHT on the plane icon (map marker) to set direction
-    setTimeout(function() {
-      try {
-        const el = adminMarker.getElement();
-        if (!el || el.dataset.turnBound === '1') return;
-        el.dataset.turnBound = '1';
-        let sx = null, base = Number((document.getElementById('f_rotSlider') || {}).value);
-        if (isNaN(base)) base = bearingDeg(oLat, oLng, dLat, dLng);
-        function turnTo(deg) {
-          deg = (deg % 360 + 360) % 360;
-          const iconType = (document.getElementById('f_icon') || {}).value || r.icon || 'truck';
-          adminMarker.setIcon(makeVehicleIcon(iconType, oLat, oLng, dLat, dLng, false, deg, ''));
-          const face = document.getElementById('f_face');
-          if (face) face.value = 'manual';
-          const sl = document.getElementById('f_rotSlider');
-          if (sl) sl.value = String(Math.round(deg));
-          window._lastAdminRotation = Math.round(deg);
-          const hint = document.getElementById('rotHint');
-          if (hint) hint.textContent = 'Facing ' + Math.round(deg) + '° — Pause or Done to lock it.';
-        }
-        el.addEventListener('touchstart', function(ev) {
-          if (ev.touches.length !== 1) return;
-          sx = ev.touches[0].clientX;
-          base = Number((document.getElementById('f_rotSlider') || {}).value);
-          if (isNaN(base) || (document.getElementById('f_rotSlider') || {}).value === '') base = bearingDeg(oLat, oLng, dLat, dLng);
-        }, { passive: true });
-        el.addEventListener('touchmove', function(ev) {
-          if (sx == null || !ev.touches[0]) return;
-          // Horizontal swipe turns; don't prevent drag-move unless mostly horizontal
-          const dx = ev.touches[0].clientX - sx;
-          if (Math.abs(dx) > 8) {
-            turnTo(base + dx * 0.6);
-          }
-        }, { passive: true });
-        el.addEventListener('touchend', function() { sx = null; });
-      } catch (e) {}
-    }, 200);
-
-    if (r.isMoving) { startAdminAnimation(shipment); }
-    else { reflectAdminProgress(startProgress); }
-
-    // Hand-push progress bar (same as dragging plane on map)
-    bindProgressBarDrag('mapProgressFill', {
-      onStart: function () { stopAdminAnimation(); },
-      onMove: function (p) {
-        reflectAdminProgress(p);
-        if (adminMarker) adminMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, p / 100));
-      },
-      onEnd: async function (p) {
-        reflectAdminProgress(p);
-        if (adminMarker) adminMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, p / 100));
-        const sl = document.getElementById('f_rotSlider');
-        let rot = sl && sl.value !== '' && !isNaN(Number(sl.value)) ? Number(sl.value) : null;
-        const face = document.getElementById('f_face');
-        if (face && rot != null) face.value = 'manual';
-        try {
-          await apiRequest('/shipments/' + encodeURIComponent(shipment.code) + '/route', {
-            method: 'PATCH',
-            body: JSON.stringify({ isMoving: false, movingSince: null, progress: p, rotationDeg: rot, flipOverride: false })
-          });
-        } catch (err) {}
-      }
-    });
-
-    // Hand-rotate direction: drag left/right on the vehicle emoji above the bar
-    const vIcon = document.getElementById('mapVehicleIcon');
-    if (vIcon && vIcon.dataset.rotBound !== '1') {
-      vIcon.dataset.rotBound = '1';
-      let rot0 = Number(r.rotationDeg) || bearingDeg(oLat, oLng, dLat, dLng);
-      let startX = 0, startRot = rot0;
-      function applyRot(deg) {
+  // Hand-turn: drag LEFT/RIGHT on the plane icon (map marker) to set direction
+  setTimeout(function () {
+    try {
+      const el = adminMarker.getElement();
+      if (!el || el.dataset.turnBound === '1') return;
+      el.dataset.turnBound = '1';
+      let sx = null, base = Number((document.getElementById('f_rotSlider') || {}).value);
+      if (isNaN(base)) base = bearingDeg(oLat, oLng, dLat, dLng);
+      function turnTo(deg) {
         deg = (deg % 360 + 360) % 360;
         const iconType = (document.getElementById('f_icon') || {}).value || r.icon || 'truck';
-        if (adminMarker) {
-          adminMarker.setIcon(makeVehicleIcon(iconType, oLat, oLng, dLat, dLng, false, deg, ''));
-        }
+        adminMarker.setIcon(makeVehicleIcon(iconType, oLat, oLng, dLat, dLng, false, deg, ''));
         const face = document.getElementById('f_face');
         if (face) face.value = 'manual';
-        const slider = document.getElementById('f_rotSlider');
-        if (slider) slider.value = String(Math.round(deg));
-        const lab = document.getElementById('rotDegLabel');
-        if (lab) lab.textContent = Math.round(deg) + '°';
+        const sl = document.getElementById('f_rotSlider');
+        if (sl) sl.value = String(Math.round(deg));
+        window._lastAdminRotation = Math.round(deg);
         const hint = document.getElementById('rotHint');
-        if (hint) hint.textContent = 'Facing ' + Math.round(deg) + '° — tap Done — Save so tracking shows this direction.';
+        if (hint) hint.textContent = 'Facing ' + Math.round(deg) + '° — Pause or Done to lock it.';
       }
-      function down(e) {
-        startX = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
-        startRot = Number((document.getElementById('f_face') || {}).value) || rot0;
-        if (isNaN(startRot)) startRot = bearingDeg(oLat, oLng, dLat, dLng);
-        e.preventDefault();
-        e.stopPropagation();
-      }
-      function move(e) {
-        if (startX == null) return;
-        const x = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
-        if (x == null) return;
-        const deg = startRot + (x - startX) * 0.5;
-        applyRot(deg);
-        e.preventDefault();
-      }
-      function up() { startX = null; }
-      vIcon.addEventListener('mousedown', down);
-      window.addEventListener('mousemove', move);
-      window.addEventListener('mouseup', up);
-      vIcon.addEventListener('touchstart', down, { passive: false });
-      window.addEventListener('touchmove', move, { passive: false });
-      window.addEventListener('touchend', up);
+      el.addEventListener('touchstart', function (ev) {
+        if (ev.touches.length !== 1) return;
+        sx = ev.touches[0].clientX;
+        base = Number((document.getElementById('f_rotSlider') || {}).value);
+        if (isNaN(base) || (document.getElementById('f_rotSlider') || {}).value === '') base = bearingDeg(oLat, oLng, dLat, dLng);
+      }, { passive: true });
+      el.addEventListener('touchmove', function (ev) {
+        if (sx == null || !ev.touches[0]) return;
+        // Horizontal swipe turns; don't prevent drag-move unless mostly horizontal
+        const dx = ev.touches[0].clientX - sx;
+        if (Math.abs(dx) > 8) {
+          turnTo(base + dx * 0.6);
+        }
+      }, { passive: true });
+      el.addEventListener('touchend', function () { sx = null; });
+    } catch (e) { }
+  }, 200);
+
+  if (r.isMoving) { startAdminAnimation(shipment); }
+  else { reflectAdminProgress(startProgress); }
+
+  // Hand-push progress bar (same as dragging plane on map)
+  bindProgressBarDrag('mapProgressFill', {
+    onStart: function () { stopAdminAnimation(); },
+    onMove: function (p) {
+      reflectAdminProgress(p);
+      if (adminMarker) adminMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, p / 100));
+    },
+    onEnd: async function (p) {
+      reflectAdminProgress(p);
+      if (adminMarker) adminMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, p / 100));
+      const sl = document.getElementById('f_rotSlider');
+      let rot = sl && sl.value !== '' && !isNaN(Number(sl.value)) ? Number(sl.value) : null;
+      const face = document.getElementById('f_face');
+      if (face && rot != null) face.value = 'manual';
+      try {
+        await apiRequest('/shipments/' + encodeURIComponent(shipment.code) + '/route', {
+          method: 'PATCH',
+          body: JSON.stringify({ isMoving: false, movingSince: null, progress: p, rotationDeg: rot, flipOverride: false })
+        });
+      } catch (err) { }
     }
+  });
+
+  // Hand-rotate direction: drag left/right on the vehicle emoji above the bar
+  const vIcon = document.getElementById('mapVehicleIcon');
+  if (vIcon && vIcon.dataset.rotBound !== '1') {
+    vIcon.dataset.rotBound = '1';
+    let rot0 = Number(r.rotationDeg) || bearingDeg(oLat, oLng, dLat, dLng);
+    let startX = 0, startRot = rot0;
+    function applyRot(deg) {
+      deg = (deg % 360 + 360) % 360;
+      const iconType = (document.getElementById('f_icon') || {}).value || r.icon || 'truck';
+      if (adminMarker) {
+        adminMarker.setIcon(makeVehicleIcon(iconType, oLat, oLng, dLat, dLng, false, deg, ''));
+      }
+      const face = document.getElementById('f_face');
+      if (face) face.value = 'manual';
+      const slider = document.getElementById('f_rotSlider');
+      if (slider) slider.value = String(Math.round(deg));
+      const lab = document.getElementById('rotDegLabel');
+      if (lab) lab.textContent = Math.round(deg) + '°';
+      const hint = document.getElementById('rotHint');
+      if (hint) hint.textContent = 'Facing ' + Math.round(deg) + '° — tap Done — Save so tracking shows this direction.';
+    }
+    function down(e) {
+      startX = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
+      startRot = Number((document.getElementById('f_face') || {}).value) || rot0;
+      if (isNaN(startRot)) startRot = bearingDeg(oLat, oLng, dLat, dLng);
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    function move(e) {
+      if (startX == null) return;
+      const x = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
+      if (x == null) return;
+      const deg = startRot + (x - startX) * 0.5;
+      applyRot(deg);
+      e.preventDefault();
+    }
+    function up() { startX = null; }
+    vIcon.addEventListener('mousedown', down);
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+    vIcon.addEventListener('touchstart', down, { passive: false });
+    window.addEventListener('touchmove', move, { passive: false });
+    window.addEventListener('touchend', up);
+  }
 }
 function reflectAdminProgress(progress) {
-    const p = setProgressBarUI('mapProgressFill', progress);
-    const label = document.getElementById('mapProgressLabel');
-    if (label) label.textContent = Math.round(p) + '%';
-    const icon = document.getElementById('mapVehicleIcon');
-    if (icon) {
-      icon.style.position = 'absolute';
-      icon.style.left = 'calc(' + p + '% - 14px)';
-      icon.style.top = '0';
-    }
+  const p = setProgressBarUI('mapProgressFill', progress);
+  const label = document.getElementById('mapProgressLabel');
+  if (label) label.textContent = Math.round(p) + '%';
+  const icon = document.getElementById('mapVehicleIcon');
+  if (icon) {
+    icon.style.position = 'absolute';
+    icon.style.left = 'calc(' + p + '% - 14px)';
+    icon.style.top = '0';
+  }
 }
 function startAdminAnimation(shipment) {
-    if (adminAnimTimer) clearInterval(adminAnimTimer);
-    const r = shipment.route;
-    const oLat = parseFloat(r.originLat), oLng = parseFloat(r.originLng);
-    const dLat = parseFloat(r.destLat), dLng = parseFloat(r.destLng);
-    adminAnimTimer = setInterval(() => {
-        const p = computeLiveProgress(r);
-        reflectAdminProgress(p);
-        if (adminMarker) adminMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, p / 100));
-        if (p >= 100) { clearInterval(adminAnimTimer); adminAnimTimer = null; }
-    }, 200);
+  if (adminAnimTimer) clearInterval(adminAnimTimer);
+  const r = shipment.route;
+  const oLat = parseFloat(r.originLat), oLng = parseFloat(r.originLng);
+  const dLat = parseFloat(r.destLat), dLng = parseFloat(r.destLng);
+  adminAnimTimer = setInterval(() => {
+    const p = computeLiveProgress(r);
+    reflectAdminProgress(p);
+    if (adminMarker) adminMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, p / 100));
+    if (p >= 100) { clearInterval(adminAnimTimer); adminAnimTimer = null; }
+  }, 200);
 }
 function stopAdminAnimation() {
-    if (adminAnimTimer) { clearInterval(adminAnimTimer); adminAnimTimer = null; }
+  if (adminAnimTimer) { clearInterval(adminAnimTimer); adminAnimTimer = null; }
 }
 
 async function saveRoute(code) {
-    const msg = document.getElementById('routeSaveMsg');
-    const originCountry = document.getElementById('f_oCountry').value;
-    const destCountry = document.getElementById('f_dCountry').value;
-    const oCoords = COUNTRY_COORDS[originCountry];
-    const dCoords = COUNTRY_COORDS[destCountry];
-    const faceVal = (document.getElementById('f_face') || {}).value || 'auto';
-    const slider = document.getElementById('f_rotSlider');
-    let rotationDeg = null;
-    let flipOverride = false;
-    if (faceVal === 'flip') {
-      flipOverride = true;
-      rotationDeg = null;
-    } else if (faceVal === 'auto') {
-      rotationDeg = null;
-    } else if (faceVal === 'manual' || (slider && faceVal === 'slider')) {
-      rotationDeg = Number(slider && slider.value != null ? slider.value : faceVal);
-      if (isNaN(rotationDeg)) rotationDeg = null;
-    } else {
-      rotationDeg = Number(faceVal);
-      if (isNaN(rotationDeg)) rotationDeg = null;
+  const msg = document.getElementById('routeSaveMsg');
+  const originCountry = document.getElementById('f_oCountry').value;
+  const destCountry = document.getElementById('f_dCountry').value;
+  const oCoords = COUNTRY_COORDS[originCountry];
+  const dCoords = COUNTRY_COORDS[destCountry];
+  const faceVal = (document.getElementById('f_face') || {}).value || 'auto';
+  const slider = document.getElementById('f_rotSlider');
+  let rotationDeg = null;
+  let flipOverride = false;
+  if (faceVal === 'flip') {
+    flipOverride = true;
+    rotationDeg = null;
+  } else if (faceVal === 'auto') {
+    rotationDeg = null;
+  } else if (faceVal === 'manual' || (slider && faceVal === 'slider')) {
+    rotationDeg = Number(slider && slider.value != null ? slider.value : faceVal);
+    if (isNaN(rotationDeg)) rotationDeg = null;
+  } else {
+    rotationDeg = Number(faceVal);
+    if (isNaN(rotationDeg)) rotationDeg = null;
+  }
+  // Current progress from bar (hand-pushed position)
+  let progress = 0;
+  const fill = document.getElementById('mapProgressFill');
+  if (fill && fill.style.width) progress = parseFloat(fill.style.width) || 0;
+  const label = document.getElementById('mapProgressLabel');
+  if (label) {
+    const n = parseFloat(String(label.textContent).replace('%', ''));
+    if (!isNaN(n)) progress = n;
+  }
+  const payload = {
+    originCountry, destCountry,
+    originLat: oCoords.lat, originLng: oCoords.lng,
+    destLat: dCoords.lat, destLng: dCoords.lng,
+    icon: document.getElementById('f_icon').value,
+    vehicleImg: (document.getElementById('f_vehicleImg') && document.getElementById('f_vehicleImg').value.trim()) || '',
+    speed: document.getElementById('f_speed').value,
+    flipOverride,
+    rotationDeg,
+    progress,
+    isMoving: false,
+    movingSince: null,
+  };
+  try {
+    const updated = await apiRequest('/shipments/' + encodeURIComponent(code) + '/route', { method: 'PATCH', body: JSON.stringify(payload) });
+    unlockedShipments[updated.code] = updated;
+    if (msg) { msg.style.display = 'block'; msg.style.color = 'var(--green)'; msg.textContent = 'Saved — position & direction locked.'; }
+    // Keep marker exactly where you placed it (no jump)
+    if (adminMarker && updated.route) {
+      const r = updated.route;
+      const oLat = parseFloat(r.originLat), oLng = parseFloat(r.originLng);
+      const dLat = parseFloat(r.destLat), dLng = parseFloat(r.destLng);
+      const p = Number(r.progress) || 0;
+      if (![oLat, oLng, dLat, dLng].some(isNaN)) {
+        adminMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, p / 100));
+        adminMarker.setIcon(makeVehicleIcon(r.icon, oLat, oLng, dLat, dLng, r.flipOverride, r.rotationDeg, r.vehicleImg));
+        reflectAdminProgress(p);
+      }
     }
-    // Current progress from bar (hand-pushed position)
-    let progress = 0;
-    const fill = document.getElementById('mapProgressFill');
-    if (fill && fill.style.width) progress = parseFloat(fill.style.width) || 0;
-    const label = document.getElementById('mapProgressLabel');
-    if (label) {
-      const n = parseFloat(String(label.textContent).replace('%',''));
-      if (!isNaN(n)) progress = n;
+    const iconEl = document.getElementById('mapVehicleIcon');
+    if (iconEl && updated.route) {
+      const t = updated.route.icon || 'truck';
+      iconEl.innerHTML = '<span style="font-size:28px;line-height:1;">' + (ICONS[t] || '🚚') + '</span>';
+      iconEl.setAttribute('data-icon', t);
     }
-    const payload = {
-        originCountry, destCountry,
-        originLat: oCoords.lat, originLng: oCoords.lng,
-        destLat: dCoords.lat, destLng: dCoords.lng,
-        icon: document.getElementById('f_icon').value,
-        vehicleImg: (document.getElementById('f_vehicleImg') && document.getElementById('f_vehicleImg').value.trim()) || '',
-        speed: document.getElementById('f_speed').value,
-        flipOverride,
-        rotationDeg,
-        progress,
-        isMoving: false,
-        movingSince: null,
-    };
-    try {
-        const updated = await apiRequest('/shipments/' + encodeURIComponent(code) + '/route', { method: 'PATCH', body: JSON.stringify(payload) });
-        unlockedShipments[updated.code] = updated;
-        if (msg) { msg.style.display = 'block'; msg.style.color = 'var(--green)'; msg.textContent = 'Saved — position & direction locked.'; }
-        // Keep marker exactly where you placed it (no jump)
-        if (adminMarker && updated.route) {
-          const r = updated.route;
-          const oLat = parseFloat(r.originLat), oLng = parseFloat(r.originLng);
-          const dLat = parseFloat(r.destLat), dLng = parseFloat(r.destLng);
-          const p = Number(r.progress) || 0;
-          if (![oLat,oLng,dLat,dLng].some(isNaN)) {
-            adminMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, p / 100));
-            adminMarker.setIcon(makeVehicleIcon(r.icon, oLat, oLng, dLat, dLng, r.flipOverride, r.rotationDeg, r.vehicleImg));
-            reflectAdminProgress(p);
-          }
-        }
-        const iconEl = document.getElementById('mapVehicleIcon');
-        if (iconEl && updated.route) {
-          const t = updated.route.icon || 'truck';
-          iconEl.innerHTML = '<span style="font-size:28px;line-height:1;">' + (ICONS[t] || '🚚') + '</span>';
-          iconEl.setAttribute('data-icon', t);
-        }
-    } catch (err) {
-        if (msg) { msg.style.display = 'block'; msg.style.color = 'var(--red)'; msg.textContent = err.message; }
-    }
+  } catch (err) {
+    if (msg) { msg.style.display = 'block'; msg.style.color = 'var(--red)'; msg.textContent = err.message; }
+  }
 }
 
 function getAdminProgressFromUI() {
@@ -1541,203 +1549,203 @@ function setRouteActionLoading(on) {
 }
 
 async function playRoute(code) {
-    setRouteActionLoading(true);
-    try {
-        const s = unlockedShipments[code];
-        if (!s || !s.route || [s.route.originLat, s.route.originLng, s.route.destLat, s.route.destLng].some(v => v === undefined || v === null)) {
-            alert('Pick origin & destination countries and click "Done — Save Map Settings" first.');
-            return;
-        }
-        // Keep the position & facing you set by hand — only start moving from here
-        const progress = getAdminProgressFromUI();
-        const rotationDeg = getAdminRotationFromUI();
-        const body = {
-          isMoving: true,
-          movingSince: new Date().toISOString(),
-          progress
-        };
-        if (rotationDeg != null) { body.rotationDeg = rotationDeg; body.flipOverride = false; }
-        const updated = await apiRequest('/shipments/' + encodeURIComponent(code) + '/route', {
-            method: 'PATCH', body: JSON.stringify(body)
-        });
-        unlockedShipments[updated.code] = updated;
-        // Soft update: don't wipe hand-set direction
-        if (updated.route) {
-          s.route = updated.route;
-          startAdminAnimation(updated);
-          reflectAdminProgress(computeLiveProgress(updated.route));
-        }
-        const msg = document.getElementById('routeSaveMsg');
-        if (msg) { msg.style.display = 'block'; msg.style.color = 'var(--green)'; msg.textContent = 'Moving — saved.'; }
-    } catch (err) {
-        alert("Couldn't start movement: " + err.message);
-    } finally {
-        setRouteActionLoading(false);
+  setRouteActionLoading(true);
+  try {
+    const s = unlockedShipments[code];
+    if (!s || !s.route || [s.route.originLat, s.route.originLng, s.route.destLat, s.route.destLng].some(v => v === undefined || v === null)) {
+      alert('Pick origin & destination countries and click "Done — Save Map Settings" first.');
+      return;
     }
+    // Keep the position & facing you set by hand — only start moving from here
+    const progress = getAdminProgressFromUI();
+    const rotationDeg = getAdminRotationFromUI();
+    const body = {
+      isMoving: true,
+      movingSince: new Date().toISOString(),
+      progress
+    };
+    if (rotationDeg != null) { body.rotationDeg = rotationDeg; body.flipOverride = false; }
+    const updated = await apiRequest('/shipments/' + encodeURIComponent(code) + '/route', {
+      method: 'PATCH', body: JSON.stringify(body)
+    });
+    unlockedShipments[updated.code] = updated;
+    // Soft update: don't wipe hand-set direction
+    if (updated.route) {
+      s.route = updated.route;
+      startAdminAnimation(updated);
+      reflectAdminProgress(computeLiveProgress(updated.route));
+    }
+    const msg = document.getElementById('routeSaveMsg');
+    if (msg) { msg.style.display = 'block'; msg.style.color = 'var(--green)'; msg.textContent = 'Moving — saved.'; }
+  } catch (err) {
+    alert("Couldn't start movement: " + err.message);
+  } finally {
+    setRouteActionLoading(false);
+  }
 }
 async function pauseRoute(code) {
-    setRouteActionLoading(true);
-    try {
-        stopAdminAnimation();
-        const progress = getAdminProgressFromUI();
-        const rotationDeg = getAdminRotationFromUI();
-        const body = { isMoving: false, movingSince: null, progress };
-        if (rotationDeg != null) { body.rotationDeg = rotationDeg; body.flipOverride = false; }
-        const updated = await apiRequest('/shipments/' + encodeURIComponent(code) + '/route', {
-            method: 'PATCH', body: JSON.stringify(body)
-        });
-        unlockedShipments[updated.code] = updated;
-        if (adminMarker && updated.route) {
-          const r = updated.route;
-          const oLat = parseFloat(r.originLat), oLng = parseFloat(r.originLng);
-          const dLat = parseFloat(r.destLat), dLng = parseFloat(r.destLng);
-          const p = Number(r.progress) || 0;
-          adminMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, p / 100));
-          adminMarker.setIcon(makeVehicleIcon(r.icon, oLat, oLng, dLat, dLng, r.flipOverride, r.rotationDeg, r.vehicleImg));
-          reflectAdminProgress(p);
-        }
-        const msg = document.getElementById('routeSaveMsg');
-        if (msg) { msg.style.display = 'block'; msg.style.color = 'var(--green)'; msg.textContent = 'Paused — position & direction saved.'; }
-    } catch (err) {
-        alert("Couldn't stop movement: " + err.message);
-    } finally {
-        setRouteActionLoading(false);
+  setRouteActionLoading(true);
+  try {
+    stopAdminAnimation();
+    const progress = getAdminProgressFromUI();
+    const rotationDeg = getAdminRotationFromUI();
+    const body = { isMoving: false, movingSince: null, progress };
+    if (rotationDeg != null) { body.rotationDeg = rotationDeg; body.flipOverride = false; }
+    const updated = await apiRequest('/shipments/' + encodeURIComponent(code) + '/route', {
+      method: 'PATCH', body: JSON.stringify(body)
+    });
+    unlockedShipments[updated.code] = updated;
+    if (adminMarker && updated.route) {
+      const r = updated.route;
+      const oLat = parseFloat(r.originLat), oLng = parseFloat(r.originLng);
+      const dLat = parseFloat(r.destLat), dLng = parseFloat(r.destLng);
+      const p = Number(r.progress) || 0;
+      adminMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, p / 100));
+      adminMarker.setIcon(makeVehicleIcon(r.icon, oLat, oLng, dLat, dLng, r.flipOverride, r.rotationDeg, r.vehicleImg));
+      reflectAdminProgress(p);
     }
+    const msg = document.getElementById('routeSaveMsg');
+    if (msg) { msg.style.display = 'block'; msg.style.color = 'var(--green)'; msg.textContent = 'Paused — position & direction saved.'; }
+  } catch (err) {
+    alert("Couldn't stop movement: " + err.message);
+  } finally {
+    setRouteActionLoading(false);
+  }
 }
 async function resetRoute(code) {
-    setRouteActionLoading(true);
-    try {
-        stopAdminAnimation();
-        const rotationDeg = getAdminRotationFromUI();
-        const body = { isMoving: false, movingSince: null, progress: 0 };
-        if (rotationDeg != null) { body.rotationDeg = rotationDeg; body.flipOverride = false; }
-        const updated = await apiRequest('/shipments/' + encodeURIComponent(code) + '/route', {
-            method: 'PATCH', body: JSON.stringify(body)
-        });
-        unlockedShipments[updated.code] = updated;
-        if (adminMarker && updated.route) {
-          const r = updated.route;
-          const oLat = parseFloat(r.originLat), oLng = parseFloat(r.originLng);
-          const dLat = parseFloat(r.destLat), dLng = parseFloat(r.destLng);
-          adminMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, 0));
-          adminMarker.setIcon(makeVehicleIcon(r.icon, oLat, oLng, dLat, dLng, r.flipOverride, r.rotationDeg, r.vehicleImg));
-          reflectAdminProgress(0);
-        }
-        const msg = document.getElementById('routeSaveMsg');
-        if (msg) { msg.style.display = 'block'; msg.style.color = 'var(--green)'; msg.textContent = 'Reset to start — direction kept.'; }
-    } catch (err) {
-        alert("Couldn't reset: " + err.message);
-    } finally {
-        setRouteActionLoading(false);
+  setRouteActionLoading(true);
+  try {
+    stopAdminAnimation();
+    const rotationDeg = getAdminRotationFromUI();
+    const body = { isMoving: false, movingSince: null, progress: 0 };
+    if (rotationDeg != null) { body.rotationDeg = rotationDeg; body.flipOverride = false; }
+    const updated = await apiRequest('/shipments/' + encodeURIComponent(code) + '/route', {
+      method: 'PATCH', body: JSON.stringify(body)
+    });
+    unlockedShipments[updated.code] = updated;
+    if (adminMarker && updated.route) {
+      const r = updated.route;
+      const oLat = parseFloat(r.originLat), oLng = parseFloat(r.originLng);
+      const dLat = parseFloat(r.destLat), dLng = parseFloat(r.destLng);
+      adminMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, 0));
+      adminMarker.setIcon(makeVehicleIcon(r.icon, oLat, oLng, dLat, dLng, r.flipOverride, r.rotationDeg, r.vehicleImg));
+      reflectAdminProgress(0);
     }
+    const msg = document.getElementById('routeSaveMsg');
+    if (msg) { msg.style.display = 'block'; msg.style.color = 'var(--green)'; msg.textContent = 'Reset to start — direction kept.'; }
+  } catch (err) {
+    alert("Couldn't reset: " + err.message);
+  } finally {
+    setRouteActionLoading(false);
+  }
 }
 
 /* ----- PUBLIC MAP (view/zoom only — no drag, no start/stop) ----- */
 function destroyPublicMap() {
-    if (publicAnimTimer) { clearInterval(publicAnimTimer); publicAnimTimer = null; }
-    if (publicPollTimer) { clearInterval(publicPollTimer); publicPollTimer = null; }
-    if (publicMap) { publicMap.remove(); publicMap = null; publicMarker = null; }
+  if (publicAnimTimer) { clearInterval(publicAnimTimer); publicAnimTimer = null; }
+  if (publicPollTimer) { clearInterval(publicPollTimer); publicPollTimer = null; }
+  if (publicMap) { publicMap.remove(); publicMap = null; publicMarker = null; }
 }
 function initPublicMap(shipment) {
-    destroyPublicMap();
-    const box = document.getElementById('publicMapBox');
-    if (!box) return;
-    const r = shipment.route || {};
-    const oLat = parseFloat(r.originLat), oLng = parseFloat(r.originLng);
-    const dLat = parseFloat(r.destLat), dLng = parseFloat(r.destLng);
-    if ([oLat, oLng, dLat, dLng].some(isNaN)) {
-        box.innerHTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;color:var(--gray);font-size:13px;text-align:center;padding:10px;">Live location not set for this shipment yet.</div>';
-        return;
-    }
-    box.innerHTML = '';
-    publicMap = L.map(box, { scrollWheelZoom: true });
+  destroyPublicMap();
+  const box = document.getElementById('publicMapBox');
+  if (!box) return;
+  const r = shipment.route || {};
+  const oLat = parseFloat(r.originLat), oLng = parseFloat(r.originLng);
+  const dLat = parseFloat(r.destLat), dLng = parseFloat(r.destLng);
+  if ([oLat, oLng, dLat, dLng].some(isNaN)) {
+    box.innerHTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;color:var(--gray);font-size:13px;text-align:center;padding:10px;">Live location not set for this shipment yet.</div>';
+    return;
+  }
+  box.innerHTML = '';
+  publicMap = L.map(box, { scrollWheelZoom: true });
+  try {
+    publicMap.fitBounds([[oLat, oLng], [dLat, dLng]], { padding: [40, 40], maxZoom: 5 });
+  } catch (e) {
+    publicMap.setView([(oLat + dLat) / 2, (oLng + dLng) / 2], 3);
+  }
+  setTimeout(function () { try { publicMap.invalidateSize(); } catch (e) { } }, 200);
+  setTimeout(function () { try { publicMap.invalidateSize(); } catch (e) { } }, 600);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors' }).addTo(publicMap);
+  const oName = r.originCountry || 'Origin';
+  const dName = r.destCountry || 'Destination';
+  L.marker([oLat, oLng]).addTo(publicMap).bindPopup('<b>Origin</b><br>' + oName).openPopup();
+  L.marker([dLat, dLng]).addTo(publicMap).bindPopup('<b>Destination</b><br>' + dName);
+  const line = L.polyline([[oLat, oLng], [dLat, dLng]], { color: '#D40511', weight: 4, dashArray: '8,10' }).addTo(publicMap);
+  publicMap.fitBounds(line.getBounds(), { padding: [48, 48], maxZoom: 6 });
+  const icon = makeVehicleIcon(r.icon, oLat, oLng, dLat, dLng, r.flipOverride, r.rotationDeg, r.vehicleImg);
+  const startProgress = computeLiveProgress(r);
+  const pos = pointAlong(oLat, oLng, dLat, dLng, startProgress / 100);
+  publicMarker = L.marker(pos, { icon, draggable: false, interactive: false }).addTo(publicMap).bindPopup('Current location');
+  setTimeout(function () {
+    try { publicMap.invalidateSize(true); publicMap.fitBounds(line.getBounds(), { padding: [48, 48], maxZoom: 6 }); } catch (e) { }
+  }, 200);
+  setTimeout(function () { try { publicMap.invalidateSize(true); } catch (e) { } }, 600);
+
+  reflectPublicProgress(startProgress, r.isMoving);
+  if (r.isMoving) startPublicAnimation(oLat, oLng, dLat, dLng, r);
+
+
+
+
+  // Re-check the backend every few seconds in case the admin starts, stops,
+  // or changes the speed while this page is open.
+  publicPollTimer = setInterval(async () => {
     try {
-      publicMap.fitBounds([[oLat, oLng], [dLat, dLng]], { padding: [40, 40], maxZoom: 5 });
-    } catch (e) {
-      publicMap.setView([(oLat + dLat) / 2, (oLng + dLng) / 2], 3);
-    }
-    setTimeout(function () { try { publicMap.invalidateSize(); } catch (e) {} }, 200);
-    setTimeout(function () { try { publicMap.invalidateSize(); } catch (e) {} }, 600);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors' }).addTo(publicMap);
-    const oName = r.originCountry || 'Origin';
-    const dName = r.destCountry || 'Destination';
-    L.marker([oLat, oLng]).addTo(publicMap).bindPopup('<b>Origin</b><br>' + oName).openPopup();
-    L.marker([dLat, dLng]).addTo(publicMap).bindPopup('<b>Destination</b><br>' + dName);
-    const line = L.polyline([[oLat, oLng], [dLat, dLng]], { color: '#D40511', weight: 4, dashArray: '8,10' }).addTo(publicMap);
-    publicMap.fitBounds(line.getBounds(), { padding: [48, 48], maxZoom: 6 });
-    const icon = makeVehicleIcon(r.icon, oLat, oLng, dLat, dLng, r.flipOverride, r.rotationDeg, r.vehicleImg);
-    const startProgress = computeLiveProgress(r);
-    const pos = pointAlong(oLat, oLng, dLat, dLng, startProgress / 100);
-    publicMarker = L.marker(pos, { icon, draggable: false, interactive: false }).addTo(publicMap).bindPopup('Current location');
-    setTimeout(function () {
-      try { publicMap.invalidateSize(true); publicMap.fitBounds(line.getBounds(), { padding: [48, 48], maxZoom: 6 }); } catch (e) {}
-    }, 200);
-    setTimeout(function () { try { publicMap.invalidateSize(true); } catch (e) {} }, 600);
-
-    reflectPublicProgress(startProgress, r.isMoving);
-    if (r.isMoving) startPublicAnimation(oLat, oLng, dLat, dLng, r);
-
-
-
-
-    // Re-check the backend every few seconds in case the admin starts, stops,
-    // or changes the speed while this page is open.
-    publicPollTimer = setInterval(async () => {
-        try {
-            const fresh = await apiRequest('/shipments/track/' + encodeURIComponent(shipment.code));
-            shipment.route = fresh.route;
-            if (publicAnimTimer) { clearInterval(publicAnimTimer); publicAnimTimer = null; }
-            const p = computeLiveProgress(fresh.route);
-            reflectPublicProgress(p, fresh.route.isMoving);
-            if (publicMarker) publicMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, p / 100));
-            if (fresh.route.isMoving) startPublicAnimation(oLat, oLng, dLat, dLng, fresh.route);
-        } catch (err) { /* skip this poll silently */ }
-    }, 6000);
+      const fresh = await apiRequest('/shipments/track/' + encodeURIComponent(shipment.code));
+      shipment.route = fresh.route;
+      if (publicAnimTimer) { clearInterval(publicAnimTimer); publicAnimTimer = null; }
+      const p = computeLiveProgress(fresh.route);
+      reflectPublicProgress(p, fresh.route.isMoving);
+      if (publicMarker) publicMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, p / 100));
+      if (fresh.route.isMoving) startPublicAnimation(oLat, oLng, dLat, dLng, fresh.route);
+    } catch (err) { /* skip this poll silently */ }
+  }, 6000);
 }
 function reflectPublicProgress(progress, isMoving) {
-    const p = Math.max(0, Math.min(100, Number(progress) || 0));
-    const fill = document.getElementById('publicProgressFill');
-    if (fill) fill.style.width = p + '%';
-    // No knob / hand drag on public track page — view only
-    const note = document.getElementById('publicProgressNote');
-    if (note) note.textContent = Math.round(p) + '% of the way there' + (isMoving ? ' — currently moving.' : '.') + ' You can zoom and pan the map to follow along.';
+  const p = Math.max(0, Math.min(100, Number(progress) || 0));
+  const fill = document.getElementById('publicProgressFill');
+  if (fill) fill.style.width = p + '%';
+  // No knob / hand drag on public track page — view only
+  const note = document.getElementById('publicProgressNote');
+  if (note) note.textContent = Math.round(p) + '% of the way there' + (isMoving ? ' — currently moving.' : '.') + ' You can zoom and pan the map to follow along.';
 }
 let _lastProgNotif = -1;
 let _lastProgNotifAt = 0;
 function startPublicAnimation(oLat, oLng, dLat, dLng, route) {
-    if (publicAnimTimer) clearInterval(publicAnimTimer);
-    _lastProgNotif = -1;
-    _lastProgNotifAt = 0;
-    publicAnimTimer = setInterval(() => {
-        const p = computeLiveProgress(route);
-        reflectPublicProgress(p, true);
-        if (publicMarker) publicMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, p / 100));
-        // Phone bar: origin → destination + % (every 5%, or every 20s while moving)
-        const step = Math.floor(p / 5) * 5;
-        const now = Date.now();
-        const due = (step > _lastProgNotif && step >= 5) || (now - _lastProgNotifAt > 20000 && p > 0);
-        if (nsBrowserPerm && due) {
-          _lastProgNotif = Math.max(_lastProgNotif, step);
-          _lastProgNotifAt = now;
-          const o = (route && route.originCountry) || 'Origin';
-          const d = (route && route.destCountry) || 'Destination';
-          const ic = (route && route.icon === 'plane') ? '✈️' : (route && route.icon === 'ship') ? '🚢' : (route && route.icon === 'warehouse') ? '🏭' : '🚚';
-          const pct = Math.round(p);
-          nsPhoneNotify(
-            o + ' → ' + d,
-            ic + ' ' + pct + '% complete · live location',
-            'dhl-live-progress'
-          );
-        }
-        if (p >= 100) {
-          if (nsBrowserPerm) {
-            const o = (route && route.originCountry) || 'Origin';
-            const d = (route && route.destCountry) || 'Destination';
-            nsPhoneNotify(o + ' → ' + d, '100% · arrived / complete', 'dhl-live-progress');
-          }
-          clearInterval(publicAnimTimer); publicAnimTimer = null;
-        }
-    }, 200);
+  if (publicAnimTimer) clearInterval(publicAnimTimer);
+  _lastProgNotif = -1;
+  _lastProgNotifAt = 0;
+  publicAnimTimer = setInterval(() => {
+    const p = computeLiveProgress(route);
+    reflectPublicProgress(p, true);
+    if (publicMarker) publicMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, p / 100));
+    // Phone bar: origin → destination + % (every 5%, or every 20s while moving)
+    const step = Math.floor(p / 5) * 5;
+    const now = Date.now();
+    const due = (step > _lastProgNotif && step >= 5) || (now - _lastProgNotifAt > 20000 && p > 0);
+    if (nsBrowserPerm && due) {
+      _lastProgNotif = Math.max(_lastProgNotif, step);
+      _lastProgNotifAt = now;
+      const o = (route && route.originCountry) || 'Origin';
+      const d = (route && route.destCountry) || 'Destination';
+      const ic = (route && route.icon === 'plane') ? '✈️' : (route && route.icon === 'ship') ? '🚢' : (route && route.icon === 'warehouse') ? '🏭' : '🚚';
+      const pct = Math.round(p);
+      nsPhoneNotify(
+        o + ' → ' + d,
+        ic + ' ' + pct + '% complete · live location',
+        'dhl-live-progress'
+      );
+    }
+    if (p >= 100) {
+      if (nsBrowserPerm) {
+        const o = (route && route.originCountry) || 'Origin';
+        const d = (route && route.destCountry) || 'Destination';
+        nsPhoneNotify(o + ' → ' + d, '100% · arrived / complete', 'dhl-live-progress');
+      }
+      clearInterval(publicAnimTimer); publicAnimTimer = null;
+    }
+  }, 200);
 }
 
 
@@ -1747,7 +1755,7 @@ let nsLastNotifAt = null;
 let nsNotifTimer = null;
 let nsSeenIds = new Set();
 let nsBrowserPerm = false;
-try { nsBrowserPerm = localStorage.getItem('dhl_live_notify') === '1' && typeof Notification !== 'undefined' && Notification.permission === 'granted'; } catch (e) {}
+try { nsBrowserPerm = localStorage.getItem('dhl_live_notify') === '1' && typeof Notification !== 'undefined' && Notification.permission === 'granted'; } catch (e) { }
 
 
 function nsEnsureToastHost() {
@@ -1776,7 +1784,7 @@ function nsShowToast(n) {
     (n.code ? '<div class="ns-t-code">' + esc(n.code) + '</div>' : '');
   el.querySelector('.ns-t-close').onclick = () => el.remove();
   host.appendChild(el);
-  setTimeout(() => { try { el.remove(); } catch (e) {} }, 8000);
+  setTimeout(() => { try { el.remove(); } catch (e) { } }, 8000);
 }
 
 async function nsRequestBrowserNotify() {
@@ -1844,14 +1852,14 @@ async function nsUnsubscribePush() {
       });
       // keep browser permission; just disable server pushes
     }
-  } catch (e) {}
+  } catch (e) { }
 }
 
 async function nsToggleLivePhoneNotify() {
   // Turn OFF
   if (nsBrowserPerm) {
     nsBrowserPerm = false;
-    try { localStorage.setItem('dhl_live_notify', '0'); } catch (e) {}
+    try { localStorage.setItem('dhl_live_notify', '0'); } catch (e) { }
     const btn = document.getElementById('nsLiveToggleBtn');
     if (btn) btn.textContent = 'Turn ON notifications';
     await nsUnsubscribePush();
@@ -1871,7 +1879,7 @@ async function nsToggleLivePhoneNotify() {
     return;
   }
   nsBrowserPerm = true;
-  try { localStorage.setItem('dhl_live_notify', '1'); } catch (e) {}
+  try { localStorage.setItem('dhl_live_notify', '1'); } catch (e) { }
   const btn = document.getElementById('nsLiveToggleBtn');
   if (btn) btn.textContent = 'Turn OFF notifications';
   // Register for BACKGROUND pushes (counts even when you leave the site)
@@ -1920,12 +1928,12 @@ function nsPhoneNotify(title, body, tag) {
         vibrate: [120, 60, 120]
       });
       return;
-    } catch (e) {}
+    } catch (e) { }
   }
   if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
   try {
     new Notification(payload.title, { body: payload.body, tag: payload.tag });
-  } catch (e) {}
+  } catch (e) { }
 }
 
 async function nsPollTrackNotifications() {
@@ -1961,16 +1969,16 @@ async function nsPollTrackNotifications() {
       );
       // refresh track view so timeline matches
       if (document.getElementById('trackResultBox')) {
-        renderTrackResult(nsTrackCode).catch(() => {});
+        renderTrackResult(nsTrackCode).catch(() => { });
       }
     });
     if (items[0] && items[0].createdAt) nsLastNotifAt = items[0].createdAt;
-  } catch (e) {}
+  } catch (e) { }
 }
 
 function nsStartTrackWatch(code) {
   // Keep background push linked to this tracking code
-  if (nsBrowserPerm) { try { nsSubscribePush(arguments[0]); } catch (e) {} }
+  if (nsBrowserPerm) { try { nsSubscribePush(arguments[0]); } catch (e) { } }
 
   nsTrackCode = String(code || '').toUpperCase();
   nsLastNotifAt = new Date().toISOString(); // only new events after open
@@ -2024,39 +2032,39 @@ function nsToggleAdminNotifs() {
   panel.classList.toggle('open');
   if (panel.classList.contains('open')) {
     nsLoadAdminNotifs();
-    apiRequest('/shipments/notifications/read', { method: 'POST', body: JSON.stringify({ all: true }) }).catch(() => {});
+    apiRequest('/shipments/notifications/read', { method: 'POST', body: JSON.stringify({ all: true }) }).catch(() => { });
   }
 }
 
 
 /* ---------- COUNT-UP ANIMATION ---------- */
 function countUp(el) {
-    const target = parseFloat(el.dataset.count);
-    const decimals = el.dataset.decimal ? parseInt(el.dataset.decimal) : 0;
-    const suffix = el.dataset.suffix || "";
-    const span = el.querySelector('span');
-    let cur = 0;
-    const steps = 60;
-    const inc = target / steps;
-    let i = 0;
-    const t = setInterval(() => {
-        i++; cur += inc;
-        if (i >= steps) { cur = target; clearInterval(t); }
-        span.textContent = cur.toFixed(decimals) + suffix;
-    }, 25);
+  const target = parseFloat(el.dataset.count);
+  const decimals = el.dataset.decimal ? parseInt(el.dataset.decimal) : 0;
+  const suffix = el.dataset.suffix || "";
+  const span = el.querySelector('span');
+  let cur = 0;
+  const steps = 60;
+  const inc = target / steps;
+  let i = 0;
+  const t = setInterval(() => {
+    i++; cur += inc;
+    if (i >= steps) { cur = target; clearInterval(t); }
+    span.textContent = cur.toFixed(decimals) + suffix;
+  }, 25);
 }
 const io = new IntersectionObserver(entries => {
-    entries.forEach(e => {
-        if (e.isIntersecting) { countUp(e.target); io.unobserve(e.target); }
-    });
+  entries.forEach(e => {
+    if (e.isIntersecting) { countUp(e.target); io.unobserve(e.target); }
+  });
 }, { threshold: 0.5 });
 document.querySelectorAll('.stat h3').forEach(el => io.observe(el));
 
 /* ---------- SCROLL REVEAL FOR SERVICE CARDS ---------- */
 const cardIo = new IntersectionObserver(entries => {
-    entries.forEach(e => {
-        if (e.isIntersecting) { e.target.classList.add('reveal'); cardIo.unobserve(e.target); }
-    });
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('reveal'); cardIo.unobserve(e.target); }
+  });
 }, { threshold: 0.2 });
 document.querySelectorAll('.service-card').forEach(el => cardIo.observe(el));
 function openSettingsProtected() {
@@ -2074,9 +2082,16 @@ function submitSettingsPin() {
     return;
   }
   closeModal('settingsPinModal');
-  const m = document.getElementById('settingsModal');
-  if (m) m.classList.add('show');
+  var m = document.getElementById('settingsModal') || document.getElementById('credentialsModal');
+  if (m) {
+    m.classList.add('show');
+    if (!m.classList.contains('modal-overlay')) m.style.display = 'flex';
+  } else {
+    alert('Settings form missing on this page.');
+  }
 }
+window.verifySettingsPin = submitSettingsPin;
+
 
 
 /* ---- Site language (public pages + receipt; not admin login) ---- */
@@ -2132,7 +2147,7 @@ const SITE_I18N = {
   }
 };
 function setSiteLang(lang) {
-  try { localStorage.setItem('dhl_lang', lang); } catch (e) {}
+  try { localStorage.setItem('dhl_lang', lang); } catch (e) { }
   document.documentElement.lang = lang || 'en';
   const map = SITE_I18N[lang] || SITE_I18N.en;
   document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -2160,7 +2175,7 @@ function setSiteLang(lang) {
   try {
     const L = localStorage.getItem('dhl_lang') || 'en';
     setTimeout(function () { setSiteLang(L); }, 50);
-  } catch (e) {}
+  } catch (e) { }
 })();
 
 async function toggleBoxService() {
@@ -2226,7 +2241,7 @@ function closeGuestChat() {
   }
   document.body.classList.remove('guest-chat-open');
   // Start fresh: clear guest id so next open asks for tracking code again
-  try { sessionStorage.removeItem('dhlGuestId'); } catch (e) {}
+  try { sessionStorage.removeItem('dhlGuestId'); } catch (e) { }
   if (window._guestChatPoll) { clearInterval(window._guestChatPoll); window._guestChatPoll = null; }
   const setup = document.getElementById('guestChatSetup');
   const room = document.getElementById('guestChatRoom');
@@ -2312,7 +2327,7 @@ async function guestChatPoll() {
   try {
     const data = await apiRequest('/chat/guest/' + encodeURIComponent(dhlGuestId()));
     guestRenderMessages(data.messages || []);
-  } catch (e) {}
+  } catch (e) { }
 }
 
 async function guestChatSend() {
@@ -2407,7 +2422,7 @@ async function adminLoadThreads() {
         badge.classList.add('hidden');
       }
     }
-  } catch (e) {}
+  } catch (e) { }
 }
 
 async function adminOpenThread(id) {
@@ -2509,7 +2524,7 @@ function setAdminMode(on) {
     } else if (params.get('admin') === '1' && !adminToken) {
       location.replace('/admin');
     }
-  } catch (e) {}
+  } catch (e) { }
 })();
 
 const _logoutAdminOrig = logoutAdmin;

@@ -3,43 +3,42 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Demo Project — Office Board</title>
-    <meta name="robots" content="noindex,nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>Demo Office Board</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link rel="stylesheet" href="/css/style.css?v=demoboard1">
+    <link rel="stylesheet" href="/css/style.css?v=vis5">
     <style>
-        body.demo-office {
-            background: #0f172a;
+        html,
+        body {
             margin: 0;
+            padding: 0;
+            background: #e8eaed !important;
+            color: #111 !important;
+            font-family: system-ui, sans-serif;
+            overflow-x: hidden
         }
 
         .demo-bar {
-            background: #334155;
+            background: #1e293b;
             color: #e2e8f0;
-            padding: 10px 16px;
+            padding: 12px 14px;
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            font-family: system-ui, sans-serif;
-            font-size: 14px;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            position: sticky;
+            top: 0;
+            z-index: 300
         }
 
         .demo-bar strong {
-            color: #93c5fd;
+            color: #93c5fd
         }
 
         .demo-bar a {
-            color: #93c5fd;
-        }
-
-        #adminDashboard {
-            display: block !important;
-        }
-
-        #adminDashboard.hidden {
-            display: block !important;
+            color: #93c5fd
         }
 
         #siteView,
@@ -47,16 +46,167 @@
         .dhl-header,
         .chat-fab,
         #guestChatPanel,
-        .sticky-cta {
-            display: none !important;
+        .sticky-cta,
+        #langStrip {
+            display: none !important
+        }
+
+        #adminDashboard {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            padding: 14px 12px 40px !important;
+            min-height: 100vh !important;
+            background: #e8eaed !important;
+            color: #111 !important
+        }
+
+        #adminDashboard.hidden {
+            display: block !important
+        }
+
+        .admin-wrap {
+            max-width: 1100px;
+            margin: 0 auto
+        }
+
+        .admin-top h2 {
+            margin: 0 0 6px;
+            font-size: 22px;
+            color: #0f172a !important
+        }
+
+        .admin-top p {
+            color: #475569 !important;
+            font-size: 13px;
+            margin: 0 0 12px
+        }
+
+        .admin-top-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 14px
+        }
+
+        .admin-top-actions .btn,
+        .admin-top-actions button {
+            flex: 1 1 140px;
+            padding: 12px 10px;
+            border-radius: 10px;
+            border: 1px solid #cbd5e1;
+            background: #fff;
+            color: #0f172a;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer
+        }
+
+        .admin-top-actions .btn-red,
+        button.btn-red {
+            background: #D40511 !important;
+            color: #fff !important;
+            border: none
+        }
+
+        .admin-layout {
+            display: grid;
+            gap: 12px;
+            grid-template-columns: 1fr
+        }
+
+        @media(min-width:900px) {
+            .admin-layout {
+                grid-template-columns: 1fr 1.3fr
+            }
+        }
+
+        .panel {
+            background: #fff !important;
+            color: #0f172a !important;
+            border-radius: 12px;
+            padding: 14px;
+            border: 1px solid #cbd5e1;
+            min-height: 100px
+        }
+
+        .section-title {
+            margin: 0 0 10px;
+            color: #0f172a !important
+        }
+
+        .admin-chat-panel.hidden {
+            display: none !important
+        }
+
+        .admin-chat-panel:not(.hidden) {
+            display: flex !important;
+            flex-direction: column;
+            position: fixed;
+            inset: 0;
+            z-index: 500;
+            background: #fff
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 600;
+            background: rgba(0, 0, 0, .5);
+            align-items: center;
+            justify-content: center;
+            padding: 12px
+        }
+
+        .modal-overlay.show {
+            display: flex !important
+        }
+
+        .modal-box {
+            background: #fff;
+            border-radius: 12px;
+            padding: 18px;
+            width: min(420px, 100%);
+            max-height: 90vh;
+            overflow: auto
+        }
+
+        .modal-box label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            margin: 8px 0 4px
+        }
+
+        .modal-box input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 15px
+        }
+
+        .modal-close {
+            float: right;
+            border: 0;
+            background: 0;
+            font-size: 24px;
+            cursor: pointer
+        }
+
+        .error-box {
+            color: #b91c1c;
+            font-size: 13px
         }
     </style>
 </head>
 
 <body class="demo-office admin-mode">
     <div class="demo-bar">
-        <span><strong>DEMO PROJECT</strong> · Office board (not a carrier brand)</span>
-        <span><a href="/admin.html" onclick="sessionStorage.removeItem('dhlAdminToken')">Log out</a></span>
+        <span><strong> PROJECT</strong> · Office board</span>
+        <a href="/admin.html" onclick="sessionStorage.removeItem('dhlAdminToken')">Log out</a>
     </div>
     <div id="mdPleaseWait" class="md-please-wait" style="display:none">
         <div class="dots">......</div>
@@ -68,43 +218,42 @@
     <div id="adminDashboard" class="page">
         <div class="admin-wrap">
             <div class="admin-top">
-                <div style="min-width:0;flex:1 1 200px;">
-                    <h2>Demo Office Dashboard</h2>
-                    <p style="color:var(--gray); font-size:13.5px;">Edits save to the shared API and show on the public
-                        package site. Tracking codes auto-generate if left empty.</p>
-                </div>
-                <div class="admin-top-actions" style="position:relative;">
-                    <button type="button" class="btn btn-outline small-btn" id="adminChatBtn"
-                        onclick="adminToggleChatPanel()">💬 Chats <span class="chat-badge hidden"
-                            id="adminChatBadge">0</span></button>
-                    <button type="button" class="btn btn-outline small-btn" id="boxServiceToggleBtn"
+                <h2> Office Dashboard</h2>
+                <p>Chats · Box · New shipment · Account settings. Data saves to shared API.</p>
+                <div class="admin-top-actions">
+                    <button type="button" class="btn btn-outline" id="adminChatBtn" onclick="adminToggleChatPanel()">💬
+                        Chats <span class="chat-badge hidden" id="adminChatBadge">0</span></button>
+                    <button type="button" class="btn btn-outline" id="boxServiceToggleBtn"
                         onclick="toggleBoxService()">Box video: ON</button>
-                    <button class="btn btn-red small-btn" onclick="startNewShipment()">+ New Shipment</button>
-                    <button class="btn btn-outline small-btn" onclick="openSettingsProtected()">⚙ Settings</button>
-                    <a class="logout-link" href="/admin.html" onclick="sessionStorage.removeItem('dhlAdminToken');">Log
-                        Out</a>
+                    <button type="button" class="btn btn-red" onclick="startNewShipment()">+ New Shipment</button>
+                    <button type="button" class="btn btn-outline" onclick="openSettingsProtected()">⚙ Account
+                        Settings</button>
                 </div>
             </div>
             <div id="adminChatPanel" class="admin-chat-panel hidden">
-                <div class="admin-chat-head">
-                    <button type="button" class="btn btn-outline small-btn" onclick="adminToggleChatNav()">☰
+                <div class="admin-chat-head"
+                    style="display:flex;gap:8px;padding:10px;border-bottom:1px solid #eee;flex-wrap:wrap;align-items:center">
+                    <button type="button" class="btn btn-outline" onclick="adminToggleChatNav()">☰
                         Conversations</button>
-                    <strong id="adminChatTitle">Select a conversation</strong>
-                    <button type="button" class="btn btn-outline small-btn" onclick="adminToggleChatPanel()">✕</button>
+                    <strong id="adminChatTitle" style="flex:1">Select a conversation</strong>
+                    <button type="button" class="btn btn-outline" onclick="adminToggleChatPanel()">✕</button>
                 </div>
-                <div class="admin-chat-body">
+                <div class="admin-chat-body" style="display:flex;flex-direction:column;flex:1;min-height:0">
                     <aside id="adminChatNav" class="admin-chat-nav">
                         <div id="adminChatThreadList"></div>
                     </aside>
-                    <div class="admin-chat-main">
-                        <div id="adminChatMessages" class="admin-chat-messages"></div>
-                        <div class="admin-chat-compose">
+                    <div class="admin-chat-main" style="flex:1;display:flex;flex-direction:column">
+                        <div id="adminChatMessages" class="admin-chat-messages"
+                            style="flex:1;overflow:auto;padding:12px"></div>
+                        <div class="admin-chat-compose"
+                            style="display:flex;gap:6px;padding:10px;border-top:1px solid #eee">
                             <input type="file" id="adminChatImage" accept="image/*" hidden
                                 onchange="adminChatPickImage(event)">
-                            <button type="button" class="btn btn-outline small-btn"
+                            <button type="button" class="btn btn-outline"
                                 onclick="document.getElementById('adminChatImage').click()">📷</button>
-                            <input type="text" id="adminChatInput" placeholder="Reply…">
-                            <button type="button" class="btn btn-red small-btn" onclick="adminChatSend()">Send</button>
+                            <input type="text" id="adminChatInput" placeholder="Reply…"
+                                style="flex:1;padding:10px;border-radius:8px;border:1px solid #ccc">
+                            <button type="button" class="btn btn-red" onclick="adminChatSend()">Send</button>
                         </div>
                     </div>
                 </div>
@@ -112,67 +261,77 @@
             <div class="admin-layout">
                 <div class="panel">
                     <h4 class="section-title">All Shipments</h4>
-                    <div class="ship-list" id="shipList"></div>
+                    <div class="ship-list" id="shipList">
+                        <p style="color:#64748b">Loading…</p>
+                    </div>
                 </div>
-                <div class="panel" id="shipDetailPanel"></div>
+                <div class="panel" id="shipDetailPanel">
+                    <p style="color:#64748b">Tap a shipment or + New Shipment</p>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- minimal modals for settings / pin used by script.js -->
-    <div class="modal-overlay" id="loginModal">
-        <div class="modal-box"><button class="modal-close" onclick="closeModal('loginModal')">&times;</button>
-            <p>Use the Demo login page.</p>
+    <div class="modal-overlay" id="settingsPinModal">
+        <div class="modal-box">
+            <button type="button" class="modal-close" onclick="closeModal('settingsPinModal')">&times;</button>
+            <h3>Settings PIN</h3>
+            <p style="font-size:13px;color:#64748b">Enter <strong>7799</strong></p>
+            <input id="settingsPinInput" type="password" maxlength="8" inputmode="numeric" placeholder="7799">
+            <p class="error-box" id="settingsPinError" style="display:none"></p>
+            <button type="button" class="btn btn-red" style="width:100%;margin-top:12px;padding:12px"
+                onclick="submitSettingsPin()">Open settings</button>
         </div>
     </div>
-    <div class="modal-overlay" id="pinModal">
-        <div class="modal-box"><button class="modal-close" onclick="closeModal('pinModal')">&times;</button>
-            <h3>PIN</h3>
-            <form onsubmit="return handlePinSubmit(event)"><input id="pinInput" type="password" maxlength="8"><button
-                    type="submit" class="btn btn-red">OK</button>
-                <div class="error-box" id="pinError"></div>
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal-box">
+            <button type="button" class="modal-close" onclick="closeModal('settingsModal')">&times;</button>
+            <h3>Account settings</h3>
+            <form onsubmit="return handleCredentialsSubmit(event)">
+                <label>New username</label><input id="settingsNewUser" placeholder="Optional">
+                <label>New password</label><input id="settingsNewPass" type="password" placeholder="Optional">
+                <label>New login PIN (4–8 digits)</label><input id="settingsNewPin" type="password" inputmode="numeric"
+                    maxlength="8">
+                <label>New chat PIN (4–8 digits)</label><input id="settingsChatPin" type="password" inputmode="numeric"
+                    maxlength="8" placeholder="4422">
+                <label>Current password (required)</label><input id="settingsCurrentPass" type="password" required>
+                <button type="submit" class="btn btn-red" style="width:100%;margin-top:12px;padding:12px">Save</button>
+                <div class="error-box" id="settingsError" style="display:none"></div>
+                <div id="settingsSuccess" style="display:none;color:#15803d;margin-top:8px"></div>
             </form>
         </div>
     </div>
-    <div class="modal-overlay" id="settingsPinModal">
-        <div class="modal-box"><button class="modal-close" onclick="closeModal('settingsPinModal')">&times;</button>
-            <h3>Settings PIN</h3>
-            <p class="sub">Enter PIN 7799</p>
-            <input id="settingsPinInput" type="password" maxlength="4"><button class="btn btn-red"
-                onclick="verifySettingsPin()">Open</button>
+    <div class="modal-overlay" id="loginModal">
+        <div class="modal-box">
+            <p>Use Demo login.</p>
         </div>
     </div>
-    <div class="modal-overlay" id="credentialsModal">
-        <div class="modal-box"><button class="modal-close" onclick="closeModal('credentialsModal')">&times;</button>
-            <h3>Account settings</h3>
-            <form onsubmit="return handleCredentialsSubmit(event)">
-                <label>Username</label><input id="credUser"><label>Password</label><input id="credPass">
-                <label>Admin PIN</label><input id="credPin"><label>Current password</label><input id="credCurrent">
-                <button type="submit" class="btn btn-red">Save</button>
-                <div class="error-box" id="settingsError"></div>
-                <div id="settingsSuccess" style="display:none">Saved</div>
+    <div class="modal-overlay" id="pinModal">
+        <div class="modal-box">
+            <h3>PIN</h3>
+            <form onsubmit="return handlePinSubmit(event)"><input id="pinInput" type="password"><button type="submit"
+                    class="btn btn-red">OK</button>
+                <div id="pinError" class="error-box"></div>
             </form>
         </div>
     </div>
 
+    <script>window.DEMO_OFFICE_BOARD = true;</script>
+    <script src="/js/script.js?v=vis5"></script>
     <script>
-        // Force API to Render when on Netlify / separate host
-        window.DEMO_OFFICE_BOARD = true;
-    </script>
-    <script src="/js/script.js?v=demoboard1"></script>
-    <script>
+        function openModal(id) { var m = document.getElementById(id); if (m) { m.classList.add('show'); m.style.display = 'flex'; } }
+        function closeModal(id) { var m = document.getElementById(id); if (m) { m.classList.remove('show'); m.style.display = 'none'; } }
         (function () {
             var tok = sessionStorage.getItem('dhlAdminToken');
             if (!tok) { location.replace('/admin.html'); return; }
             if (typeof adminToken !== 'undefined') adminToken = tok;
             document.body.classList.add('admin-mode');
+            var dash = document.getElementById('adminDashboard');
+            if (dash) { dash.style.display = 'block'; dash.style.background = '#e8eaed'; }
             if (typeof setAdminMode === 'function') setAdminMode(true);
             if (typeof renderShipList === 'function') renderShipList();
+            else document.getElementById('shipList').innerHTML = '<p style="color:#b91c1c">script.js missing — copy public/js/script.js into office-static/js/</p>';
             if (typeof adminLoadThreads === 'function') adminLoadThreads();
-            if (typeof nsLoadAdminNotifs === 'function') {
-                nsLoadAdminNotifs();
-                setInterval(nsLoadAdminNotifs, 8000);
-            }
         })();
     </script>
 </body>

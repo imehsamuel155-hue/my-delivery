@@ -10,7 +10,7 @@
     <link rel="icon" href="https://www.dhl.com/favicon.ico">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link rel="stylesheet" href="/css/style.css?v=navfix3">
+    <link rel="stylesheet" href="/css/style.css?v=navdhl1">
 
     <style id="nav-force">
         #overlay {
@@ -102,6 +102,12 @@
             display: block !important;
         }
     </style>
+
+    <script>
+        function openMenu() { var m = document.getElementById('mobileMenu'); var o = document.getElementById('overlay'); if (m) m.style.transform = 'translateX(0)'; if (o) o.style.display = 'block'; }
+        function closeMenu() { var m = document.getElementById('mobileMenu'); var o = document.getElementById('overlay'); if (m) m.style.transform = 'translateX(100%)'; if (o) o.style.display = 'none'; }
+        function toggleMobileMenu(e) { if (e && e.preventDefault) e.preventDefault(); var m = document.getElementById('mobileMenu'); if (!m) return false; var open = m.style.transform === 'translateX(0px)' || m.style.transform === 'translateX(0)'; if (open) closeMenu(); else openMenu(); return false; }
+    </script>
 </head>
 
 <body>
@@ -119,43 +125,74 @@
                         COURIER</span></span>
             </a>
             <div class="header-right-actions">
-                <button type="button" class="hamburger" onclick="return toggleMobileMenu(event);"
-                    aria-label="Open menu">
+                <button type="button" class="hamburger" onclick="openMenu();return false;">
                     <span></span><span></span><span></span>
                 </button>
             </div>
         </div>
     </header>
-    <div id="overlay" onclick="toggleMobileMenu(event)"
-        style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9998;"></div>
-    <nav id="mobileMenu"
-        style="position:fixed;top:0;right:0;bottom:0;width:min(300px,90vw);background:#fff;z-index:9999;transform:translateX(100%);transition:transform .25s ease;overflow-y:auto;box-shadow:-6px 0 24px rgba(0,0,0,.2);">
+    <!-- MOBILE MENU -->
+    <div id="overlay" onclick="closeMenu()"
+        style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9998;"></div>
+    <aside id="mobileMenu"
+        style="position:fixed;top:0;right:0;width:min(320px,92vw);height:100%;background:#fff;z-index:9999;transform:translateX(100%);transition:transform .25s;overflow:auto;box-shadow:-8px 0 24px rgba(0,0,0,.25);">
         <div
-            style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:#D40511;">
-            <span style="color:#FFCC00;font-weight:800;font-size:16px;">Menu</span>
-            <button type="button" onclick="toggleMobileMenu(event)"
-                style="background:none;border:none;color:#FFCC00;font-size:28px;cursor:pointer;line-height:1;">&times;</button>
+            style="background:#FFCC00;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;">
+            <strong style="color:#D40511;font-size:18px;letter-spacing:1px;">DHL</strong>
+            <button type="button" onclick="closeMenu()"
+                style="border:0;background:0;font-size:28px;cursor:pointer;line-height:1;color:#111;">&times;</button>
         </div>
-        <a href="/" onclick="showSite();toggleMobileMenu(event);return false;"
-            style="display:block;color:#111!important;background:#fff;padding:16px 18px;font-size:17px;font-weight:700;text-decoration:none;border-bottom:1px solid #ddd;">Home</a>
-        <a href="#services" onclick="showSite();toggleMobileMenu(event);return false;"
-            style="display:block;color:#111!important;background:#fff;padding:16px 18px;font-size:17px;font-weight:700;text-decoration:none;border-bottom:1px solid #ddd;">Service</a>
-        <a href="#" onclick="goTrack();toggleMobileMenu(event);return false;"
-            style="display:block;color:#111!important;background:#fff;padding:16px 18px;font-size:17px;font-weight:700;text-decoration:none;border-bottom:1px solid #ddd;">Track
-            Now</a>
-        <a href="#testimonials" onclick="showSite();toggleMobileMenu(event);return false;"
-            style="display:block;color:#111!important;background:#fff;padding:16px 18px;font-size:17px;font-weight:700;text-decoration:none;border-bottom:1px solid #ddd;">Testimonials</a>
-        <a href="#about" onclick="showSite();toggleMobileMenu(event);return false;"
-            style="display:block;color:#111!important;background:#fff;padding:16px 18px;font-size:17px;font-weight:700;text-decoration:none;border-bottom:1px solid #ddd;">About
-            Us</a>
-        <a href="#customer-service" onclick="showSite();toggleMobileMenu(event);return false;"
-            style="display:block;color:#111!important;background:#fff;padding:16px 18px;font-size:17px;font-weight:700;text-decoration:none;border-bottom:1px solid #ddd;">Contact
-            Us</a>
+        <a href="#" onclick="goTrack();closeMenu();return false;"
+            style="display:block;padding:14px 16px;color:#111;font-weight:700;text-decoration:none;border-bottom:1px solid #eee;">Track</a>
+        <div style="border-bottom:1px solid #eee;">
+            <button type="button"
+                onclick="var s=document.getElementById('shipSub');s.style.display=s.style.display==='none'?'block':'none';"
+                style="width:100%;text-align:left;padding:14px 16px;background:#fff;border:0;font-weight:700;font-size:16px;cursor:pointer;">Ship
+                ▾</button>
+            <div id="shipSub" style="display:none;background:#fafafa;">
+                <a href="#services" onclick="closeMenu()"
+                    style="display:block;padding:12px 16px 12px 28px;color:#c00;text-decoration:none;">Get a Quote</a>
+                <a href="#services" onclick="closeMenu()"
+                    style="display:block;padding:12px 16px 12px 28px;color:#c00;text-decoration:none;">Ship Now</a>
+                <span style="display:block;padding:10px 16px 4px 28px;color:#666;font-size:12px;">Document and
+                    Package</span>
+                <a href="#services" onclick="closeMenu()"
+                    style="display:block;padding:8px 16px 12px 28px;color:#c00;text-decoration:none;font-size:14px;">Express
+                    document and package shipping</a>
+                <span style="display:block;padding:10px 16px 4px 28px;color:#666;font-size:12px;">Pallets, Containers
+                    and Cargo</span>
+                <a href="#services" onclick="closeMenu()"
+                    style="display:block;padding:8px 16px 12px 28px;color:#c00;text-decoration:none;font-size:14px;">Explore
+                    Freight Services</a>
+                <span style="display:block;padding:10px 16px 4px 28px;color:#666;font-size:12px;">DHL for
+                    Business</span>
+                <a href="#services" onclick="closeMenu()"
+                    style="display:block;padding:8px 16px 14px 28px;color:#c00;text-decoration:none;font-size:14px;">Frequent
+                    Shipping Options</a>
+            </div>
+        </div>
+        <a href="#services" onclick="closeMenu()"
+            style="display:block;padding:14px 16px;color:#111;font-weight:700;text-decoration:none;border-bottom:1px solid #eee;">Our
+            Services</a>
+        <a href="#"
+            onclick="closeMenu();if(typeof openGuestChat==='function')openGuestChat();else if(document.getElementById('chatFab'))document.getElementById('chatFab').click();return false;"
+            style="display:block;padding:14px 16px;color:#111;font-weight:700;text-decoration:none;border-bottom:1px solid #eee;">Customer
+            Service</a>
+        <a href="#customer-service" onclick="closeMenu()"
+            style="display:block;padding:14px 16px;color:#111;font-weight:700;text-decoration:none;border-bottom:1px solid #eee;">Customer
+            Portal Logins</a>
+        <a href="#about" onclick="closeMenu()"
+            style="display:block;padding:14px 16px;color:#111;font-weight:700;text-decoration:none;border-bottom:1px solid #eee;">Find
+            a Service Point</a>
+        <a href="/receipt.html"
+            style="display:block;padding:14px 16px;color:#111;font-weight:700;text-decoration:none;border-bottom:1px solid #eee;">Receipt</a>
         <a href="/box.html"
-            style="display:block;color:#111!important;background:#fff;padding:16px 18px;font-size:17px;font-weight:700;text-decoration:none;border-bottom:1px solid #ddd;">Box</a>
-        <a href="/receipt"
-            style="display:block;color:#111!important;background:#fff;padding:16px 18px;font-size:17px;font-weight:700;text-decoration:none;border-bottom:1px solid #ddd;">Receipt</a>
-    </nav>
+            style="display:block;padding:14px 16px;color:#111;font-weight:700;text-decoration:none;border-bottom:1px solid #eee;">Box</a>
+        <a href="/" onclick="showSite();closeMenu();return false;"
+            style="display:block;padding:14px 16px;color:#111;font-weight:600;text-decoration:none;border-bottom:1px solid #eee;">Home</a>
+        <a href="#testimonials" onclick="closeMenu()"
+            style="display:block;padding:14px 16px;color:#111;font-weight:600;text-decoration:none;border-bottom:1px solid #eee;">Testimonials</a>
+    </aside>
     <main id="siteView">
 
         <!-- HERO: warehouse + track (video style) -->
@@ -183,12 +220,11 @@
         <!-- Auto-scroll photo carousel (3 images) -->
         <section class="photo-carousel-sec" id="gallery">
             <div class="photo-carousel" id="photoCarousel">
-                <div class="pc-item active"><img
-                        src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=800&q=80"
+                <div class="pc-item active"><img src="/my-delivery/public/images/d4fa7bd2582b5d78c19c4976f5ff8225.jpg"
                         alt="Truck loading"></div>
                 <div class="pc-item"><img src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&q=80"
                         alt="Warehouse"></div>
-                <div class="pc-item"><img src="https://images.unsplash.com/photo-1521791136064-7986c2920216?w=800&q=80"
+                <div class="pc-item"><img src="/my-delivery/public/images/268070077cca37f5d1f5e460ffd59dce.jpg"
                         alt="Partnership"></div>
             </div>
         </section>
@@ -635,7 +671,7 @@
         </div>
     </div>
 
-    <script src="/js/script.js?v=navfix3"></script>
+    <script src="/js/script.js?v=navdhl1"></script>
 
     <script>
         (function () {

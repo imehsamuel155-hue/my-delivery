@@ -71,13 +71,20 @@ router.put("/credentials", requireAdmin, async (req, res) => {
         if (newUsername && newUsername.trim()) settings.username = newUsername.trim();
         if (newPassword && newPassword.trim()) settings.passwordHash = await bcrypt.hash(newPassword.trim(), 10);
         if (newPin && newPin.trim()) {
-            if (!/^\d{6}$/.test(newPin.trim())) {
-                return res.status(400).json({ error: "PIN must be exactly 6 digits." });
+            if (!/^\d{4,8}$/.test(newPin.trim())) {
+                return res.status(400).json({ error: "Login PIN must be 4–8 digits." });
             }
             settings.pinHash = await bcrypt.hash(newPin.trim(), 10);
         }
+        if (req.body.newChatPin && String(req.body.newChatPin).trim()) {
+            const cp = String(req.body.newChatPin).trim();
+            if (!/^\d{4,8}$/.test(cp)) {
+                return res.status(400).json({ error: "Chat PIN must be 4–8 digits." });
+            }
+            settings.chatPin = cp;
+        }
         await settings.save();
-        res.json({ success: true, username: settings.username });
+        res.json({ success: true, username: settings.username, chatPin: settings.chatPin || "4422" });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

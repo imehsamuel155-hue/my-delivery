@@ -1,47 +1,47 @@
 /* CACHE_BUST_TIMELINE_V2 no-qr chronological */
 
 function dhlParseHistoryDate(h) {
-  const raw = String((h && (h.date || h.createdAt)) || '').trim();
-  let d = raw ? new Date(raw) : new Date();
-  if (isNaN(d.getTime())) d = new Date();
-  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  const months = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
-  const hh = String(d.getHours()).padStart(2,'0');
-  const mm = String(d.getMinutes()).padStart(2,'0');
-  return {
-    day: days[d.getDay()],
-    dateLine: String(d.getDate()).padStart(2,'0') + ' ' + months[d.getMonth()] + ' ' + d.getFullYear(),
-    timeLine: hh + ':' + mm + ' Local time',
-  };
+    const raw = String((h && (h.date || h.createdAt)) || '').trim();
+    let d = raw ? new Date(raw) : new Date();
+    if (isNaN(d.getTime())) d = new Date();
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const months = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mm = String(d.getMinutes()).padStart(2, '0');
+    return {
+        day: days[d.getDay()],
+        dateLine: String(d.getDate()).padStart(2, '0') + ' ' + months[d.getMonth()] + ' ' + d.getFullYear(),
+        timeLine: hh + ':' + mm + ' Local time',
+    };
 }
 function dhlTimelineHtml(history) {
-  // Same order as admin: first status at TOP, each new status BELOW (never reverse)
-  let ordered = Array.isArray(history) ? history.slice() : [];
-  ordered.sort((a, b) => {
-    const da = String((a && a.date) || '');
-    const db = String((b && b.date) || '');
-    if (da && db && da !== db) return da.localeCompare(db);
-    return 0; // keep original array order when same date (push order)
-  });
-  if (!ordered.length) {
-    return '<div class="dhl-timeline"><div class="dhl-tl-item pending"><div class="dhl-tl-dot">△</div><div><div class="dhl-tl-status">Awaiting first scan</div></div></div></div>';
-  }
-  const last = ordered.length - 1;
-  return '<div class="dhl-timeline">' + ordered.map((h, i) => {
-    const label = String(h.label || h.status || 'Update');
-    const loc = String(h.location || '');
-    const isDelivered = /deliver/i.test(label);
-    const isLatest = i === last;
-    // All past steps = done (green); latest = current (green ring); none pending in between
-    let cls = 'done';
-    if (isLatest && !isDelivered) cls = 'current';
-    if (isDelivered) cls = 'done';
-    const dot = (cls === 'done') ? '✓' : '△';
-    const t = dhlParseHistoryDate(h);
-    const statusClass = isDelivered ? 'delivered' : '';
-    // Line segment below this item is green if this step is done/current (connects to next)
-    const lineCls = (i < last) ? (cls === 'done' || cls === 'current' ? 'line-green' : 'line-gray') : '';
-    return `<div class="dhl-tl-item ${cls} ${lineCls}">
+    // Same order as admin: first status at TOP, each new status BELOW (never reverse)
+    let ordered = Array.isArray(history) ? history.slice() : [];
+    ordered.sort((a, b) => {
+        const da = String((a && a.date) || '');
+        const db = String((b && b.date) || '');
+        if (da && db && da !== db) return da.localeCompare(db);
+        return 0; // keep original array order when same date (push order)
+    });
+    if (!ordered.length) {
+        return '<div class="dhl-timeline"><div class="dhl-tl-item pending"><div class="dhl-tl-dot">△</div><div><div class="dhl-tl-status">Awaiting first scan</div></div></div></div>';
+    }
+    const last = ordered.length - 1;
+    return '<div class="dhl-timeline">' + ordered.map((h, i) => {
+        const label = String(h.label || h.status || 'Update');
+        const loc = String(h.location || '');
+        const isDelivered = /deliver/i.test(label);
+        const isLatest = i === last;
+        // All past steps = done (green); latest = current (green ring); none pending in between
+        let cls = 'done';
+        if (isLatest && !isDelivered) cls = 'current';
+        if (isDelivered) cls = 'done';
+        const dot = (cls === 'done') ? '✓' : '△';
+        const t = dhlParseHistoryDate(h);
+        const statusClass = isDelivered ? 'delivered' : '';
+        // Line segment below this item is green if this step is done/current (connects to next)
+        const lineCls = (i < last) ? (cls === 'done' || cls === 'current' ? 'line-green' : 'line-gray') : '';
+        return `<div class="dhl-tl-item ${cls} ${lineCls}">
       <div class="dhl-tl-dot">${dot}</div>
       <div>
         <div class="dhl-tl-day">${esc(t.day)}</div>
@@ -49,45 +49,45 @@ function dhlTimelineHtml(history) {
         <div class="dhl-tl-time">${esc(t.timeLine)}</div>
         <div class="dhl-tl-status ${statusClass}">${esc(label)}</div>
         ${loc ? `<div class="dhl-tl-loc">${esc(loc)}</div>` : ''}
-        <div class="dhl-tl-piece">1 Piece ID: ${esc((h.pieceId || '') )}</div>
+        <div class="dhl-tl-piece">1 Piece ID: ${esc((h.pieceId || ''))}</div>
       </div>
     </div>`;
-  }).join('') + '</div>';
+    }).join('') + '</div>';
 }
 
 
 
 function generateTrackCode() {
-  const n = Math.floor(100000 + Math.random() * 900000);
-  return 'DHL' + n;
+    const n = Math.floor(100000 + Math.random() * 900000);
+    return 'DHL' + n;
 }
 
 /* ---------- PLEASE WAIT LOADER ---------- */
 let _mdDotTimer = null;
 function mdShowWait(sub) {
-  let el = document.getElementById('mdPleaseWait');
-  if (!el) {
-    el = document.createElement('div');
-    el.id = 'mdPleaseWait';
-    el.className = 'md-please-wait';
-    el.innerHTML = '<div class="dots" id="mdDots">......</div><div class="txt">Please wait</div><div class="sub" id="mdWaitSub">Loading…</div>';
-    document.body.appendChild(el);
-  }
-  const subEl = el.querySelector('.sub') || document.getElementById('mdWaitSub');
-  if (subEl) subEl.textContent = sub || 'Loading…';
-  el.classList.add('show');
-  let n = 0;
-  const dots = el.querySelector('.dots') || document.getElementById('mdDots');
-  if (_mdDotTimer) clearInterval(_mdDotTimer);
-  _mdDotTimer = setInterval(() => {
-    n = (n % 6) + 1;
-    if (dots) dots.textContent = '.'.repeat(n);
-  }, 280);
+    let el = document.getElementById('mdPleaseWait');
+    if (!el) {
+        el = document.createElement('div');
+        el.id = 'mdPleaseWait';
+        el.className = 'md-please-wait';
+        el.innerHTML = '<div class="dots" id="mdDots">......</div><div class="txt">Please wait</div><div class="sub" id="mdWaitSub">Loading…</div>';
+        document.body.appendChild(el);
+    }
+    const subEl = el.querySelector('.sub') || document.getElementById('mdWaitSub');
+    if (subEl) subEl.textContent = sub || 'Loading…';
+    el.classList.add('show');
+    let n = 0;
+    const dots = el.querySelector('.dots') || document.getElementById('mdDots');
+    if (_mdDotTimer) clearInterval(_mdDotTimer);
+    _mdDotTimer = setInterval(() => {
+        n = (n % 6) + 1;
+        if (dots) dots.textContent = '.'.repeat(n);
+    }, 280);
 }
 function mdHideWait() {
-  const el = document.getElementById('mdPleaseWait');
-  if (el) el.classList.remove('show');
-  if (_mdDotTimer) { clearInterval(_mdDotTimer); _mdDotTimer = null; }
+    const el = document.getElementById('mdPleaseWait');
+    if (el) el.classList.remove('show');
+    if (_mdDotTimer) { clearInterval(_mdDotTimer); _mdDotTimer = null; }
 }
 
 
@@ -100,11 +100,11 @@ function mdHideWait() {
 
 // Localhost → same origin /api. Online → Render backend.
 const API_BASE = (function () {
-  try {
-    const h = location.hostname;
-    if (h === "localhost" || h === "127.0.0.1" || h === "") return "/api";
-  } catch (e) {}
-  return "https://my-delivery-w6xz.onrender.com/api";
+    try {
+        const h = location.hostname;
+        if (h === "localhost" || h === "127.0.0.1" || h === "") return "/api";
+    } catch (e) { }
+    return "https://my-delivery-w6xz.onrender.com/api";
 })();
 
 // Admin login token — kept in a plain JS variable only (no localStorage),
@@ -112,7 +112,7 @@ const API_BASE = (function () {
 let adminToken = null;
 let _dhlSwReg = null;
 if (typeof navigator !== 'undefined' && navigator.serviceWorker) {
-  navigator.serviceWorker.register('/sw.js').then(reg => { _dhlSwReg = reg; }).catch(() => {});
+    navigator.serviceWorker.register('/sw.js').then(reg => { _dhlSwReg = reg; }).catch(() => { });
 }
 
 
@@ -139,18 +139,18 @@ function toggleMobileMenu(e) {
     var menu = document.getElementById('mobileMenu');
     var overlay = document.getElementById('overlay');
     if (!menu) {
-      console.warn('mobileMenu not found');
-      return false;
+        console.warn('mobileMenu not found');
+        return false;
     }
     var open = !menu.classList.contains('open');
     if (open) {
-      menu.classList.add('open');
-      document.body.classList.add('menu-open');
-      if (overlay) overlay.classList.add('show');
+        menu.classList.add('open');
+        document.body.classList.add('menu-open');
+        if (overlay) overlay.classList.add('show');
     } else {
-      menu.classList.remove('open');
-      document.body.classList.remove('menu-open');
-      if (overlay) overlay.classList.remove('show');
+        menu.classList.remove('open');
+        document.body.classList.remove('menu-open');
+        if (overlay) overlay.classList.remove('show');
     }
     return false;
 }
@@ -171,8 +171,8 @@ function goTrack() {
     setTimeout(mdHideWait, 350);
 }
 function openModal(id) {
-  mdShowWait('Please wait……');
-  setTimeout(() => { mdHideWait(); document.getElementById(id).classList.add('show'); }, 280);
+    mdShowWait('Please wait……');
+    setTimeout(() => { mdHideWait(); document.getElementById(id).classList.add('show'); }, 280);
 }
 function closeModal(id) { document.getElementById(id).classList.remove('show'); document.getElementById(id).querySelectorAll('.error-box').forEach(e => e.style.display = 'none'); }
 
@@ -183,9 +183,9 @@ async function trackFromHero() {
     if (!code) { msg.textContent = "Enter a tracking code first."; return; }
     mdShowWait('Tracking your package……');
     try {
-      goTrack();
-      document.getElementById('pageTrackInput').value = code;
-      await renderTrackResult(code);
+        goTrack();
+        document.getElementById('pageTrackInput').value = code;
+        await renderTrackResult(code);
     } finally { mdHideWait(); }
 }
 async function trackFromPage() {
@@ -218,12 +218,12 @@ async function renderTrackResult(code) {
         <div class="party"><h4>Receiver</h4><p><strong>${esc(shipment.receiver.name)}</strong><br>${esc(shipment.receiver.address)}<br>${esc(shipment.receiver.phone || '')}${shipment.receiver.email ? '<br>' + esc(shipment.receiver.email) : ''}</p></div>
       </div>
       <div class="pkg-meta">
-        <div class="meta-chip">Shipment Date<b>${esc(shipment.shipmentDate || (shipment.history && shipment.history[0] && shipment.history[0].date) || (shipment.createdAt ? new Date(shipment.createdAt).toISOString().slice(0,10) : '—'))}</b></div>
+        <div class="meta-chip">Shipment Date<b>${esc(shipment.shipmentDate || (shipment.history && shipment.history[0] && shipment.history[0].date) || (shipment.createdAt ? new Date(shipment.createdAt).toISOString().slice(0, 10) : '—'))}</b></div>
         
         <div class="meta-chip">Service<b>${esc(shipment.serviceType || '—')}</b></div>
         
         <div class="meta-chip">Weight<b>${esc((shipment.package && shipment.package.weightKg) != null ? shipment.package.weightKg : '—')} kg</b></div>
-        <div class="meta-chip">Dimensions<b>${esc(shipment.package ? [shipment.package.length,shipment.package.width,shipment.package.height].filter(v=>v!=null&&v!=='').join('×') : '—')} cm</b></div>
+        <div class="meta-chip">Dimensions<b>${esc(shipment.package ? [shipment.package.length, shipment.package.width, shipment.package.height].filter(v => v != null && v !== '').join('×') : '—')} cm</b></div>
         
         <div class="meta-chip">Mode<b>${esc(shipment.mode || '—')}</b></div>
         <div class="meta-chip">Carrier<b>${esc(shipment.carrier || '—')}</b></div>
@@ -262,8 +262,8 @@ ${dhlTimelineHtml(shipment.history)}
     nsStartTrackWatch(shipment.code);
     const rl = document.getElementById('receiptLink');
     if (rl) {
-      rl.href = '/receipt?code=' + encodeURIComponent(shipment.code);
-      rl.textContent = 'Open receipt for ' + shipment.code + ' (print / PDF)';
+        rl.href = '/receipt?code=' + encodeURIComponent(shipment.code);
+        rl.textContent = 'Open receipt for ' + shipment.code + ' (print / PDF)';
     }
 }
 function esc(s) { return String(s ?? "").replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])); }
@@ -347,32 +347,40 @@ async function handlePinSubmit(e) {
     } finally { mdHideWait(); }
     return false;
 }
-function logoutAdmin() { destroyAdminMap(); adminToken = null; unlockedShipments = {}; showSite(); window.scrollTo(0, 0); const ls=document.getElementById('langStrip'); if(ls) ls.style.display=''; }
+function logoutAdmin() { destroyAdminMap(); adminToken = null; unlockedShipments = {}; showSite(); window.scrollTo(0, 0); const ls = document.getElementById('langStrip'); if (ls) ls.style.display = ''; }
 
 /* ---------- ACCOUNT SETTINGS: change admin username/password/PIN ---------- */
 async function handleCredentialsSubmit(e) {
     e.preventDefault();
     const err = document.getElementById('settingsError');
     const ok = document.getElementById('settingsSuccess');
-    err.style.display = 'none'; ok.style.display = 'none';
+    if (err) err.style.display = 'none';
+    if (ok) ok.style.display = 'none';
+    function val(id) {
+        const el = document.getElementById(id);
+        return el ? String(el.value || '').trim() : '';
+    }
     try {
+        const body = {
+            currentPassword: val('settingsCurrentPass') || val('credCurrent'),
+            newUsername: val('settingsNewUser') || val('credUser'),
+            newPassword: val('settingsNewPass') || val('credPass'),
+            newPin: val('settingsNewPin') || val('credPin'),
+            newChatPin: val('settingsChatPin') || val('credChatPin'),
+        };
         const data = await apiRequest('/auth/credentials', {
-            method: 'PUT', body: JSON.stringify({
-                currentPassword: document.getElementById('settingsCurrentPass').value,
-                newUsername: document.getElementById('settingsNewUser').value.trim(),
-                newPassword: document.getElementById('settingsNewPass').value.trim(),
-                newPin: document.getElementById('settingsNewPin').value.trim(),
-            })
+            method: 'PUT', body: JSON.stringify(body)
         });
-        ok.textContent = 'Saved. Username is now: ' + data.username;
-        ok.style.display = 'block';
-        document.getElementById('settingsCurrentPass').value = '';
-        document.getElementById('settingsNewUser').value = '';
-        document.getElementById('settingsNewPass').value = '';
-        document.getElementById('settingsNewPin').value = '';
+        if (ok) {
+            ok.textContent = 'Saved. Username is now: ' + (data.username || '');
+            ok.style.display = 'block';
+        }
+        ['settingsCurrentPass', 'settingsNewUser', 'settingsNewPass', 'settingsNewPin', 'settingsChatPin', 'credCurrent', 'credUser', 'credPass', 'credPin', 'credChatPin'].forEach(function (id) {
+            const el = document.getElementById(id); if (el) el.value = '';
+        });
     } catch (err2) {
-        err.textContent = err2.message;
-        err.style.display = 'block';
+        if (err) { err.textContent = err2.message; err.style.display = 'block'; }
+        else alert(err2.message || 'Save failed');
     }
     return false;
 }
@@ -679,16 +687,16 @@ function collectFormShipment(existingCode) {
         mode: document.getElementById('f_mode').value,
         estimatedDelivery: document.getElementById('f_eta').value,
         carrier: document.getElementById('f_carrier').value,
-            waybillNumber: (document.getElementById('f_waybill')||{}).value || '',
-            serviceType: (document.getElementById('f_service')||{}).value || '',
-            packagingType: (document.getElementById('f_pack')||{}).value || '',
-            pieces: Number((document.getElementById('f_pieces')||{}).value || 1),
-            termsOfTrade: (document.getElementById('f_terms')||{}).value || '',
-            billingAccount: (document.getElementById('f_billAcct')||{}).value || '',
-            declaredValue: (document.getElementById('f_decl')||{}).value || '',
-            specialServices: (document.getElementById('f_special')||{}).value || '',
-            reference: (document.getElementById('f_ref')||{}).value || '',
-            shipmentDate: (document.getElementById('f_shipDate')||{}).value || '',
+        waybillNumber: (document.getElementById('f_waybill') || {}).value || '',
+        serviceType: (document.getElementById('f_service') || {}).value || '',
+        packagingType: (document.getElementById('f_pack') || {}).value || '',
+        pieces: Number((document.getElementById('f_pieces') || {}).value || 1),
+        termsOfTrade: (document.getElementById('f_terms') || {}).value || '',
+        billingAccount: (document.getElementById('f_billAcct') || {}).value || '',
+        declaredValue: (document.getElementById('f_decl') || {}).value || '',
+        specialServices: (document.getElementById('f_special') || {}).value || '',
+        reference: (document.getElementById('f_ref') || {}).value || '',
+        shipmentDate: (document.getElementById('f_shipDate') || {}).value || '',
 
     };
     // Only include the access PIN if something was typed - leaving it blank
@@ -703,9 +711,9 @@ function collectFormShipment(existingCode) {
 async function saveShipment(isNew) {
     let code = document.getElementById('f_code').value.trim();
     if (!code) {
-      code = generateTrackCode();
-      const el = document.getElementById('f_code');
-      if (el) el.value = code;
+        code = generateTrackCode();
+        const el = document.getElementById('f_code');
+        if (el) el.value = code;
     }
     const pinVal = document.getElementById('f_accessPin').value.trim();
     if (pinVal && !/^\d{4}$/.test(pinVal)) { alert('Shipment access code must be exactly 4 digits.'); return; }
@@ -771,143 +779,143 @@ async function removeStatus(code, idx) {
 /* ---------- LIVE MAP: moving truck/plane/ship along a route ---------- */
 const ICONS = { truck: '🚚', plane: '✈️', ship: '🚢', warehouse: '🏭' };
 const DEFAULT_VEHICLE_IMGS = {
-  plane: 'https://commons.wikimedia.org/wiki/Special:FilePath/Dhl.a300b4.oo-dlz.arp.jpg',
-  truck: 'https://commons.wikimedia.org/wiki/Special:FilePath/Fiat_Ducato_DHL_Van.jpg',
-  ship: 'https://commons.wikimedia.org/wiki/Special:FilePath/DHL_cargo_loaders_Orio_al_Serio.jpg'
+    plane: 'https://commons.wikimedia.org/wiki/Special:FilePath/Dhl.a300b4.oo-dlz.arp.jpg',
+    truck: 'https://commons.wikimedia.org/wiki/Special:FilePath/Fiat_Ducato_DHL_Van.jpg',
+    ship: 'https://commons.wikimedia.org/wiki/Special:FilePath/DHL_cargo_loaders_Orio_al_Serio.jpg'
 };
 function vehicleImgSrc(iconType, customUrl) {
-  const custom = String(customUrl || '').trim();
-  if (custom && /^https?:\/\//i.test(custom)) return custom;
-  return DEFAULT_VEHICLE_IMGS[iconType || 'truck'] || DEFAULT_VEHICLE_IMGS.truck;
+    const custom = String(customUrl || '').trim();
+    if (custom && /^https?:\/\//i.test(custom)) return custom;
+    return DEFAULT_VEHICLE_IMGS[iconType || 'truck'] || DEFAULT_VEHICLE_IMGS.truck;
 }
 function vehicleIconHtml(iconType, customUrl, size) {
-  const s = size || 28;
-  const src = vehicleImgSrc(iconType, customUrl);
-  return '<img src="' + src + '" alt="' + (iconType || 'vehicle') + '" width="' + s + '" height="' + s + '" style="width:' + s + 'px;height:' + s + 'px;object-fit:cover;border-radius:50%;border:2px solid #FFCC00;background:#fff;display:block;" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'inline\');"><span style="display:none;font-size:' + s + 'px;">' + (ICONS[iconType || 'truck'] || '🚚') + '</span>';
+    const s = size || 28;
+    const src = vehicleImgSrc(iconType, customUrl);
+    return '<img src="' + src + '" alt="' + (iconType || 'vehicle') + '" width="' + s + '" height="' + s + '" style="width:' + s + 'px;height:' + s + 'px;object-fit:cover;border-radius:50%;border:2px solid #FFCC00;background:#fff;display:block;" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'inline\');"><span style="display:none;font-size:' + s + 'px;">' + (ICONS[iconType || 'truck'] || '🚚') + '</span>';
 }
 
 
 function onFaceModeChange() {
-  const face = document.getElementById('f_face');
-  if (face && face.value === 'manual') {
-    const sl = document.getElementById('f_rotSlider');
-    if (sl) onRotSliderInput(sl.value);
-  } else if (face && face.value === 'auto') {
-    setVehicleRotAuto();
-  }
+    const face = document.getElementById('f_face');
+    if (face && face.value === 'manual') {
+        const sl = document.getElementById('f_rotSlider');
+        if (sl) onRotSliderInput(sl.value);
+    } else if (face && face.value === 'auto') {
+        setVehicleRotAuto();
+    }
 }
 function onRotSliderInput(val) {
-  const deg = Math.round(Number(val) || 0);
-  const lab = document.getElementById('rotDegLabel');
-  if (lab) lab.textContent = deg + '°';
-  const face = document.getElementById('f_face');
-  if (face) {
-    face.value = 'manual';
-  }
-  // live update map marker
-  try {
-    if (adminMarker && adminMap) {
-      const o = COUNTRY_COORDS[document.getElementById('f_oCountry').value];
-      const d = COUNTRY_COORDS[document.getElementById('f_dCountry').value];
-      if (!o || !d) return;
-      const iconType = (document.getElementById('f_icon') || {}).value || 'truck';
-      adminMarker.setIcon(makeVehicleIcon(iconType, o.lat, o.lng, d.lat, d.lng, false, deg, ''));
+    const deg = Math.round(Number(val) || 0);
+    const lab = document.getElementById('rotDegLabel');
+    if (lab) lab.textContent = deg + '°';
+    const face = document.getElementById('f_face');
+    if (face) {
+        face.value = 'manual';
     }
-  } catch (e) {}
-  window._lastAdminRotation = deg;
-  const hint = document.getElementById('rotHint');
-  if (hint) hint.textContent = 'Facing ' + deg + '° — Pause or Done to lock direction.';
+    // live update map marker
+    try {
+        if (adminMarker && adminMap) {
+            const o = COUNTRY_COORDS[document.getElementById('f_oCountry').value];
+            const d = COUNTRY_COORDS[document.getElementById('f_dCountry').value];
+            if (!o || !d) return;
+            const iconType = (document.getElementById('f_icon') || {}).value || 'truck';
+            adminMarker.setIcon(makeVehicleIcon(iconType, o.lat, o.lng, d.lat, d.lng, false, deg, ''));
+        }
+    } catch (e) { }
+    window._lastAdminRotation = deg;
+    const hint = document.getElementById('rotHint');
+    if (hint) hint.textContent = 'Facing ' + deg + '° — Pause or Done to lock direction.';
 }
 
 function nudgeVehicleRot(delta) {
-  const face = document.getElementById('f_face');
-  const slider = document.getElementById('f_rotSlider');
-  let deg = slider ? Number(slider.value) || 0 : 0;
-  if (face && (face.value === 'auto' || face.value === 'flip')) {
-    try {
-      const o = COUNTRY_COORDS[document.getElementById('f_oCountry').value];
-      const d = COUNTRY_COORDS[document.getElementById('f_dCountry').value];
-      if (o && d) deg = bearingDeg(o.lat, o.lng, d.lat, d.lng);
-    } catch(e) {}
-  }
-  deg = (deg + delta + 360) % 360;
-  if (slider) slider.value = String(Math.round(deg));
-  if (face) face.value = 'manual';
-  onRotSliderInput(deg);
-  updateVehicleIconDisplay();
-  // live update marker
-  try {
-    if (adminMarker && adminMap) {
-      const o = COUNTRY_COORDS[document.getElementById('f_oCountry').value];
-      const d = COUNTRY_COORDS[document.getElementById('f_dCountry').value];
-      const iconType = (document.getElementById('f_icon') || {}).value || 'truck';
-      const ic = makeVehicleIcon(iconType, o.lat, o.lng, d.lat, d.lng, false, deg, '');
-      adminMarker.setIcon(ic);
+    const face = document.getElementById('f_face');
+    const slider = document.getElementById('f_rotSlider');
+    let deg = slider ? Number(slider.value) || 0 : 0;
+    if (face && (face.value === 'auto' || face.value === 'flip')) {
+        try {
+            const o = COUNTRY_COORDS[document.getElementById('f_oCountry').value];
+            const d = COUNTRY_COORDS[document.getElementById('f_dCountry').value];
+            if (o && d) deg = bearingDeg(o.lat, o.lng, d.lat, d.lng);
+        } catch (e) { }
     }
-  } catch(e) {}
+    deg = (deg + delta + 360) % 360;
+    if (slider) slider.value = String(Math.round(deg));
+    if (face) face.value = 'manual';
+    onRotSliderInput(deg);
+    updateVehicleIconDisplay();
+    // live update marker
+    try {
+        if (adminMarker && adminMap) {
+            const o = COUNTRY_COORDS[document.getElementById('f_oCountry').value];
+            const d = COUNTRY_COORDS[document.getElementById('f_dCountry').value];
+            const iconType = (document.getElementById('f_icon') || {}).value || 'truck';
+            const ic = makeVehicleIcon(iconType, o.lat, o.lng, d.lat, d.lng, false, deg, '');
+            adminMarker.setIcon(ic);
+        }
+    } catch (e) { }
 }
 function setVehicleRotAuto() {
-  const face = document.getElementById('f_face');
-  if (face) face.value = 'auto';
-  const sl = document.getElementById('f_rotSlider');
-  if (sl) sl.value = '';
-  window._lastAdminRotation = null;
-  const hint = document.getElementById('rotHint');
-  if (hint) hint.textContent = 'Auto: nose points to DESTINATION (not origin). Save to apply on track.';
-  updateVehicleIconDisplay();
-  try {
-    if (adminMarker && adminMap) {
-      const o = COUNTRY_COORDS[document.getElementById('f_oCountry').value];
-      const d = COUNTRY_COORDS[document.getElementById('f_dCountry').value];
-      if (!o || !d) return;
-      const iconType = (document.getElementById('f_icon') || {}).value || 'truck';
-      // null = auto face DESTINATION
-      const ic = makeVehicleIcon(iconType, o.lat, o.lng, d.lat, d.lng, false, null, '');
-      adminMarker.setIcon(ic);
-    }
-  } catch(e) {}
+    const face = document.getElementById('f_face');
+    if (face) face.value = 'auto';
+    const sl = document.getElementById('f_rotSlider');
+    if (sl) sl.value = '';
+    window._lastAdminRotation = null;
+    const hint = document.getElementById('rotHint');
+    if (hint) hint.textContent = 'Auto: nose points to DESTINATION (not origin). Save to apply on track.';
+    updateVehicleIconDisplay();
+    try {
+        if (adminMarker && adminMap) {
+            const o = COUNTRY_COORDS[document.getElementById('f_oCountry').value];
+            const d = COUNTRY_COORDS[document.getElementById('f_dCountry').value];
+            if (!o || !d) return;
+            const iconType = (document.getElementById('f_icon') || {}).value || 'truck';
+            // null = auto face DESTINATION
+            const ic = makeVehicleIcon(iconType, o.lat, o.lng, d.lat, d.lng, false, null, '');
+            adminMarker.setIcon(ic);
+        }
+    } catch (e) { }
 }
 
 function updateVehicleIconDisplay() {
-  const sel = document.getElementById('f_icon');
-  const urlEl = document.getElementById('f_vehicleImg');
-  const iconType = (sel && sel.value) ? sel.value : 'truck';
-  const custom = urlEl ? urlEl.value.trim() : '';
-  const emoji = ICONS[iconType] || ICONS.truck;
-  // Progress bar: always show matching emoji so plane/truck/ship is obvious
-  const el = document.getElementById('mapVehicleIcon');
-  if (el) {
-    el.innerHTML = '<span style="font-size:28px;line-height:1;">' + emoji + '</span>';
-    el.setAttribute('data-icon', iconType);
-  }
-  const pub = document.getElementById('publicVehicleIcon');
-  if (pub) {
-    pub.innerHTML = '<span style="font-size:28px;line-height:1;">' + emoji + '</span>';
-    pub.setAttribute('data-icon', iconType);
-  }
-  // Refresh map marker if map is open
-  try {
-    if (typeof adminMarker !== 'undefined' && adminMarker && adminMap) {
-      const oLat = parseFloat((document.getElementById('f_oCountry') && COUNTRY_COORDS[document.getElementById('f_oCountry').value] || {}).lat);
-      const oLng = parseFloat((document.getElementById('f_oCountry') && COUNTRY_COORDS[document.getElementById('f_oCountry').value] || {}).lng);
-      const dLat = parseFloat((document.getElementById('f_dCountry') && COUNTRY_COORDS[document.getElementById('f_dCountry').value] || {}).lat);
-      const dLng = parseFloat((document.getElementById('f_dCountry') && COUNTRY_COORDS[document.getElementById('f_dCountry').value] || {}).lng);
-      if (![oLat,oLng,dLat,dLng].some(isNaN)) {
-        const face = document.getElementById('f_face');
-        const faceVal = face ? face.value : 'auto';
-        const flip = faceVal === 'flip';
-        let rot = null; // auto → face destination
-        if (faceVal === 'manual') {
-          rot = getAdminRotationFromUI();
-        } else if (faceVal && faceVal !== 'auto' && faceVal !== 'flip') {
-          rot = Number(faceVal);
-          if (isNaN(rot)) rot = null;
-        }
-        const ic = makeVehicleIcon(iconType, oLat, oLng, dLat, dLng, flip, rot, custom);
-        adminMarker.setIcon(ic);
-      }
+    const sel = document.getElementById('f_icon');
+    const urlEl = document.getElementById('f_vehicleImg');
+    const iconType = (sel && sel.value) ? sel.value : 'truck';
+    const custom = urlEl ? urlEl.value.trim() : '';
+    const emoji = ICONS[iconType] || ICONS.truck;
+    // Progress bar: always show matching emoji so plane/truck/ship is obvious
+    const el = document.getElementById('mapVehicleIcon');
+    if (el) {
+        el.innerHTML = '<span style="font-size:28px;line-height:1;">' + emoji + '</span>';
+        el.setAttribute('data-icon', iconType);
     }
-  } catch (e) {}
+    const pub = document.getElementById('publicVehicleIcon');
+    if (pub) {
+        pub.innerHTML = '<span style="font-size:28px;line-height:1;">' + emoji + '</span>';
+        pub.setAttribute('data-icon', iconType);
+    }
+    // Refresh map marker if map is open
+    try {
+        if (typeof adminMarker !== 'undefined' && adminMarker && adminMap) {
+            const oLat = parseFloat((document.getElementById('f_oCountry') && COUNTRY_COORDS[document.getElementById('f_oCountry').value] || {}).lat);
+            const oLng = parseFloat((document.getElementById('f_oCountry') && COUNTRY_COORDS[document.getElementById('f_oCountry').value] || {}).lng);
+            const dLat = parseFloat((document.getElementById('f_dCountry') && COUNTRY_COORDS[document.getElementById('f_dCountry').value] || {}).lat);
+            const dLng = parseFloat((document.getElementById('f_dCountry') && COUNTRY_COORDS[document.getElementById('f_dCountry').value] || {}).lng);
+            if (![oLat, oLng, dLat, dLng].some(isNaN)) {
+                const face = document.getElementById('f_face');
+                const faceVal = face ? face.value : 'auto';
+                const flip = faceVal === 'flip';
+                let rot = null; // auto → face destination
+                if (faceVal === 'manual') {
+                    rot = getAdminRotationFromUI();
+                } else if (faceVal && faceVal !== 'auto' && faceVal !== 'flip') {
+                    rot = Number(faceVal);
+                    if (isNaN(rot)) rot = null;
+                }
+                const ic = makeVehicleIcon(iconType, oLat, oLng, dLat, dLng, flip, rot, custom);
+                adminMarker.setIcon(ic);
+            }
+        }
+    } catch (e) { }
 }
 
 let adminMap = null, adminMarker = null, adminAnimTimer = null;
@@ -918,21 +926,21 @@ let publicMap = null, publicMarker = null, publicAnimTimer = null, publicPollTim
 // to nudge its exact position if the capital isn't quite where you want it.
 
 function countrySelectHtml(id, selected) {
-  const names = Object.keys(COUNTRY_COORDS).sort();
-  const sel = selected && COUNTRY_COORDS[selected] ? selected : (names[0] || '');
-  const opts = names.map(c => `<option value="${c}" ${c === sel ? 'selected' : ''}>${c}</option>`).join('');
-  return `<div class="country-pick">
+    const names = Object.keys(COUNTRY_COORDS).sort();
+    const sel = selected && COUNTRY_COORDS[selected] ? selected : (names[0] || '');
+    const opts = names.map(c => `<option value="${c}" ${c === sel ? 'selected' : ''}>${c}</option>`).join('');
+    return `<div class="country-pick">
     <input type="search" class="country-search" placeholder="Search country…" oninput="filterCountrySelect('${id}', this.value)" autocomplete="off">
     <select id="${id}" size="6" class="country-select">${opts}</select>
   </div>`;
 }
 function filterCountrySelect(selectId, q) {
-  const sel = document.getElementById(selectId);
-  if (!sel) return;
-  const query = (q || '').toLowerCase().trim();
-  Array.from(sel.options).forEach(o => {
-    o.hidden = query ? !o.value.toLowerCase().includes(query) : false;
-  });
+    const sel = document.getElementById(selectId);
+    if (!sel) return;
+    const query = (q || '').toLowerCase().trim();
+    Array.from(sel.options).forEach(o => {
+        o.hidden = query ? !o.value.toLowerCase().includes(query) : false;
+    });
 }
 
 const COUNTRY_COORDS = {
@@ -1122,7 +1130,7 @@ function bearingDeg(oLat, oLng, dLat, dLng) {
     const toRad = Math.PI / 180;
     const y = Math.sin((dLng - oLng) * toRad) * Math.cos(dLat * toRad);
     const x = Math.cos(oLat * toRad) * Math.sin(dLat * toRad) -
-              Math.sin(oLat * toRad) * Math.cos(dLat * toRad) * Math.cos((dLng - oLng) * toRad);
+        Math.sin(oLat * toRad) * Math.cos(dLat * toRad) * Math.cos((dLng - oLng) * toRad);
     return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
 }
 function emojiNoseOffset(iconType) {
@@ -1140,87 +1148,87 @@ function makeVehicleIcon(iconType, oLat, oLng, dLat, dLng, flipOverride, rotatio
     const manual = rotationDeg !== null && rotationDeg !== undefined && rotationDeg !== '' && !isNaN(Number(rotationDeg));
     let deg;
     if (manual) {
-      deg = Number(rotationDeg);
+        deg = Number(rotationDeg);
     } else {
-      // Bearing from origin → destination, adjusted for emoji default face
-      deg = bearingDeg(oLat, oLng, dLat, dLng) + emojiNoseOffset(iconType);
-      if (flipOverride) deg += 180;
-      deg = (deg % 360 + 360) % 360;
+        // Bearing from origin → destination, adjusted for emoji default face
+        deg = bearingDeg(oLat, oLng, dLat, dLng) + emojiNoseOffset(iconType);
+        if (flipOverride) deg += 180;
+        deg = (deg % 360 + 360) % 360;
     }
     const emoji = ICONS[iconType || 'truck'] || '🚚';
     const transform = 'rotate(' + deg + 'deg)';
     return L.divIcon({
-      html: '<div style="font-size:34px;line-height:34px;transform:' + transform + ';transform-origin:center center;text-align:center;cursor:grab;">' + emoji + '</div>',
-      className: 'vehicle-dir-icon', iconSize: [34, 34], iconAnchor: [17, 17]
+        html: '<div style="font-size:34px;line-height:34px;transform:' + transform + ';transform-origin:center center;text-align:center;cursor:grab;">' + emoji + '</div>',
+        className: 'vehicle-dir-icon', iconSize: [34, 34], iconAnchor: [17, 17]
     });
 }
 
 
 /* ---- Hand push: progress bar + map vehicle (keep auto when moving) ---- */
 function ensureProgressKnob(bar) {
-  if (!bar) return null;
-  let knob = bar.querySelector('.progress-knob');
-  if (!knob) {
-    knob = document.createElement('div');
-    knob.className = 'progress-knob';
-    bar.appendChild(knob);
-  }
-  return knob;
+    if (!bar) return null;
+    let knob = bar.querySelector('.progress-knob');
+    if (!knob) {
+        knob = document.createElement('div');
+        knob.className = 'progress-knob';
+        bar.appendChild(knob);
+    }
+    return knob;
 }
 function setProgressBarUI(fillId, percent) {
-  const p = Math.max(0, Math.min(100, Number(percent) || 0));
-  const fill = document.getElementById(fillId);
-  if (fill) {
-    fill.style.width = p + '%';
-    const bar = fill.parentElement;
-    const knob = ensureProgressKnob(bar);
-    if (knob) knob.style.left = p + '%';
-  }
-  return p;
+    const p = Math.max(0, Math.min(100, Number(percent) || 0));
+    const fill = document.getElementById(fillId);
+    if (fill) {
+        fill.style.width = p + '%';
+        const bar = fill.parentElement;
+        const knob = ensureProgressKnob(bar);
+        if (knob) knob.style.left = p + '%';
+    }
+    return p;
 }
 function bindProgressBarDrag(fillId, opts) {
-  const fill = document.getElementById(fillId);
-  if (!fill) return;
-  const bar = fill.parentElement;
-  if (!bar || bar.dataset.handBound === '1') return;
-  bar.dataset.handBound = '1';
-  ensureProgressKnob(bar);
+    const fill = document.getElementById(fillId);
+    if (!fill) return;
+    const bar = fill.parentElement;
+    if (!bar || bar.dataset.handBound === '1') return;
+    bar.dataset.handBound = '1';
+    ensureProgressKnob(bar);
 
-  function pctFromEvent(e) {
-    const rect = bar.getBoundingClientRect();
-    const clientX = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
-    const x = clientX - rect.left;
-    return Math.max(0, Math.min(100, (x / rect.width) * 100));
-  }
-  let dragging = false;
-  function onStart(e) {
-    dragging = true;
-    if (opts && opts.onStart) opts.onStart();
-    const p = pctFromEvent(e);
-    setProgressBarUI(fillId, p);
-    if (opts && opts.onMove) opts.onMove(p);
-    e.preventDefault();
-  }
-  function onMove(e) {
-    if (!dragging) return;
-    const p = pctFromEvent(e);
-    setProgressBarUI(fillId, p);
-    if (opts && opts.onMove) opts.onMove(p);
-    e.preventDefault();
-  }
-  function onEnd(e) {
-    if (!dragging) return;
-    dragging = false;
-    const p = pctFromEvent(e.changedTouches ? e.changedTouches[0] : e);
-    setProgressBarUI(fillId, p);
-    if (opts && opts.onEnd) opts.onEnd(p);
-  }
-  bar.addEventListener('mousedown', onStart);
-  window.addEventListener('mousemove', onMove);
-  window.addEventListener('mouseup', onEnd);
-  bar.addEventListener('touchstart', onStart, { passive: false });
-  window.addEventListener('touchmove', onMove, { passive: false });
-  window.addEventListener('touchend', onEnd);
+    function pctFromEvent(e) {
+        const rect = bar.getBoundingClientRect();
+        const clientX = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
+        const x = clientX - rect.left;
+        return Math.max(0, Math.min(100, (x / rect.width) * 100));
+    }
+    let dragging = false;
+    function onStart(e) {
+        dragging = true;
+        if (opts && opts.onStart) opts.onStart();
+        const p = pctFromEvent(e);
+        setProgressBarUI(fillId, p);
+        if (opts && opts.onMove) opts.onMove(p);
+        e.preventDefault();
+    }
+    function onMove(e) {
+        if (!dragging) return;
+        const p = pctFromEvent(e);
+        setProgressBarUI(fillId, p);
+        if (opts && opts.onMove) opts.onMove(p);
+        e.preventDefault();
+    }
+    function onEnd(e) {
+        if (!dragging) return;
+        dragging = false;
+        const p = pctFromEvent(e.changedTouches ? e.changedTouches[0] : e);
+        setProgressBarUI(fillId, p);
+        if (opts && opts.onEnd) opts.onEnd(p);
+    }
+    bar.addEventListener('mousedown', onStart);
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onEnd);
+    bar.addEventListener('touchstart', onStart, { passive: false });
+    window.addEventListener('touchmove', onMove, { passive: false });
+    window.addEventListener('touchend', onEnd);
 }
 
 /* ----- ADMIN MAP ----- */
@@ -1267,7 +1275,7 @@ function initAdminMap(shipment) {
         const dlat = Math.abs(ll.lat - snapped[0]);
         const dlng = Math.abs(ll.lng - snapped[1]);
         if (dlat > 0.00001 || dlng > 0.00001) {
-          e.target.setLatLng(snapped);
+            e.target.setLatLng(snapped);
         }
     });
     adminMarker.on('dragend', async e => {
@@ -1283,49 +1291,49 @@ function initAdminMap(shipment) {
         try {
             await apiRequest('/shipments/' + encodeURIComponent(shipment.code) + '/route', {
                 method: 'PATCH', body: JSON.stringify({
-                  isMoving: false, movingSince: null, progress: t * 100,
-                  rotationDeg: rot, flipOverride: false
+                    isMoving: false, movingSince: null, progress: t * 100,
+                    rotationDeg: rot, flipOverride: false
                 })
             });
-        } catch (err) {}
+        } catch (err) { }
     });
 
     // Hand-turn: drag LEFT/RIGHT on the plane icon (map marker) to set direction
-    setTimeout(function() {
-      try {
-        const el = adminMarker.getElement();
-        if (!el || el.dataset.turnBound === '1') return;
-        el.dataset.turnBound = '1';
-        let sx = null, base = Number((document.getElementById('f_rotSlider') || {}).value);
-        if (isNaN(base)) base = bearingDeg(oLat, oLng, dLat, dLng);
-        function turnTo(deg) {
-          deg = (deg % 360 + 360) % 360;
-          const iconType = (document.getElementById('f_icon') || {}).value || r.icon || 'truck';
-          adminMarker.setIcon(makeVehicleIcon(iconType, oLat, oLng, dLat, dLng, false, deg, ''));
-          const face = document.getElementById('f_face');
-          if (face) face.value = 'manual';
-          const sl = document.getElementById('f_rotSlider');
-          if (sl) sl.value = String(Math.round(deg));
-          window._lastAdminRotation = Math.round(deg);
-          const hint = document.getElementById('rotHint');
-          if (hint) hint.textContent = 'Facing ' + Math.round(deg) + '° — Pause or Done to lock it.';
-        }
-        el.addEventListener('touchstart', function(ev) {
-          if (ev.touches.length !== 1) return;
-          sx = ev.touches[0].clientX;
-          base = Number((document.getElementById('f_rotSlider') || {}).value);
-          if (isNaN(base) || (document.getElementById('f_rotSlider') || {}).value === '') base = bearingDeg(oLat, oLng, dLat, dLng);
-        }, { passive: true });
-        el.addEventListener('touchmove', function(ev) {
-          if (sx == null || !ev.touches[0]) return;
-          // Horizontal swipe turns; don't prevent drag-move unless mostly horizontal
-          const dx = ev.touches[0].clientX - sx;
-          if (Math.abs(dx) > 8) {
-            turnTo(base + dx * 0.6);
-          }
-        }, { passive: true });
-        el.addEventListener('touchend', function() { sx = null; });
-      } catch (e) {}
+    setTimeout(function () {
+        try {
+            const el = adminMarker.getElement();
+            if (!el || el.dataset.turnBound === '1') return;
+            el.dataset.turnBound = '1';
+            let sx = null, base = Number((document.getElementById('f_rotSlider') || {}).value);
+            if (isNaN(base)) base = bearingDeg(oLat, oLng, dLat, dLng);
+            function turnTo(deg) {
+                deg = (deg % 360 + 360) % 360;
+                const iconType = (document.getElementById('f_icon') || {}).value || r.icon || 'truck';
+                adminMarker.setIcon(makeVehicleIcon(iconType, oLat, oLng, dLat, dLng, false, deg, ''));
+                const face = document.getElementById('f_face');
+                if (face) face.value = 'manual';
+                const sl = document.getElementById('f_rotSlider');
+                if (sl) sl.value = String(Math.round(deg));
+                window._lastAdminRotation = Math.round(deg);
+                const hint = document.getElementById('rotHint');
+                if (hint) hint.textContent = 'Facing ' + Math.round(deg) + '° — Pause or Done to lock it.';
+            }
+            el.addEventListener('touchstart', function (ev) {
+                if (ev.touches.length !== 1) return;
+                sx = ev.touches[0].clientX;
+                base = Number((document.getElementById('f_rotSlider') || {}).value);
+                if (isNaN(base) || (document.getElementById('f_rotSlider') || {}).value === '') base = bearingDeg(oLat, oLng, dLat, dLng);
+            }, { passive: true });
+            el.addEventListener('touchmove', function (ev) {
+                if (sx == null || !ev.touches[0]) return;
+                // Horizontal swipe turns; don't prevent drag-move unless mostly horizontal
+                const dx = ev.touches[0].clientX - sx;
+                if (Math.abs(dx) > 8) {
+                    turnTo(base + dx * 0.6);
+                }
+            }, { passive: true });
+            el.addEventListener('touchend', function () { sx = null; });
+        } catch (e) { }
     }, 200);
 
     if (r.isMoving) { startAdminAnimation(shipment); }
@@ -1333,70 +1341,70 @@ function initAdminMap(shipment) {
 
     // Hand-push progress bar (same as dragging plane on map)
     bindProgressBarDrag('mapProgressFill', {
-      onStart: function () { stopAdminAnimation(); },
-      onMove: function (p) {
-        reflectAdminProgress(p);
-        if (adminMarker) adminMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, p / 100));
-      },
-      onEnd: async function (p) {
-        reflectAdminProgress(p);
-        if (adminMarker) adminMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, p / 100));
-        const sl = document.getElementById('f_rotSlider');
-        let rot = sl && sl.value !== '' && !isNaN(Number(sl.value)) ? Number(sl.value) : null;
-        const face = document.getElementById('f_face');
-        if (face && rot != null) face.value = 'manual';
-        try {
-          await apiRequest('/shipments/' + encodeURIComponent(shipment.code) + '/route', {
-            method: 'PATCH',
-            body: JSON.stringify({ isMoving: false, movingSince: null, progress: p, rotationDeg: rot, flipOverride: false })
-          });
-        } catch (err) {}
-      }
+        onStart: function () { stopAdminAnimation(); },
+        onMove: function (p) {
+            reflectAdminProgress(p);
+            if (adminMarker) adminMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, p / 100));
+        },
+        onEnd: async function (p) {
+            reflectAdminProgress(p);
+            if (adminMarker) adminMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, p / 100));
+            const sl = document.getElementById('f_rotSlider');
+            let rot = sl && sl.value !== '' && !isNaN(Number(sl.value)) ? Number(sl.value) : null;
+            const face = document.getElementById('f_face');
+            if (face && rot != null) face.value = 'manual';
+            try {
+                await apiRequest('/shipments/' + encodeURIComponent(shipment.code) + '/route', {
+                    method: 'PATCH',
+                    body: JSON.stringify({ isMoving: false, movingSince: null, progress: p, rotationDeg: rot, flipOverride: false })
+                });
+            } catch (err) { }
+        }
     });
 
     // Hand-rotate direction: drag left/right on the vehicle emoji above the bar
     const vIcon = document.getElementById('mapVehicleIcon');
     if (vIcon && vIcon.dataset.rotBound !== '1') {
-      vIcon.dataset.rotBound = '1';
-      let rot0 = Number(r.rotationDeg) || bearingDeg(oLat, oLng, dLat, dLng);
-      let startX = 0, startRot = rot0;
-      function applyRot(deg) {
-        deg = (deg % 360 + 360) % 360;
-        const iconType = (document.getElementById('f_icon') || {}).value || r.icon || 'truck';
-        if (adminMarker) {
-          adminMarker.setIcon(makeVehicleIcon(iconType, oLat, oLng, dLat, dLng, false, deg, ''));
+        vIcon.dataset.rotBound = '1';
+        let rot0 = Number(r.rotationDeg) || bearingDeg(oLat, oLng, dLat, dLng);
+        let startX = 0, startRot = rot0;
+        function applyRot(deg) {
+            deg = (deg % 360 + 360) % 360;
+            const iconType = (document.getElementById('f_icon') || {}).value || r.icon || 'truck';
+            if (adminMarker) {
+                adminMarker.setIcon(makeVehicleIcon(iconType, oLat, oLng, dLat, dLng, false, deg, ''));
+            }
+            const face = document.getElementById('f_face');
+            if (face) face.value = 'manual';
+            const slider = document.getElementById('f_rotSlider');
+            if (slider) slider.value = String(Math.round(deg));
+            const lab = document.getElementById('rotDegLabel');
+            if (lab) lab.textContent = Math.round(deg) + '°';
+            const hint = document.getElementById('rotHint');
+            if (hint) hint.textContent = 'Facing ' + Math.round(deg) + '° — tap Done — Save so tracking shows this direction.';
         }
-        const face = document.getElementById('f_face');
-        if (face) face.value = 'manual';
-        const slider = document.getElementById('f_rotSlider');
-        if (slider) slider.value = String(Math.round(deg));
-        const lab = document.getElementById('rotDegLabel');
-        if (lab) lab.textContent = Math.round(deg) + '°';
-        const hint = document.getElementById('rotHint');
-        if (hint) hint.textContent = 'Facing ' + Math.round(deg) + '° — tap Done — Save so tracking shows this direction.';
-      }
-      function down(e) {
-        startX = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
-        startRot = Number((document.getElementById('f_face') || {}).value) || rot0;
-        if (isNaN(startRot)) startRot = bearingDeg(oLat, oLng, dLat, dLng);
-        e.preventDefault();
-        e.stopPropagation();
-      }
-      function move(e) {
-        if (startX == null) return;
-        const x = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
-        if (x == null) return;
-        const deg = startRot + (x - startX) * 0.5;
-        applyRot(deg);
-        e.preventDefault();
-      }
-      function up() { startX = null; }
-      vIcon.addEventListener('mousedown', down);
-      window.addEventListener('mousemove', move);
-      window.addEventListener('mouseup', up);
-      vIcon.addEventListener('touchstart', down, { passive: false });
-      window.addEventListener('touchmove', move, { passive: false });
-      window.addEventListener('touchend', up);
+        function down(e) {
+            startX = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
+            startRot = Number((document.getElementById('f_face') || {}).value) || rot0;
+            if (isNaN(startRot)) startRot = bearingDeg(oLat, oLng, dLat, dLng);
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        function move(e) {
+            if (startX == null) return;
+            const x = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
+            if (x == null) return;
+            const deg = startRot + (x - startX) * 0.5;
+            applyRot(deg);
+            e.preventDefault();
+        }
+        function up() { startX = null; }
+        vIcon.addEventListener('mousedown', down);
+        window.addEventListener('mousemove', move);
+        window.addEventListener('mouseup', up);
+        vIcon.addEventListener('touchstart', down, { passive: false });
+        window.addEventListener('touchmove', move, { passive: false });
+        window.addEventListener('touchend', up);
     }
 }
 function reflectAdminProgress(progress) {
@@ -1405,9 +1413,9 @@ function reflectAdminProgress(progress) {
     if (label) label.textContent = Math.round(p) + '%';
     const icon = document.getElementById('mapVehicleIcon');
     if (icon) {
-      icon.style.position = 'absolute';
-      icon.style.left = 'calc(' + p + '% - 14px)';
-      icon.style.top = '0';
+        icon.style.position = 'absolute';
+        icon.style.left = 'calc(' + p + '% - 14px)';
+        icon.style.top = '0';
     }
 }
 function startAdminAnimation(shipment) {
@@ -1437,16 +1445,16 @@ async function saveRoute(code) {
     let rotationDeg = null;
     let flipOverride = false;
     if (faceVal === 'flip') {
-      flipOverride = true;
-      rotationDeg = null;
+        flipOverride = true;
+        rotationDeg = null;
     } else if (faceVal === 'auto') {
-      rotationDeg = null;
+        rotationDeg = null;
     } else if (faceVal === 'manual' || (slider && faceVal === 'slider')) {
-      rotationDeg = Number(slider && slider.value != null ? slider.value : faceVal);
-      if (isNaN(rotationDeg)) rotationDeg = null;
+        rotationDeg = Number(slider && slider.value != null ? slider.value : faceVal);
+        if (isNaN(rotationDeg)) rotationDeg = null;
     } else {
-      rotationDeg = Number(faceVal);
-      if (isNaN(rotationDeg)) rotationDeg = null;
+        rotationDeg = Number(faceVal);
+        if (isNaN(rotationDeg)) rotationDeg = null;
     }
     // Current progress from bar (hand-pushed position)
     let progress = 0;
@@ -1454,8 +1462,8 @@ async function saveRoute(code) {
     if (fill && fill.style.width) progress = parseFloat(fill.style.width) || 0;
     const label = document.getElementById('mapProgressLabel');
     if (label) {
-      const n = parseFloat(String(label.textContent).replace('%',''));
-      if (!isNaN(n)) progress = n;
+        const n = parseFloat(String(label.textContent).replace('%', ''));
+        if (!isNaN(n)) progress = n;
     }
     const payload = {
         originCountry, destCountry,
@@ -1476,21 +1484,21 @@ async function saveRoute(code) {
         if (msg) { msg.style.display = 'block'; msg.style.color = 'var(--green)'; msg.textContent = 'Saved — position & direction locked.'; }
         // Keep marker exactly where you placed it (no jump)
         if (adminMarker && updated.route) {
-          const r = updated.route;
-          const oLat = parseFloat(r.originLat), oLng = parseFloat(r.originLng);
-          const dLat = parseFloat(r.destLat), dLng = parseFloat(r.destLng);
-          const p = Number(r.progress) || 0;
-          if (![oLat,oLng,dLat,dLng].some(isNaN)) {
-            adminMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, p / 100));
-            adminMarker.setIcon(makeVehicleIcon(r.icon, oLat, oLng, dLat, dLng, r.flipOverride, r.rotationDeg, r.vehicleImg));
-            reflectAdminProgress(p);
-          }
+            const r = updated.route;
+            const oLat = parseFloat(r.originLat), oLng = parseFloat(r.originLng);
+            const dLat = parseFloat(r.destLat), dLng = parseFloat(r.destLng);
+            const p = Number(r.progress) || 0;
+            if (![oLat, oLng, dLat, dLng].some(isNaN)) {
+                adminMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, p / 100));
+                adminMarker.setIcon(makeVehicleIcon(r.icon, oLat, oLng, dLat, dLng, r.flipOverride, r.rotationDeg, r.vehicleImg));
+                reflectAdminProgress(p);
+            }
         }
         const iconEl = document.getElementById('mapVehicleIcon');
         if (iconEl && updated.route) {
-          const t = updated.route.icon || 'truck';
-          iconEl.innerHTML = '<span style="font-size:28px;line-height:1;">' + (ICONS[t] || '🚚') + '</span>';
-          iconEl.setAttribute('data-icon', t);
+            const t = updated.route.icon || 'truck';
+            iconEl.innerHTML = '<span style="font-size:28px;line-height:1;">' + (ICONS[t] || '🚚') + '</span>';
+            iconEl.setAttribute('data-icon', t);
         }
     } catch (err) {
         if (msg) { msg.style.display = 'block'; msg.style.color = 'var(--red)'; msg.textContent = err.message; }
@@ -1498,46 +1506,46 @@ async function saveRoute(code) {
 }
 
 function getAdminProgressFromUI() {
-  const label = document.getElementById('mapProgressLabel');
-  if (label) {
-    const n = parseFloat(String(label.textContent).replace('%', ''));
-    if (!isNaN(n)) return Math.max(0, Math.min(100, n));
-  }
-  const fill = document.getElementById('mapProgressFill');
-  if (fill && fill.style.width) {
-    const n = parseFloat(fill.style.width);
-    if (!isNaN(n)) return Math.max(0, Math.min(100, n));
-  }
-  return 0;
+    const label = document.getElementById('mapProgressLabel');
+    if (label) {
+        const n = parseFloat(String(label.textContent).replace('%', ''));
+        if (!isNaN(n)) return Math.max(0, Math.min(100, n));
+    }
+    const fill = document.getElementById('mapProgressFill');
+    if (fill && fill.style.width) {
+        const n = parseFloat(fill.style.width);
+        if (!isNaN(n)) return Math.max(0, Math.min(100, n));
+    }
+    return 0;
 }
 function getAdminRotationFromUI() {
-  const sl = document.getElementById('f_rotSlider');
-  if (sl && sl.value !== '' && !isNaN(Number(sl.value))) return Number(sl.value);
-  if (typeof window._lastAdminRotation === 'number' && !isNaN(window._lastAdminRotation)) {
-    return window._lastAdminRotation;
-  }
-  return null; // auto
+    const sl = document.getElementById('f_rotSlider');
+    if (sl && sl.value !== '' && !isNaN(Number(sl.value))) return Number(sl.value);
+    if (typeof window._lastAdminRotation === 'number' && !isNaN(window._lastAdminRotation)) {
+        return window._lastAdminRotation;
+    }
+    return null; // auto
 }
 function setRouteActionLoading(on) {
-  const ids = ['btnPlayRoute', 'btnPauseRoute', 'btnResetRoute'];
-  ids.forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    if (on) {
-      if (!el.dataset.label) el.dataset.label = el.textContent;
-      el.disabled = true;
-      el.textContent = '......';
-    } else {
-      el.disabled = false;
-      if (el.dataset.label) el.textContent = el.dataset.label;
+    const ids = ['btnPlayRoute', 'btnPauseRoute', 'btnResetRoute'];
+    ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (on) {
+            if (!el.dataset.label) el.dataset.label = el.textContent;
+            el.disabled = true;
+            el.textContent = '......';
+        } else {
+            el.disabled = false;
+            if (el.dataset.label) el.textContent = el.dataset.label;
+        }
+    });
+    const msg = document.getElementById('routeSaveMsg');
+    if (msg && on) {
+        msg.style.display = 'block';
+        msg.style.color = 'var(--gray)';
+        msg.textContent = 'Please wait……';
     }
-  });
-  const msg = document.getElementById('routeSaveMsg');
-  if (msg && on) {
-    msg.style.display = 'block';
-    msg.style.color = 'var(--gray)';
-    msg.textContent = 'Please wait……';
-  }
 }
 
 async function playRoute(code) {
@@ -1552,9 +1560,9 @@ async function playRoute(code) {
         const progress = getAdminProgressFromUI();
         const rotationDeg = getAdminRotationFromUI();
         const body = {
-          isMoving: true,
-          movingSince: new Date().toISOString(),
-          progress
+            isMoving: true,
+            movingSince: new Date().toISOString(),
+            progress
         };
         if (rotationDeg != null) { body.rotationDeg = rotationDeg; body.flipOverride = false; }
         const updated = await apiRequest('/shipments/' + encodeURIComponent(code) + '/route', {
@@ -1563,9 +1571,9 @@ async function playRoute(code) {
         unlockedShipments[updated.code] = updated;
         // Soft update: don't wipe hand-set direction
         if (updated.route) {
-          s.route = updated.route;
-          startAdminAnimation(updated);
-          reflectAdminProgress(computeLiveProgress(updated.route));
+            s.route = updated.route;
+            startAdminAnimation(updated);
+            reflectAdminProgress(computeLiveProgress(updated.route));
         }
         const msg = document.getElementById('routeSaveMsg');
         if (msg) { msg.style.display = 'block'; msg.style.color = 'var(--green)'; msg.textContent = 'Moving — saved.'; }
@@ -1588,13 +1596,13 @@ async function pauseRoute(code) {
         });
         unlockedShipments[updated.code] = updated;
         if (adminMarker && updated.route) {
-          const r = updated.route;
-          const oLat = parseFloat(r.originLat), oLng = parseFloat(r.originLng);
-          const dLat = parseFloat(r.destLat), dLng = parseFloat(r.destLng);
-          const p = Number(r.progress) || 0;
-          adminMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, p / 100));
-          adminMarker.setIcon(makeVehicleIcon(r.icon, oLat, oLng, dLat, dLng, r.flipOverride, r.rotationDeg, r.vehicleImg));
-          reflectAdminProgress(p);
+            const r = updated.route;
+            const oLat = parseFloat(r.originLat), oLng = parseFloat(r.originLng);
+            const dLat = parseFloat(r.destLat), dLng = parseFloat(r.destLng);
+            const p = Number(r.progress) || 0;
+            adminMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, p / 100));
+            adminMarker.setIcon(makeVehicleIcon(r.icon, oLat, oLng, dLat, dLng, r.flipOverride, r.rotationDeg, r.vehicleImg));
+            reflectAdminProgress(p);
         }
         const msg = document.getElementById('routeSaveMsg');
         if (msg) { msg.style.display = 'block'; msg.style.color = 'var(--green)'; msg.textContent = 'Paused — position & direction saved.'; }
@@ -1616,12 +1624,12 @@ async function resetRoute(code) {
         });
         unlockedShipments[updated.code] = updated;
         if (adminMarker && updated.route) {
-          const r = updated.route;
-          const oLat = parseFloat(r.originLat), oLng = parseFloat(r.originLng);
-          const dLat = parseFloat(r.destLat), dLng = parseFloat(r.destLng);
-          adminMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, 0));
-          adminMarker.setIcon(makeVehicleIcon(r.icon, oLat, oLng, dLat, dLng, r.flipOverride, r.rotationDeg, r.vehicleImg));
-          reflectAdminProgress(0);
+            const r = updated.route;
+            const oLat = parseFloat(r.originLat), oLng = parseFloat(r.originLng);
+            const dLat = parseFloat(r.destLat), dLng = parseFloat(r.destLng);
+            adminMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, 0));
+            adminMarker.setIcon(makeVehicleIcon(r.icon, oLat, oLng, dLat, dLng, r.flipOverride, r.rotationDeg, r.vehicleImg));
+            reflectAdminProgress(0);
         }
         const msg = document.getElementById('routeSaveMsg');
         if (msg) { msg.style.display = 'block'; msg.style.color = 'var(--green)'; msg.textContent = 'Reset to start — direction kept.'; }
@@ -1652,12 +1660,12 @@ function initPublicMap(shipment) {
     box.innerHTML = '';
     publicMap = L.map(box, { scrollWheelZoom: true });
     try {
-      publicMap.fitBounds([[oLat, oLng], [dLat, dLng]], { padding: [40, 40], maxZoom: 5 });
+        publicMap.fitBounds([[oLat, oLng], [dLat, dLng]], { padding: [40, 40], maxZoom: 5 });
     } catch (e) {
-      publicMap.setView([(oLat + dLat) / 2, (oLng + dLng) / 2], 3);
+        publicMap.setView([(oLat + dLat) / 2, (oLng + dLng) / 2], 3);
     }
-    setTimeout(function () { try { publicMap.invalidateSize(); } catch (e) {} }, 200);
-    setTimeout(function () { try { publicMap.invalidateSize(); } catch (e) {} }, 600);
+    setTimeout(function () { try { publicMap.invalidateSize(); } catch (e) { } }, 200);
+    setTimeout(function () { try { publicMap.invalidateSize(); } catch (e) { } }, 600);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors' }).addTo(publicMap);
     const oName = r.originCountry || 'Origin';
     const dName = r.destCountry || 'Destination';
@@ -1670,9 +1678,9 @@ function initPublicMap(shipment) {
     const pos = pointAlong(oLat, oLng, dLat, dLng, startProgress / 100);
     publicMarker = L.marker(pos, { icon, draggable: false, interactive: false }).addTo(publicMap).bindPopup('Current location');
     setTimeout(function () {
-      try { publicMap.invalidateSize(true); publicMap.fitBounds(line.getBounds(), { padding: [48, 48], maxZoom: 6 }); } catch (e) {}
+        try { publicMap.invalidateSize(true); publicMap.fitBounds(line.getBounds(), { padding: [48, 48], maxZoom: 6 }); } catch (e) { }
     }, 200);
-    setTimeout(function () { try { publicMap.invalidateSize(true); } catch (e) {} }, 600);
+    setTimeout(function () { try { publicMap.invalidateSize(true); } catch (e) { } }, 600);
 
     reflectPublicProgress(startProgress, r.isMoving);
     if (r.isMoving) startPublicAnimation(oLat, oLng, dLat, dLng, r);
@@ -1717,25 +1725,25 @@ function startPublicAnimation(oLat, oLng, dLat, dLng, route) {
         const now = Date.now();
         const due = (step > _lastProgNotif && step >= 5) || (now - _lastProgNotifAt > 20000 && p > 0);
         if (nsBrowserPerm && due) {
-          _lastProgNotif = Math.max(_lastProgNotif, step);
-          _lastProgNotifAt = now;
-          const o = (route && route.originCountry) || 'Origin';
-          const d = (route && route.destCountry) || 'Destination';
-          const ic = (route && route.icon === 'plane') ? '✈️' : (route && route.icon === 'ship') ? '🚢' : (route && route.icon === 'warehouse') ? '🏭' : '🚚';
-          const pct = Math.round(p);
-          nsPhoneNotify(
-            o + ' → ' + d,
-            ic + ' ' + pct + '% complete · live location',
-            'dhl-live-progress'
-          );
-        }
-        if (p >= 100) {
-          if (nsBrowserPerm) {
+            _lastProgNotif = Math.max(_lastProgNotif, step);
+            _lastProgNotifAt = now;
             const o = (route && route.originCountry) || 'Origin';
             const d = (route && route.destCountry) || 'Destination';
-            nsPhoneNotify(o + ' → ' + d, '100% · arrived / complete', 'dhl-live-progress');
-          }
-          clearInterval(publicAnimTimer); publicAnimTimer = null;
+            const ic = (route && route.icon === 'plane') ? '✈️' : (route && route.icon === 'ship') ? '🚢' : (route && route.icon === 'warehouse') ? '🏭' : '🚚';
+            const pct = Math.round(p);
+            nsPhoneNotify(
+                o + ' → ' + d,
+                ic + ' ' + pct + '% complete · live location',
+                'dhl-live-progress'
+            );
+        }
+        if (p >= 100) {
+            if (nsBrowserPerm) {
+                const o = (route && route.originCountry) || 'Origin';
+                const d = (route && route.destCountry) || 'Destination';
+                nsPhoneNotify(o + ' → ' + d, '100% · arrived / complete', 'dhl-live-progress');
+            }
+            clearInterval(publicAnimTimer); publicAnimTimer = null;
         }
     }, 200);
 }
@@ -1747,285 +1755,285 @@ let nsLastNotifAt = null;
 let nsNotifTimer = null;
 let nsSeenIds = new Set();
 let nsBrowserPerm = false;
-try { nsBrowserPerm = localStorage.getItem('dhl_live_notify') === '1' && typeof Notification !== 'undefined' && Notification.permission === 'granted'; } catch (e) {}
+try { nsBrowserPerm = localStorage.getItem('dhl_live_notify') === '1' && typeof Notification !== 'undefined' && Notification.permission === 'granted'; } catch (e) { }
 
 
 function nsEnsureToastHost() {
-  let host = document.getElementById('nsToastWrap');
-  if (!host) {
-    host = document.createElement('div');
-    host.id = 'nsToastWrap';
-    host.className = 'ns-toast-wrap';
-    document.body.appendChild(host);
-  }
-  return host;
+    let host = document.getElementById('nsToastWrap');
+    if (!host) {
+        host = document.createElement('div');
+        host.id = 'nsToastWrap';
+        host.className = 'ns-toast-wrap';
+        document.body.appendChild(host);
+    }
+    return host;
 }
 
 function nsShowToast(n) {
-  const host = nsEnsureToastHost();
-  const el = document.createElement('div');
-  el.className = 'ns-toast ' + (n.type || '');
-  const icon = n.icon === 'plane' ? '✈️' : n.icon === 'ship' ? '🚢' : n.icon === 'truck' ? '🚚' : '📦';
-  const routeLine = (n.origin || n.destination)
-    ? ('<div class="ns-t-route">' + icon + ' ' + esc(n.origin || 'Origin') + ' → ' + esc(n.destination || 'Destination') + '</div>')
-    : '';
-  el.innerHTML = '<button type="button" class="ns-t-close" aria-label="Close">&times;</button>' +
-    '<div class="ns-t-title">' + esc(n.title || 'Update') + '</div>' +
-    routeLine +
-    '<div class="ns-t-msg">' + esc(n.message || '') + '</div>' +
-    (n.code ? '<div class="ns-t-code">' + esc(n.code) + '</div>' : '');
-  el.querySelector('.ns-t-close').onclick = () => el.remove();
-  host.appendChild(el);
-  setTimeout(() => { try { el.remove(); } catch (e) {} }, 8000);
+    const host = nsEnsureToastHost();
+    const el = document.createElement('div');
+    el.className = 'ns-toast ' + (n.type || '');
+    const icon = n.icon === 'plane' ? '✈️' : n.icon === 'ship' ? '🚢' : n.icon === 'truck' ? '🚚' : '📦';
+    const routeLine = (n.origin || n.destination)
+        ? ('<div class="ns-t-route">' + icon + ' ' + esc(n.origin || 'Origin') + ' → ' + esc(n.destination || 'Destination') + '</div>')
+        : '';
+    el.innerHTML = '<button type="button" class="ns-t-close" aria-label="Close">&times;</button>' +
+        '<div class="ns-t-title">' + esc(n.title || 'Update') + '</div>' +
+        routeLine +
+        '<div class="ns-t-msg">' + esc(n.message || '') + '</div>' +
+        (n.code ? '<div class="ns-t-code">' + esc(n.code) + '</div>' : '');
+    el.querySelector('.ns-t-close').onclick = () => el.remove();
+    host.appendChild(el);
+    setTimeout(() => { try { el.remove(); } catch (e) { } }, 8000);
 }
 
 async function nsRequestBrowserNotify() {
-  if (typeof Notification === 'undefined') {
-    alert('This browser does not support phone notifications.');
-    return false;
-  }
-  if (Notification.permission === 'granted') { nsBrowserPerm = true; return true; }
-  if (Notification.permission === 'denied') {
-    alert('Notifications are blocked. Allow notifications for this site in your phone browser settings.');
-    return false;
-  }
-  const p = await Notification.requestPermission();
-  nsBrowserPerm = p === 'granted';
-  return nsBrowserPerm;
+    if (typeof Notification === 'undefined') {
+        alert('This browser does not support phone notifications.');
+        return false;
+    }
+    if (Notification.permission === 'granted') { nsBrowserPerm = true; return true; }
+    if (Notification.permission === 'denied') {
+        alert('Notifications are blocked. Allow notifications for this site in your phone browser settings.');
+        return false;
+    }
+    const p = await Notification.requestPermission();
+    nsBrowserPerm = p === 'granted';
+    return nsBrowserPerm;
 }
 
 
 
 /* ---- Background push (counts on notification bar even when site is closed) ---- */
 function urlBase64ToUint8Array(base64String) {
-  const padding = '='.repeat((4 - base64String.length % 4) % 4);
-  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-  const raw = atob(base64);
-  const out = new Uint8Array(raw.length);
-  for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
-  return out;
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const raw = atob(base64);
+    const out = new Uint8Array(raw.length);
+    for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+    return out;
 }
 async function nsSubscribePush(trackCode) {
-  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return false;
-  try {
-    const reg = _dhlSwReg || await navigator.serviceWorker.register('/sw.js');
-    _dhlSwReg = reg;
-    const keyRes = await fetch(API_BASE + '/push/vapid-public-key');
-    const { publicKey } = await keyRes.json();
-    if (!publicKey) return false;
-    let sub = await reg.pushManager.getSubscription();
-    if (!sub) {
-      sub = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(publicKey)
-      });
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return false;
+    try {
+        const reg = _dhlSwReg || await navigator.serviceWorker.register('/sw.js');
+        _dhlSwReg = reg;
+        const keyRes = await fetch(API_BASE + '/push/vapid-public-key');
+        const { publicKey } = await keyRes.json();
+        if (!publicKey) return false;
+        let sub = await reg.pushManager.getSubscription();
+        if (!sub) {
+            sub = await reg.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array(publicKey)
+            });
+        }
+        await fetch(API_BASE + '/push/subscribe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ subscription: sub.toJSON(), trackCode: trackCode || nsTrackCode || '' })
+        });
+        return true;
+    } catch (e) {
+        console.warn('push subscribe', e);
+        return false;
     }
-    await fetch(API_BASE + '/push/subscribe', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ subscription: sub.toJSON(), trackCode: trackCode || nsTrackCode || '' })
-    });
-    return true;
-  } catch (e) {
-    console.warn('push subscribe', e);
-    return false;
-  }
 }
 async function nsUnsubscribePush() {
-  try {
-    const reg = _dhlSwReg || await navigator.serviceWorker.getRegistration();
-    if (!reg) return;
-    const sub = await reg.pushManager.getSubscription();
-    if (sub) {
-      await fetch(API_BASE + '/push/unsubscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ endpoint: sub.endpoint })
-      });
-      // keep browser permission; just disable server pushes
-    }
-  } catch (e) {}
+    try {
+        const reg = _dhlSwReg || await navigator.serviceWorker.getRegistration();
+        if (!reg) return;
+        const sub = await reg.pushManager.getSubscription();
+        if (sub) {
+            await fetch(API_BASE + '/push/unsubscribe', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ endpoint: sub.endpoint })
+            });
+            // keep browser permission; just disable server pushes
+        }
+    } catch (e) { }
 }
 
 async function nsToggleLivePhoneNotify() {
-  // Turn OFF
-  if (nsBrowserPerm) {
-    nsBrowserPerm = false;
-    try { localStorage.setItem('dhl_live_notify', '0'); } catch (e) {}
-    const btn = document.getElementById('nsLiveToggleBtn');
-    if (btn) btn.textContent = 'Turn ON notifications';
-    await nsUnsubscribePush();
-    return;
-  }
-  // Turn ON
-  if (!('Notification' in window)) {
-    alert('This browser does not support phone notifications.');
-    return;
-  }
-  let perm = Notification.permission;
-  if (perm === 'default') {
-    try { perm = await Notification.requestPermission(); } catch (e) { perm = 'denied'; }
-  }
-  if (perm !== 'granted') {
-    alert('Allow notifications for this site in your browser settings, then tap again.');
-    return;
-  }
-  nsBrowserPerm = true;
-  try { localStorage.setItem('dhl_live_notify', '1'); } catch (e) {}
-  const btn = document.getElementById('nsLiveToggleBtn');
-  if (btn) btn.textContent = 'Turn OFF notifications';
-  // Register for BACKGROUND pushes (counts even when you leave the site)
-  await nsSubscribePush(nsTrackCode);
-  try {
-    if (nsTrackCode) {
-      const fresh = await apiRequest('/shipments/track/' + encodeURIComponent(nsTrackCode));
-      const r = fresh.route || {};
-      const p = Math.round(computeLiveProgress(r) || 0);
-      const o = r.originCountry || 'Origin';
-      const d = r.destCountry || 'Destination';
-      const ic = ICONS[r.icon || 'truck'] || '🚚';
-      nsPhoneNotify(
-        o + ' → ' + d,
-        ic + ' ' + p + '% complete · tracking ' + nsTrackCode,
-        'dhl-live-on'
-      );
-    } else {
-      nsPhoneNotify('DHL tracking', 'Track a package first, then turn ON to get live % on the notification bar.', 'dhl-live-on');
+    // Turn OFF
+    if (nsBrowserPerm) {
+        nsBrowserPerm = false;
+        try { localStorage.setItem('dhl_live_notify', '0'); } catch (e) { }
+        const btn = document.getElementById('nsLiveToggleBtn');
+        if (btn) btn.textContent = 'Turn ON notifications';
+        await nsUnsubscribePush();
+        return;
     }
-  } catch (e) {
-    nsPhoneNotify('DHL tracking', 'Live notifications ON.', 'dhl-live-on');
-  }
+    // Turn ON
+    if (!('Notification' in window)) {
+        alert('This browser does not support phone notifications.');
+        return;
+    }
+    let perm = Notification.permission;
+    if (perm === 'default') {
+        try { perm = await Notification.requestPermission(); } catch (e) { perm = 'denied'; }
+    }
+    if (perm !== 'granted') {
+        alert('Allow notifications for this site in your browser settings, then tap again.');
+        return;
+    }
+    nsBrowserPerm = true;
+    try { localStorage.setItem('dhl_live_notify', '1'); } catch (e) { }
+    const btn = document.getElementById('nsLiveToggleBtn');
+    if (btn) btn.textContent = 'Turn OFF notifications';
+    // Register for BACKGROUND pushes (counts even when you leave the site)
+    await nsSubscribePush(nsTrackCode);
+    try {
+        if (nsTrackCode) {
+            const fresh = await apiRequest('/shipments/track/' + encodeURIComponent(nsTrackCode));
+            const r = fresh.route || {};
+            const p = Math.round(computeLiveProgress(r) || 0);
+            const o = r.originCountry || 'Origin';
+            const d = r.destCountry || 'Destination';
+            const ic = ICONS[r.icon || 'truck'] || '🚚';
+            nsPhoneNotify(
+                o + ' → ' + d,
+                ic + ' ' + p + '% complete · tracking ' + nsTrackCode,
+                'dhl-live-on'
+            );
+        } else {
+            nsPhoneNotify('DHL tracking', 'Track a package first, then turn ON to get live % on the notification bar.', 'dhl-live-on');
+        }
+    } catch (e) {
+        nsPhoneNotify('DHL tracking', 'Live notifications ON.', 'dhl-live-on');
+    }
 }
 
 function nsPhoneNotify(title, body, tag) {
-  if (!nsBrowserPerm) return; // turned OFF — do not show on notification bar
+    if (!nsBrowserPerm) return; // turned OFF — do not show on notification bar
 
-  const payload = {
-    title: title || 'DHL update',
-    body: body || '',
-    tag: tag || ('dhl-' + Date.now()),
-    url: (typeof location !== 'undefined' ? location.href : '/')
-  };
-  // Prefer service worker (works better on phone notification bar)
-  if (_dhlSwReg && Notification.permission === 'granted') {
+    const payload = {
+        title: title || 'DHL update',
+        body: body || '',
+        tag: tag || ('dhl-' + Date.now()),
+        url: (typeof location !== 'undefined' ? location.href : '/')
+    };
+    // Prefer service worker (works better on phone notification bar)
+    if (_dhlSwReg && Notification.permission === 'granted') {
+        try {
+            if (_dhlSwReg.active) {
+                _dhlSwReg.active.postMessage({ type: 'notify', ...payload });
+                return;
+            }
+            _dhlSwReg.showNotification(payload.title, {
+                body: payload.body,
+                tag: payload.tag,
+                data: { url: payload.url },
+                vibrate: [120, 60, 120]
+            });
+            return;
+        } catch (e) { }
+    }
+    if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
     try {
-      if (_dhlSwReg.active) {
-        _dhlSwReg.active.postMessage({ type: 'notify', ...payload });
-        return;
-      }
-      _dhlSwReg.showNotification(payload.title, {
-        body: payload.body,
-        tag: payload.tag,
-        data: { url: payload.url },
-        vibrate: [120, 60, 120]
-      });
-      return;
-    } catch (e) {}
-  }
-  if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
-  try {
-    new Notification(payload.title, { body: payload.body, tag: payload.tag });
-  } catch (e) {}
+        new Notification(payload.title, { body: payload.body, tag: payload.tag });
+    } catch (e) { }
 }
 
 async function nsPollTrackNotifications() {
-  if (!nsTrackCode) return;
-  try {
-    let url = API_BASE + '/shipments/track/' + encodeURIComponent(nsTrackCode) + '/notifications';
-    if (nsLastNotifAt) url += '?since=' + encodeURIComponent(nsLastNotifAt);
-    const res = await fetch(url);
-    if (!res.ok) return;
-    const items = await res.json();
-    if (!Array.isArray(items) || !items.length) return;
-    // API returns newest first
-    const chronological = items.slice().reverse();
-    chronological.forEach(n => {
-      const id = String(n._id || n.createdAt + n.title);
-      if (nsSeenIds.has(id)) return;
-      nsSeenIds.add(id);
-      // Enrich toast with route text for user notification bar
-      if (n.location && n.location.includes('→')) {
-        const parts = n.location.split('→').map(s => s.trim());
-        n.origin = parts[0]; n.destination = parts[1];
-        if ((n.title || '').toLowerCase().includes('plane')) n.icon = 'plane';
-        else if ((n.title || '').toLowerCase().includes('ship')) n.icon = 'ship';
-        else n.icon = 'truck';
-      }
-      nsShowToast(n);
-      nsPhoneNotify(
-        n.title || 'Shipment update',
-        (n.origin && n.destination)
-          ? ((n.icon === 'plane' ? '✈️ ' : n.icon === 'ship' ? '🚢 ' : '🚚 ') + n.origin + ' → ' + n.destination + (n.message ? ' · ' + n.message : ''))
-          : (n.message || n.location || ''),
-        'dhl-n-' + (n._id || n.createdAt || Date.now())
-      );
-      // refresh track view so timeline matches
-      if (document.getElementById('trackResultBox')) {
-        renderTrackResult(nsTrackCode).catch(() => {});
-      }
-    });
-    if (items[0] && items[0].createdAt) nsLastNotifAt = items[0].createdAt;
-  } catch (e) {}
+    if (!nsTrackCode) return;
+    try {
+        let url = API_BASE + '/shipments/track/' + encodeURIComponent(nsTrackCode) + '/notifications';
+        if (nsLastNotifAt) url += '?since=' + encodeURIComponent(nsLastNotifAt);
+        const res = await fetch(url);
+        if (!res.ok) return;
+        const items = await res.json();
+        if (!Array.isArray(items) || !items.length) return;
+        // API returns newest first
+        const chronological = items.slice().reverse();
+        chronological.forEach(n => {
+            const id = String(n._id || n.createdAt + n.title);
+            if (nsSeenIds.has(id)) return;
+            nsSeenIds.add(id);
+            // Enrich toast with route text for user notification bar
+            if (n.location && n.location.includes('→')) {
+                const parts = n.location.split('→').map(s => s.trim());
+                n.origin = parts[0]; n.destination = parts[1];
+                if ((n.title || '').toLowerCase().includes('plane')) n.icon = 'plane';
+                else if ((n.title || '').toLowerCase().includes('ship')) n.icon = 'ship';
+                else n.icon = 'truck';
+            }
+            nsShowToast(n);
+            nsPhoneNotify(
+                n.title || 'Shipment update',
+                (n.origin && n.destination)
+                    ? ((n.icon === 'plane' ? '✈️ ' : n.icon === 'ship' ? '🚢 ' : '🚚 ') + n.origin + ' → ' + n.destination + (n.message ? ' · ' + n.message : ''))
+                    : (n.message || n.location || ''),
+                'dhl-n-' + (n._id || n.createdAt || Date.now())
+            );
+            // refresh track view so timeline matches
+            if (document.getElementById('trackResultBox')) {
+                renderTrackResult(nsTrackCode).catch(() => { });
+            }
+        });
+        if (items[0] && items[0].createdAt) nsLastNotifAt = items[0].createdAt;
+    } catch (e) { }
 }
 
 function nsStartTrackWatch(code) {
-  // Keep background push linked to this tracking code
-  if (nsBrowserPerm) { try { nsSubscribePush(arguments[0]); } catch (e) {} }
+    // Keep background push linked to this tracking code
+    if (nsBrowserPerm) { try { nsSubscribePush(arguments[0]); } catch (e) { } }
 
-  nsTrackCode = String(code || '').toUpperCase();
-  nsLastNotifAt = new Date().toISOString(); // only new events after open
-  nsSeenIds = new Set();
-  if (nsNotifTimer) clearInterval(nsNotifTimer);
-  nsNotifTimer = setInterval(nsPollTrackNotifications, 4000);
-  const banner = document.getElementById('nsLiveBanner');
-  if (banner) {
-    banner.classList.add('show');
-    banner.innerHTML = '<span class="ns-live-dot"></span><span>Live tracking on for <b class="mono">' +
-      esc(nsTrackCode) + '</b> — notifications show origin → destination and %.</span>' +
-      '<button type="button" class="btn btn-red small-btn" style="margin-left:auto;" id="nsLiveToggleBtn" onclick="nsToggleLivePhoneNotify()">' +
-      (nsBrowserPerm ? 'Live notifications ON' : 'Turn on live notifications') + '</button>';
-  }
+    nsTrackCode = String(code || '').toUpperCase();
+    nsLastNotifAt = new Date().toISOString(); // only new events after open
+    nsSeenIds = new Set();
+    if (nsNotifTimer) clearInterval(nsNotifTimer);
+    nsNotifTimer = setInterval(nsPollTrackNotifications, 4000);
+    const banner = document.getElementById('nsLiveBanner');
+    if (banner) {
+        banner.classList.add('show');
+        banner.innerHTML = '<span class="ns-live-dot"></span><span>Live tracking on for <b class="mono">' +
+            esc(nsTrackCode) + '</b> — notifications show origin → destination and %.</span>' +
+            '<button type="button" class="btn btn-red small-btn" style="margin-left:auto;" id="nsLiveToggleBtn" onclick="nsToggleLivePhoneNotify()">' +
+            (nsBrowserPerm ? 'Live notifications ON' : 'Turn on live notifications') + '</button>';
+    }
 }
 
 function nsStopTrackWatch() {
-  nsTrackCode = null;
-  if (nsNotifTimer) { clearInterval(nsNotifTimer); nsNotifTimer = null; }
-  const banner = document.getElementById('nsLiveBanner');
-  if (banner) banner.classList.remove('show');
+    nsTrackCode = null;
+    if (nsNotifTimer) { clearInterval(nsNotifTimer); nsNotifTimer = null; }
+    const banner = document.getElementById('nsLiveBanner');
+    if (banner) banner.classList.remove('show');
 }
 
 /* Admin notification panel */
 async function nsLoadAdminNotifs() { return; /* alerts removed */ }
 async function _nsLoadAdminNotifs_unused() {
-  const panel = document.getElementById('nsNotifPanel');
-  const badge = document.getElementById('nsNotifBadge');
-  if (!panel || !adminToken) return;
-  try {
-    const items = await apiRequest('/shipments/notifications/admin');
-    const unread = (items || []).filter(n => !n.read).length;
-    if (badge) {
-      if (unread) { badge.textContent = unread > 99 ? '99+' : String(unread); badge.classList.add('show'); }
-      else badge.classList.remove('show');
-    }
-    panel.innerHTML = (items || []).slice(0, 30).map(n => `
+    const panel = document.getElementById('nsNotifPanel');
+    const badge = document.getElementById('nsNotifBadge');
+    if (!panel || !adminToken) return;
+    try {
+        const items = await apiRequest('/shipments/notifications/admin');
+        const unread = (items || []).filter(n => !n.read).length;
+        if (badge) {
+            if (unread) { badge.textContent = unread > 99 ? '99+' : String(unread); badge.classList.add('show'); }
+            else badge.classList.remove('show');
+        }
+        panel.innerHTML = (items || []).slice(0, 30).map(n => `
       <div class="ns-notif-item">
         <div class="t">${esc(n.title)}</div>
         <div class="m">${esc(n.message)}</div>
         <div class="c">${esc(n.code)} · ${n.createdAt ? new Date(n.createdAt).toLocaleString() : ''}</div>
       </div>`).join('') || '<div class="ns-notif-item">No notifications yet.</div>';
-  } catch (e) {
-    panel.innerHTML = '<div class="ns-notif-item" style="color:#a00;">' + esc(e.message) + '</div>';
-  }
+    } catch (e) {
+        panel.innerHTML = '<div class="ns-notif-item" style="color:#a00;">' + esc(e.message) + '</div>';
+    }
 }
 
 function nsToggleAdminNotifs() {
-  const panel = document.getElementById('nsNotifPanel');
-  if (!panel) return;
-  panel.classList.toggle('open');
-  if (panel.classList.contains('open')) {
-    nsLoadAdminNotifs();
-    apiRequest('/shipments/notifications/read', { method: 'POST', body: JSON.stringify({ all: true }) }).catch(() => {});
-  }
+    const panel = document.getElementById('nsNotifPanel');
+    if (!panel) return;
+    panel.classList.toggle('open');
+    if (panel.classList.contains('open')) {
+        nsLoadAdminNotifs();
+        apiRequest('/shipments/notifications/read', { method: 'POST', body: JSON.stringify({ all: true }) }).catch(() => { });
+    }
 }
 
 
@@ -2060,136 +2068,143 @@ const cardIo = new IntersectionObserver(entries => {
 }, { threshold: 0.2 });
 document.querySelectorAll('.service-card').forEach(el => cardIo.observe(el));
 function openSettingsProtected() {
-  const el = document.getElementById('settingsPinInput');
-  if (el) el.value = '';
-  const err = document.getElementById('settingsPinError');
-  if (err) err.style.display = 'none';
-  openModal('settingsPinModal');
+    const el = document.getElementById('settingsPinInput');
+    if (el) el.value = '';
+    const err = document.getElementById('settingsPinError');
+    if (err) err.style.display = 'none';
+    openModal('settingsPinModal');
 }
 function submitSettingsPin() {
-  const pin = (document.getElementById('settingsPinInput') || {}).value || '';
-  const err = document.getElementById('settingsPinError');
-  if (String(pin).trim() !== '7799') {
-    if (err) { err.style.display = 'block'; err.textContent = 'Incorrect PIN.'; }
-    return;
-  }
-  closeModal('settingsPinModal');
-  const m = document.getElementById('settingsModal');
-  if (m) m.classList.add('show');
+    const pin = (document.getElementById('settingsPinInput') || {}).value || '';
+    const err = document.getElementById('settingsPinError');
+    if (String(pin).trim() !== '7799') {
+        if (err) { err.style.display = 'block'; err.textContent = 'Incorrect PIN.'; }
+        return;
+    }
+    closeModal('settingsPinModal');
+    var m = document.getElementById('settingsModal') || document.getElementById('credentialsModal');
+    if (m) {
+        m.classList.add('show');
+        if (!m.classList.contains('modal-overlay')) m.style.display = 'flex';
+    } else {
+        alert('Settings form missing on this page.');
+    }
 }
+window.verifySettingsPin = submitSettingsPin;
+
 
 
 /* ---- Site language (public pages + receipt; not admin login) ---- */
 const SITE_I18N = {
-  en: {
-    'Track Now': 'Track Now', 'Service': 'Service', 'About Us': 'About Us', 'Contact Us': 'Contact Us',
-    'Receipt': 'Receipt', 'Box': 'Box', 'Log In': 'Log In', 'Track Package': 'Track Package',
-    'Live Location': 'Live Location', 'Sender': 'Sender', 'Receiver': 'Receiver',
-    'Shipment Date': 'Shipment Date', 'Est. Delivery': 'Est. Delivery', 'Language': 'Language',
-    'Your package, tracked': 'Your package, tracked', 'Home': 'Home', 'Testimonials': 'Testimonials'
-  },
-  id: {
-    'Track Now': 'Lacak Sekarang', 'Service': 'Layanan', 'About Us': 'Tentang Kami', 'Contact Us': 'Hubungi Kami',
-    'Receipt': 'Tanda Terima', 'Box': 'Kotak', 'Log In': 'Masuk', 'Track Package': 'Lacak Paket',
-    'Live Location': 'Lokasi Langsung', 'Sender': 'Pengirim', 'Receiver': 'Penerima',
-    'Shipment Date': 'Tanggal Pengiriman', 'Est. Delivery': 'Perkiraan Tiba', 'Language': 'Bahasa',
-    'Home': 'Beranda', 'Testimonials': 'Testimoni'
-  },
-  ms: {
-    'Track Now': 'Jejak Sekarang', 'Service': 'Perkhidmatan', 'About Us': 'Tentang Kami', 'Contact Us': 'Hubungi Kami',
-    'Receipt': 'Resit', 'Box': 'Kotak', 'Log In': 'Log Masuk', 'Track Package': 'Jejak Pakej',
-    'Live Location': 'Lokasi Langsung', 'Sender': 'Pengirim', 'Receiver': 'Penerima',
-    'Shipment Date': 'Tarikh Penghantaran', 'Est. Delivery': 'Anggaran Sampai', 'Language': 'Bahasa',
-    'Home': 'Laman Utama', 'Testimonials': 'Testimoni'
-  },
-  es: {
-    'Track Now': 'Rastrear', 'Service': 'Servicio', 'About Us': 'Sobre nosotros', 'Contact Us': 'Contacto',
-    'Receipt': 'Recibo', 'Box': 'Caja', 'Log In': 'Iniciar sesión', 'Track Package': 'Rastrear paquete',
-    'Live Location': 'Ubicación en vivo', 'Sender': 'Remitente', 'Receiver': 'Destinatario',
-    'Shipment Date': 'Fecha de envío', 'Est. Delivery': 'Entrega est.', 'Language': 'Idioma',
-    'Home': 'Inicio', 'Testimonials': 'Testimonios'
-  },
-  fr: {
-    'Track Now': 'Suivre', 'Service': 'Service', 'About Us': 'À propos', 'Contact Us': 'Contact',
-    'Receipt': 'Reçu', 'Box': 'Colis', 'Log In': 'Connexion', 'Track Package': 'Suivre le colis',
-    'Live Location': 'Localisation', 'Sender': 'Expéditeur', 'Receiver': 'Destinataire',
-    'Shipment Date': "Date d'envoi", 'Est. Delivery': 'Livraison est.', 'Language': 'Langue',
-    'Home': 'Accueil', 'Testimonials': 'Témoignages'
-  },
-  de: {
-    'Track Now': 'Sendung verfolgen', 'Service': 'Service', 'About Us': 'Über uns', 'Contact Us': 'Kontakt',
-    'Receipt': 'Beleg', 'Box': 'Paket', 'Log In': 'Anmelden', 'Track Package': 'Paket verfolgen',
-    'Live Location': 'Live-Standort', 'Sender': 'Absender', 'Receiver': 'Empfänger',
-    'Shipment Date': 'Versanddatum', 'Est. Delivery': 'Vorauss. Lieferung', 'Language': 'Sprache',
-    'Home': 'Start', 'Testimonials': 'Meinungen'
-  },
-  zh: {
-    'Track Now': '追踪', 'Service': '服务', 'About Us': '关于我们', 'Contact Us': '联系我们',
-    'Receipt': '收据', 'Box': '包裹', 'Log In': '登录', 'Track Package': '追踪包裹',
-    'Live Location': '实时位置', 'Sender': '寄件人', 'Receiver': '收件人',
-    'Shipment Date': '发货日期', 'Est. Delivery': '预计送达', 'Language': '语言',
-    'Home': '首页', 'Testimonials': '评价'
-  }
+    en: {
+        'Track Now': 'Track Now', 'Service': 'Service', 'About Us': 'About Us', 'Contact Us': 'Contact Us',
+        'Receipt': 'Receipt', 'Box': 'Box', 'Log In': 'Log In', 'Track Package': 'Track Package',
+        'Live Location': 'Live Location', 'Sender': 'Sender', 'Receiver': 'Receiver',
+        'Shipment Date': 'Shipment Date', 'Est. Delivery': 'Est. Delivery', 'Language': 'Language',
+        'Your package, tracked': 'Your package, tracked', 'Home': 'Home', 'Testimonials': 'Testimonials'
+    },
+    id: {
+        'Track Now': 'Lacak Sekarang', 'Service': 'Layanan', 'About Us': 'Tentang Kami', 'Contact Us': 'Hubungi Kami',
+        'Receipt': 'Tanda Terima', 'Box': 'Kotak', 'Log In': 'Masuk', 'Track Package': 'Lacak Paket',
+        'Live Location': 'Lokasi Langsung', 'Sender': 'Pengirim', 'Receiver': 'Penerima',
+        'Shipment Date': 'Tanggal Pengiriman', 'Est. Delivery': 'Perkiraan Tiba', 'Language': 'Bahasa',
+        'Home': 'Beranda', 'Testimonials': 'Testimoni'
+    },
+    ms: {
+        'Track Now': 'Jejak Sekarang', 'Service': 'Perkhidmatan', 'About Us': 'Tentang Kami', 'Contact Us': 'Hubungi Kami',
+        'Receipt': 'Resit', 'Box': 'Kotak', 'Log In': 'Log Masuk', 'Track Package': 'Jejak Pakej',
+        'Live Location': 'Lokasi Langsung', 'Sender': 'Pengirim', 'Receiver': 'Penerima',
+        'Shipment Date': 'Tarikh Penghantaran', 'Est. Delivery': 'Anggaran Sampai', 'Language': 'Bahasa',
+        'Home': 'Laman Utama', 'Testimonials': 'Testimoni'
+    },
+    es: {
+        'Track Now': 'Rastrear', 'Service': 'Servicio', 'About Us': 'Sobre nosotros', 'Contact Us': 'Contacto',
+        'Receipt': 'Recibo', 'Box': 'Caja', 'Log In': 'Iniciar sesión', 'Track Package': 'Rastrear paquete',
+        'Live Location': 'Ubicación en vivo', 'Sender': 'Remitente', 'Receiver': 'Destinatario',
+        'Shipment Date': 'Fecha de envío', 'Est. Delivery': 'Entrega est.', 'Language': 'Idioma',
+        'Home': 'Inicio', 'Testimonials': 'Testimonios'
+    },
+    fr: {
+        'Track Now': 'Suivre', 'Service': 'Service', 'About Us': 'À propos', 'Contact Us': 'Contact',
+        'Receipt': 'Reçu', 'Box': 'Colis', 'Log In': 'Connexion', 'Track Package': 'Suivre le colis',
+        'Live Location': 'Localisation', 'Sender': 'Expéditeur', 'Receiver': 'Destinataire',
+        'Shipment Date': "Date d'envoi", 'Est. Delivery': 'Livraison est.', 'Language': 'Langue',
+        'Home': 'Accueil', 'Testimonials': 'Témoignages'
+    },
+    de: {
+        'Track Now': 'Sendung verfolgen', 'Service': 'Service', 'About Us': 'Über uns', 'Contact Us': 'Kontakt',
+        'Receipt': 'Beleg', 'Box': 'Paket', 'Log In': 'Anmelden', 'Track Package': 'Paket verfolgen',
+        'Live Location': 'Live-Standort', 'Sender': 'Absender', 'Receiver': 'Empfänger',
+        'Shipment Date': 'Versanddatum', 'Est. Delivery': 'Vorauss. Lieferung', 'Language': 'Sprache',
+        'Home': 'Start', 'Testimonials': 'Meinungen'
+    },
+    zh: {
+        'Track Now': '追踪', 'Service': '服务', 'About Us': '关于我们', 'Contact Us': '联系我们',
+        'Receipt': '收据', 'Box': '包裹', 'Log In': '登录', 'Track Package': '追踪包裹',
+        'Live Location': '实时位置', 'Sender': '寄件人', 'Receiver': '收件人',
+        'Shipment Date': '发货日期', 'Est. Delivery': '预计送达', 'Language': '语言',
+        'Home': '首页', 'Testimonials': '评价'
+    }
 };
 function setSiteLang(lang) {
-  try { localStorage.setItem('dhl_lang', lang); } catch (e) {}
-  document.documentElement.lang = lang || 'en';
-  const map = SITE_I18N[lang] || SITE_I18N.en;
-  document.querySelectorAll('[data-i18n]').forEach(el => {
-    const key = el.getAttribute('data-i18n');
-    if (map[key]) el.textContent = map[key];
-  });
-  document.querySelectorAll('a, button, h1, h2, h3, h4, p, label, span, .eyebrow').forEach(el => {
-    if (el.closest('#adminDashboard') || el.closest('#adminView') || el.closest('.modal-overlay') || el.closest('#langStrip') || el.closest('#heroLang')) return;
-    if (el.querySelector('input,button,select,img,svg')) return;
-    if (el.childNodes.length === 1 && el.childNodes[0].nodeType === 3) {
-      const t = el.textContent.trim();
-      if (map[t]) el.textContent = map[t];
-      else {
-        // restore from data-en if stored
-        const en = el.getAttribute('data-en');
-        if (en && map[en]) el.textContent = map[en];
-        if (!en && t) el.setAttribute('data-en', t);
-      }
-    }
-  });
-  const sel = document.getElementById('siteLang');
-  if (sel) sel.value = lang;
+    try { localStorage.setItem('dhl_lang', lang); } catch (e) { }
+    document.documentElement.lang = lang || 'en';
+    const map = SITE_I18N[lang] || SITE_I18N.en;
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (map[key]) el.textContent = map[key];
+    });
+    document.querySelectorAll('a, button, h1, h2, h3, h4, p, label, span, .eyebrow').forEach(el => {
+        if (el.closest('#adminDashboard') || el.closest('#adminView') || el.closest('.modal-overlay') || el.closest('#langStrip') || el.closest('#heroLang')) return;
+        if (el.querySelector('input,button,select,img,svg')) return;
+        if (el.childNodes.length === 1 && el.childNodes[0].nodeType === 3) {
+            const t = el.textContent.trim();
+            if (map[t]) el.textContent = map[t];
+            else {
+                // restore from data-en if stored
+                const en = el.getAttribute('data-en');
+                if (en && map[en]) el.textContent = map[en];
+                if (!en && t) el.setAttribute('data-en', t);
+            }
+        }
+    });
+    const sel = document.getElementById('siteLang');
+    if (sel) sel.value = lang;
 }
 (function initLang() {
-  try {
-    const L = localStorage.getItem('dhl_lang') || 'en';
-    setTimeout(function () { setSiteLang(L); }, 50);
-  } catch (e) {}
+    try {
+        const L = localStorage.getItem('dhl_lang') || 'en';
+        setTimeout(function () { setSiteLang(L); }, 50);
+    } catch (e) { }
 })();
 
 async function toggleBoxService() {
-  if (!adminToken) return;
-  try {
-    const cur = await apiRequest('/shipments/box-service');
-    const next = !(cur && cur.on !== false);
-    const data = await apiRequest('/shipments/box-service', {
-      method: 'PUT',
-      body: JSON.stringify({ on: next })
-    });
-    const on = data && data.on !== false;
-    const label = on ? 'Box video: ON' : 'Box video: OFF';
-    ['boxServiceToggleBtn', 'boxServiceToggleBtn2'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) {
-        el.textContent = label;
-        el.style.borderColor = on ? '#1F9D55' : '#D40511';
-        el.style.color = on ? '#1F9D55' : '#D40511';
-      }
-    });
-  } catch (e) {
-    const m = (e && e.message) ? String(e.message) : '';
-    if (/404/.test(m)) {
-      alert('Box ON/OFF API not on server yet (404). Push routes/auth.js + models/AdminSettings.js to GitHub and wait for Render to redeploy.');
-    } else {
-      alert(m || 'Could not update box service');
+    if (!adminToken) return;
+    try {
+        const cur = await apiRequest('/shipments/box-service');
+        const next = !(cur && cur.on !== false);
+        const data = await apiRequest('/shipments/box-service', {
+            method: 'PUT',
+            body: JSON.stringify({ on: next })
+        });
+        const on = data && data.on !== false;
+        const label = on ? 'Box video: ON' : 'Box video: OFF';
+        ['boxServiceToggleBtn', 'boxServiceToggleBtn2'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.textContent = label;
+                el.style.borderColor = on ? '#1F9D55' : '#D40511';
+                el.style.color = on ? '#1F9D55' : '#D40511';
+            }
+        });
+    } catch (e) {
+        const m = (e && e.message) ? String(e.message) : '';
+        if (/404/.test(m)) {
+            alert('Box ON/OFF API not on server yet (404). Push routes/auth.js + models/AdminSettings.js to GitHub and wait for Render to redeploy.');
+        } else {
+            alert(m || 'Could not update box service');
+        }
     }
-  }
 }
 
 
@@ -2199,328 +2214,328 @@ async function toggleBoxService() {
 
 /* ========== LIVE CUSTOMER CHAT (guest + admin, separate threads) ========== */
 function dhlGuestId() {
-  let id = sessionStorage.getItem('dhlGuestId');
-  if (!id) {
-    id = 'g_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
-    sessionStorage.setItem('dhlGuestId', id);
-  }
-  return id;
+    let id = sessionStorage.getItem('dhlGuestId');
+    if (!id) {
+        id = 'g_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        sessionStorage.setItem('dhlGuestId', id);
+    }
+    return id;
 }
 
 function openGuestChat() {
-  const p = document.getElementById('guestChatPanel');
-  if (p) {
-    p.classList.remove('hidden');
-    p.classList.remove('fullscreen');
-  }
-  const badge = document.getElementById('guestChatBadge');
-  if (badge) badge.classList.add('hidden');
-  document.body.classList.add('guest-chat-open');
+    const p = document.getElementById('guestChatPanel');
+    if (p) {
+        p.classList.remove('hidden');
+        p.classList.remove('fullscreen');
+    }
+    const badge = document.getElementById('guestChatBadge');
+    if (badge) badge.classList.add('hidden');
+    document.body.classList.add('guest-chat-open');
 }
 
 function closeGuestChat() {
-  const p = document.getElementById('guestChatPanel');
-  if (p) {
-    p.classList.add('hidden');
-    p.classList.remove('fullscreen');
-  }
-  document.body.classList.remove('guest-chat-open');
-  // Start fresh: clear guest id so next open asks for tracking code again
-  try { sessionStorage.removeItem('dhlGuestId'); } catch (e) {}
-  if (window._guestChatPoll) { clearInterval(window._guestChatPoll); window._guestChatPoll = null; }
-  const setup = document.getElementById('guestChatSetup');
-  const room = document.getElementById('guestChatRoom');
-  if (setup) setup.classList.remove('hidden');
-  if (room) room.classList.add('hidden');
-  const trackEl = document.getElementById('guestChatTrack');
-  if (trackEl) trackEl.value = '';
-  const box = document.getElementById('guestChatMessages');
-  if (box) box.innerHTML = '';
-  window._guestChatSysStep = 0;
+    const p = document.getElementById('guestChatPanel');
+    if (p) {
+        p.classList.add('hidden');
+        p.classList.remove('fullscreen');
+    }
+    document.body.classList.remove('guest-chat-open');
+    // Start fresh: clear guest id so next open asks for tracking code again
+    try { sessionStorage.removeItem('dhlGuestId'); } catch (e) { }
+    if (window._guestChatPoll) { clearInterval(window._guestChatPoll); window._guestChatPoll = null; }
+    const setup = document.getElementById('guestChatSetup');
+    const room = document.getElementById('guestChatRoom');
+    if (setup) setup.classList.remove('hidden');
+    if (room) room.classList.add('hidden');
+    const trackEl = document.getElementById('guestChatTrack');
+    if (trackEl) trackEl.value = '';
+    const box = document.getElementById('guestChatMessages');
+    if (box) box.innerHTML = '';
+    window._guestChatSysStep = 0;
 }
 
 async function guestChatStart() {
-  const trackEl = document.getElementById('guestChatTrack');
-  const errEl = document.getElementById('guestChatErr');
-  const track = (trackEl && trackEl.value || '').trim();
-  if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
-  if (!track) {
-    if (errEl) {
-      errEl.textContent = 'Please enter a tracking code.';
-      errEl.style.display = 'block';
+    const trackEl = document.getElementById('guestChatTrack');
+    const errEl = document.getElementById('guestChatErr');
+    const track = (trackEl && trackEl.value || '').trim();
+    if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
+    if (!track) {
+        if (errEl) {
+            errEl.textContent = 'Please enter a tracking code.';
+            errEl.style.display = 'block';
+        }
+        return;
     }
-    return;
-  }
-  mdShowWait('Connecting……');
-  try {
-    const data = await apiRequest('/chat/guest/open', {
-      method: 'POST',
-      body: JSON.stringify({
-        guestId: dhlGuestId(),
-        trackCode: track
-      })
-    });
-    document.getElementById('guestChatSetup').classList.add('hidden');
-    document.getElementById('guestChatRoom').classList.remove('hidden');
-    const panel = document.getElementById('guestChatPanel');
-    if (panel) panel.classList.add('fullscreen');
-    const lab = document.getElementById('guestChatLabel');
-    if (lab) lab.textContent = data.label || track;
-    window._guestChatReceiver = (data.label || '').split('/').pop().trim() || 'customer';
-    window._guestChatSysStep = 0;
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const help = {
-      from: 'system',
-      text: '[' + timeStr + '] How can we help you today with your shipment?'
-    };
-    const base = data.messages || [];
-    // Always show help dropdown at top for this session view
-    guestRenderMessages([help].concat(base));
-    if (window._guestChatPoll) clearInterval(window._guestChatPoll);
-    window._guestChatPoll = setInterval(guestChatPoll, 4000);
-  } catch (e) {
-    if (errEl) {
-      errEl.textContent = e.message || 'Could not start chat';
-      errEl.style.display = 'block';
-    } else {
-      alert(e.message || 'Could not start chat');
+    mdShowWait('Connecting……');
+    try {
+        const data = await apiRequest('/chat/guest/open', {
+            method: 'POST',
+            body: JSON.stringify({
+                guestId: dhlGuestId(),
+                trackCode: track
+            })
+        });
+        document.getElementById('guestChatSetup').classList.add('hidden');
+        document.getElementById('guestChatRoom').classList.remove('hidden');
+        const panel = document.getElementById('guestChatPanel');
+        if (panel) panel.classList.add('fullscreen');
+        const lab = document.getElementById('guestChatLabel');
+        if (lab) lab.textContent = data.label || track;
+        window._guestChatReceiver = (data.label || '').split('/').pop().trim() || 'customer';
+        window._guestChatSysStep = 0;
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const help = {
+            from: 'system',
+            text: '[' + timeStr + '] How can we help you today with your shipment?'
+        };
+        const base = data.messages || [];
+        // Always show help dropdown at top for this session view
+        guestRenderMessages([help].concat(base));
+        if (window._guestChatPoll) clearInterval(window._guestChatPoll);
+        window._guestChatPoll = setInterval(guestChatPoll, 4000);
+    } catch (e) {
+        if (errEl) {
+            errEl.textContent = e.message || 'Could not start chat';
+            errEl.style.display = 'block';
+        } else {
+            alert(e.message || 'Could not start chat');
+        }
+    } finally {
+        mdHideWait();
     }
-  } finally {
-    mdHideWait();
-  }
 }
 
 function guestRenderMessages(msgs) {
-  const box = document.getElementById('guestChatMessages');
-  if (!box) return;
-  box.innerHTML = (msgs || []).map(function (m) {
-    if (m.from === 'system') {
-      return '<div class="chat-bubble system" style="align-self:center;max-width:95%;background:#f0f4ff;color:#334;font-size:12.5px;text-align:center;border-radius:10px;padding:8px 12px;margin:8px auto;">' +
-        esc(m.text || '') + '</div>';
-    }
-    const side = m.from === 'admin' ? 'left' : 'right';
-    const img = m.image ? '<img class="chat-img" src="' + m.image + '" alt="" onclick="window.open(this.src)">' : '';
-    return '<div class="chat-bubble ' + side + '"><div class="chat-meta">' +
-      (m.from === 'admin' ? 'Support' : 'You') + '</div>' +
-      (m.text ? '<div>' + esc(m.text) + '</div>' : '') + img + '</div>';
-  }).join('');
-  box.scrollTop = box.scrollHeight;
+    const box = document.getElementById('guestChatMessages');
+    if (!box) return;
+    box.innerHTML = (msgs || []).map(function (m) {
+        if (m.from === 'system') {
+            return '<div class="chat-bubble system" style="align-self:center;max-width:95%;background:#f0f4ff;color:#334;font-size:12.5px;text-align:center;border-radius:10px;padding:8px 12px;margin:8px auto;">' +
+                esc(m.text || '') + '</div>';
+        }
+        const side = m.from === 'admin' ? 'left' : 'right';
+        const img = m.image ? '<img class="chat-img" src="' + m.image + '" alt="" onclick="window.open(this.src)">' : '';
+        return '<div class="chat-bubble ' + side + '"><div class="chat-meta">' +
+            (m.from === 'admin' ? 'Support' : 'You') + '</div>' +
+            (m.text ? '<div>' + esc(m.text) + '</div>' : '') + img + '</div>';
+    }).join('');
+    box.scrollTop = box.scrollHeight;
 }
 
 async function guestChatPoll() {
-  try {
-    const data = await apiRequest('/chat/guest/' + encodeURIComponent(dhlGuestId()));
-    guestRenderMessages(data.messages || []);
-  } catch (e) {}
+    try {
+        const data = await apiRequest('/chat/guest/' + encodeURIComponent(dhlGuestId()));
+        guestRenderMessages(data.messages || []);
+    } catch (e) { }
 }
 
 async function guestChatSend() {
-  const input = document.getElementById('guestChatInput');
-  const text = (input && input.value || '').trim();
-  if (!text && !window._guestChatPendingImage) return;
-  try {
-    const data = await apiRequest('/chat/guest/send', {
-      method: 'POST',
-      body: JSON.stringify({
-        guestId: dhlGuestId(),
-        text: text,
-        image: window._guestChatPendingImage || ''
-      })
-    });
-    if (input) input.value = '';
-    window._guestChatPendingImage = '';
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const help = { from: 'system', text: '[' + timeStr + '] How can we help you today with your shipment?' };
-    let msgs = data.messages || [];
-    // After first customer message, show queue notice with receiver name
-    if (!window._guestChatSysStep) window._guestChatSysStep = 0;
-    window._guestChatSysStep++;
-    const recv = window._guestChatReceiver || 'customer';
-    const queue = {
-      from: 'system',
-      text: '[' + timeStr + '] You have been added to the queue, ' + recv + '. Our support team will attend to you shortly.'
-    };
-    guestRenderMessages([help, queue].concat(msgs));
-  } catch (e) {
-    alert(e.message || 'Send failed');
-  }
+    const input = document.getElementById('guestChatInput');
+    const text = (input && input.value || '').trim();
+    if (!text && !window._guestChatPendingImage) return;
+    try {
+        const data = await apiRequest('/chat/guest/send', {
+            method: 'POST',
+            body: JSON.stringify({
+                guestId: dhlGuestId(),
+                text: text,
+                image: window._guestChatPendingImage || ''
+            })
+        });
+        if (input) input.value = '';
+        window._guestChatPendingImage = '';
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const help = { from: 'system', text: '[' + timeStr + '] How can we help you today with your shipment?' };
+        let msgs = data.messages || [];
+        // After first customer message, show queue notice with receiver name
+        if (!window._guestChatSysStep) window._guestChatSysStep = 0;
+        window._guestChatSysStep++;
+        const recv = window._guestChatReceiver || 'customer';
+        const queue = {
+            from: 'system',
+            text: '[' + timeStr + '] You have been added to the queue, ' + recv + '. Our support team will attend to you shortly.'
+        };
+        guestRenderMessages([help, queue].concat(msgs));
+    } catch (e) {
+        alert(e.message || 'Send failed');
+    }
 }
 
 function guestChatPickImage(ev) {
-  const f = ev.target.files && ev.target.files[0];
-  if (!f) return;
-  const reader = new FileReader();
-  reader.onload = function () {
-    window._guestChatPendingImage = reader.result;
-    guestChatSend();
-  };
-  reader.readAsDataURL(f);
-  ev.target.value = '';
+    const f = ev.target.files && ev.target.files[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = function () {
+        window._guestChatPendingImage = reader.result;
+        guestChatSend();
+    };
+    reader.readAsDataURL(f);
+    ev.target.value = '';
 }
 
 /* Admin chat */
 let adminSelectedThreadId = null;
 
 function adminToggleChatPanel() {
-  const p = document.getElementById('adminChatPanel');
-  if (!p) return;
-  p.classList.toggle('hidden');
-  if (!p.classList.contains('hidden')) {
-    document.body.classList.add('admin-chat-open');
-    adminLoadThreads();
-    if (window._adminChatPoll) clearInterval(window._adminChatPoll);
-    window._adminChatPoll = setInterval(adminLoadThreads, 5000);
-  } else {
-    document.body.classList.remove('admin-chat-open');
-  }
+    const p = document.getElementById('adminChatPanel');
+    if (!p) return;
+    p.classList.toggle('hidden');
+    if (!p.classList.contains('hidden')) {
+        document.body.classList.add('admin-chat-open');
+        adminLoadThreads();
+        if (window._adminChatPoll) clearInterval(window._adminChatPoll);
+        window._adminChatPoll = setInterval(adminLoadThreads, 5000);
+    } else {
+        document.body.classList.remove('admin-chat-open');
+    }
 }
 
 function adminToggleChatNav() {
-  const n = document.getElementById('adminChatNav');
-  if (n) n.classList.toggle('open');
+    const n = document.getElementById('adminChatNav');
+    if (n) n.classList.toggle('open');
 }
 
 async function adminLoadThreads() {
-  if (!adminToken) return;
-  try {
-    const data = await apiRequest('/chat/admin/threads');
-    const list = document.getElementById('adminChatThreadList');
-    const badge = document.getElementById('adminChatBadge');
-    let totalUnread = 0;
-    if (list) {
-      list.innerHTML = (data.threads || []).map(function (t) {
-        totalUnread += t.unreadAdmin || 0;
-        const u = t.unreadAdmin ? '<span class="chat-badge">' + t.unreadAdmin + '</span>' : '';
-        return '<button type="button" class="admin-thread-item' +
-          (adminSelectedThreadId === t.id ? ' active' : '') +
-          '" onclick="adminOpenThread(\'' + t.id + '\')"><strong>' + esc(t.label) + '</strong>' +
-          u + '<small>' + esc(t.preview || '') + '</small></button>';
-      }).join('') || '<p style="padding:12px;color:#888;font-size:13px;">No chats yet.</p>';
-    }
-    if (badge) {
-      if (totalUnread > 0) {
-        badge.textContent = totalUnread > 9 ? '9+' : String(totalUnread);
-        badge.classList.remove('hidden');
-      } else {
-        badge.classList.add('hidden');
-      }
-    }
-  } catch (e) {}
+    if (!adminToken) return;
+    try {
+        const data = await apiRequest('/chat/admin/threads');
+        const list = document.getElementById('adminChatThreadList');
+        const badge = document.getElementById('adminChatBadge');
+        let totalUnread = 0;
+        if (list) {
+            list.innerHTML = (data.threads || []).map(function (t) {
+                totalUnread += t.unreadAdmin || 0;
+                const u = t.unreadAdmin ? '<span class="chat-badge">' + t.unreadAdmin + '</span>' : '';
+                return '<button type="button" class="admin-thread-item' +
+                    (adminSelectedThreadId === t.id ? ' active' : '') +
+                    '" onclick="adminOpenThread(\'' + t.id + '\')"><strong>' + esc(t.label) + '</strong>' +
+                    u + '<small>' + esc(t.preview || '') + '</small></button>';
+            }).join('') || '<p style="padding:12px;color:#888;font-size:13px;">No chats yet.</p>';
+        }
+        if (badge) {
+            if (totalUnread > 0) {
+                badge.textContent = totalUnread > 9 ? '9+' : String(totalUnread);
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+    } catch (e) { }
 }
 
 async function adminOpenThread(id) {
-  adminSelectedThreadId = id;
-  const nav = document.getElementById('adminChatNav');
-  if (nav) nav.classList.remove('open');
-  try {
-    const data = await apiRequest('/chat/admin/threads/' + id);
-    const title = document.getElementById('adminChatTitle');
-    if (title) title.textContent = data.label || 'Chat';
-    adminRenderMessages(data.messages || []);
-    adminLoadThreads();
-  } catch (e) {
-    alert(e.message || 'Could not open chat');
-  }
+    adminSelectedThreadId = id;
+    const nav = document.getElementById('adminChatNav');
+    if (nav) nav.classList.remove('open');
+    try {
+        const data = await apiRequest('/chat/admin/threads/' + id);
+        const title = document.getElementById('adminChatTitle');
+        if (title) title.textContent = data.label || 'Chat';
+        adminRenderMessages(data.messages || []);
+        adminLoadThreads();
+    } catch (e) {
+        alert(e.message || 'Could not open chat');
+    }
 }
 
 function adminRenderMessages(msgs) {
-  const box = document.getElementById('adminChatMessages');
-  if (!box) return;
-  box.innerHTML = (msgs || []).map(function (m) {
-    const side = m.from === 'admin' ? 'right' : 'left';
-    const who = m.from === 'admin' ? 'You (Admin)' : 'Customer';
-    const img = m.image ? '<img class="chat-img" src="' + m.image + '" alt="" onclick="window.open(this.src)">' : '';
-    return '<div class="chat-bubble ' + side + '"><div class="chat-meta">' + who + '</div>' +
-      (m.text ? '<div>' + esc(m.text) + '</div>' : '') + img + '</div>';
-  }).join('');
-  box.scrollTop = box.scrollHeight;
+    const box = document.getElementById('adminChatMessages');
+    if (!box) return;
+    box.innerHTML = (msgs || []).map(function (m) {
+        const side = m.from === 'admin' ? 'right' : 'left';
+        const who = m.from === 'admin' ? 'You (Admin)' : 'Customer';
+        const img = m.image ? '<img class="chat-img" src="' + m.image + '" alt="" onclick="window.open(this.src)">' : '';
+        return '<div class="chat-bubble ' + side + '"><div class="chat-meta">' + who + '</div>' +
+            (m.text ? '<div>' + esc(m.text) + '</div>' : '') + img + '</div>';
+    }).join('');
+    box.scrollTop = box.scrollHeight;
 }
 
 async function adminChatSend() {
-  if (!adminSelectedThreadId) {
-    alert('Select a conversation first (☰ Conversations).');
-    return;
-  }
-  const input = document.getElementById('adminChatInput');
-  const text = (input && input.value || '').trim();
-  if (!text && !window._adminChatPendingImage) return;
-  try {
-    const data = await apiRequest('/chat/admin/threads/' + adminSelectedThreadId + '/reply', {
-      method: 'POST',
-      body: JSON.stringify({ text: text, image: window._adminChatPendingImage || '' })
-    });
-    if (input) input.value = '';
-    window._adminChatPendingImage = '';
-    adminRenderMessages(data.messages || []);
-    adminLoadThreads();
-  } catch (e) {
-    alert(e.message || 'Send failed');
-  }
+    if (!adminSelectedThreadId) {
+        alert('Select a conversation first (☰ Conversations).');
+        return;
+    }
+    const input = document.getElementById('adminChatInput');
+    const text = (input && input.value || '').trim();
+    if (!text && !window._adminChatPendingImage) return;
+    try {
+        const data = await apiRequest('/chat/admin/threads/' + adminSelectedThreadId + '/reply', {
+            method: 'POST',
+            body: JSON.stringify({ text: text, image: window._adminChatPendingImage || '' })
+        });
+        if (input) input.value = '';
+        window._adminChatPendingImage = '';
+        adminRenderMessages(data.messages || []);
+        adminLoadThreads();
+    } catch (e) {
+        alert(e.message || 'Send failed');
+    }
 }
 
 function adminChatPickImage(ev) {
-  const f = ev.target.files && ev.target.files[0];
-  if (!f) return;
-  const reader = new FileReader();
-  reader.onload = function () {
-    window._adminChatPendingImage = reader.result;
-    adminChatSend();
-  };
-  reader.readAsDataURL(f);
-  ev.target.value = '';
+    const f = ev.target.files && ev.target.files[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = function () {
+        window._adminChatPendingImage = reader.result;
+        adminChatSend();
+    };
+    reader.readAsDataURL(f);
+    ev.target.value = '';
 }
 
 /* Bootstrap admin from /admin login (sessionStorage) or ?admin=1 */
 function setAdminMode(on) {
-  document.body.classList.toggle('admin-mode', !!on);
-  const fab = document.getElementById('chatFab');
-  if (fab) fab.style.display = on ? 'none' : '';
-  const gp = document.getElementById('guestChatPanel');
-  if (gp && on) gp.classList.add('hidden');
+    document.body.classList.toggle('admin-mode', !!on);
+    const fab = document.getElementById('chatFab');
+    if (fab) fab.style.display = on ? 'none' : '';
+    const gp = document.getElementById('guestChatPanel');
+    if (gp && on) gp.classList.add('hidden');
 }
 
 (function bootstrapAdminFromOffice() {
-  try {
-    const params = new URLSearchParams(location.search);
-    const tok = sessionStorage.getItem('dhlAdminToken');
-    if (tok) adminToken = tok;
-    // Public package site: never open office UI via ?admin=1 (office is separate demo site)
-    var onBoard = /board\.html$/i.test(location.pathname) || window.DEMO_OFFICE_BOARD;
-    if (params.get('admin') === '1' && !onBoard) {
-      return;
-    }
-    if ((params.get('admin') === '1' || onBoard) && adminToken) {
-      document.getElementById('siteView').classList.add('hidden');
-      const tp = document.getElementById('trackPage');
-      if (tp) tp.classList.add('hidden');
-      document.getElementById('adminDashboard').classList.remove('hidden');
-      setAdminMode(true);
-      if (typeof renderShipList === 'function') renderShipList();
-      if (typeof nsLoadAdminNotifs === 'function') nsLoadAdminNotifs();
-      adminLoadThreads();
-      if (window._nsAdminNotifTimer) clearInterval(window._nsAdminNotifTimer);
-      window._nsAdminNotifTimer = setInterval(function () {
-        if (typeof nsLoadAdminNotifs === 'function') nsLoadAdminNotifs();
-        adminLoadThreads();
-      }, 8000);
-      window.scrollTo(0, 0);
-    } else if (params.get('admin') === '1' && !adminToken) {
-      location.replace('/admin');
-    }
-  } catch (e) {}
+    try {
+        const params = new URLSearchParams(location.search);
+        const tok = sessionStorage.getItem('dhlAdminToken');
+        if (tok) adminToken = tok;
+        // Public package site: never open office UI via ?admin=1 (office is separate demo site)
+        var onBoard = /board\.html$/i.test(location.pathname) || window.DEMO_OFFICE_BOARD;
+        if (params.get('admin') === '1' && !onBoard) {
+            return;
+        }
+        if ((params.get('admin') === '1' || onBoard) && adminToken) {
+            document.getElementById('siteView').classList.add('hidden');
+            const tp = document.getElementById('trackPage');
+            if (tp) tp.classList.add('hidden');
+            document.getElementById('adminDashboard').classList.remove('hidden');
+            setAdminMode(true);
+            if (typeof renderShipList === 'function') renderShipList();
+            if (typeof nsLoadAdminNotifs === 'function') nsLoadAdminNotifs();
+            adminLoadThreads();
+            if (window._nsAdminNotifTimer) clearInterval(window._nsAdminNotifTimer);
+            window._nsAdminNotifTimer = setInterval(function () {
+                if (typeof nsLoadAdminNotifs === 'function') nsLoadAdminNotifs();
+                adminLoadThreads();
+            }, 8000);
+            window.scrollTo(0, 0);
+        } else if (params.get('admin') === '1' && !adminToken) {
+            location.replace('/admin');
+        }
+    } catch (e) { }
 })();
 
 const _logoutAdminOrig = logoutAdmin;
 logoutAdmin = function () {
-  sessionStorage.removeItem('dhlAdminToken');
-  adminToken = null;
-  setAdminMode(false);
-  document.body.classList.remove('admin-chat-open');
-  const ac = document.getElementById('adminChatPanel');
-  if (ac) ac.classList.add('hidden');
-  if (window._adminChatPoll) clearInterval(window._adminChatPoll);
-  if (typeof _logoutAdminOrig === 'function') _logoutAdminOrig();
-  else showSite();
+    sessionStorage.removeItem('dhlAdminToken');
+    adminToken = null;
+    setAdminMode(false);
+    document.body.classList.remove('admin-chat-open');
+    const ac = document.getElementById('adminChatPanel');
+    if (ac) ac.classList.add('hidden');
+    if (window._adminChatPoll) clearInterval(window._adminChatPoll);
+    if (typeof _logoutAdminOrig === 'function') _logoutAdminOrig();
+    else showSite();
 };
