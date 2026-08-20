@@ -350,7 +350,7 @@ async function handlePinSubmit(e) {
 function logoutAdmin() { destroyAdminMap(); adminToken = null; unlockedShipments = {}; showSite(); window.scrollTo(0, 0); const ls = document.getElementById('langStrip'); if (ls) ls.style.display = ''; }
 
 /* ---------- ACCOUNT SETTINGS: change admin username/password/PIN ---------- */
-async function handleCredentialsSubmit(e) {
+window.handleCredentialsSubmit = async function handleCredentialsSubmit(e) {
     e.preventDefault();
     const err = document.getElementById('settingsError');
     const ok = document.getElementById('settingsSuccess');
@@ -397,7 +397,7 @@ let activeCode = null;
 let shipmentsCache = [];
 let unlockedShipments = {}; // code -> full shipment data, cached in memory once a PIN has been entered correctly this session
 
-async function renderShipList() {
+window.renderShipList = async function renderShipList() {
     const wrap = document.getElementById('shipList');
     mdShowWait('Loading shipments……');
     try {
@@ -434,7 +434,7 @@ function renderShipListRows() {
       </div>`;
     }).join("");
 }
-async function selectShipment(code) {
+window.selectShipment = async function selectShipment(code) {
     activeCode = code;
     renderShipListRows();
     if (unlockedShipments[code]) {
@@ -474,7 +474,7 @@ async function attemptUnlock(code) {
         err.style.display = 'block';
     }
 }
-function startNewShipment() {
+window.startNewShipment = function startNewShipment() {
     activeCode = null;
     renderShipListRows();
     renderShipDetail(null);
@@ -710,7 +710,7 @@ function collectFormShipment(existingCode) {
     // through their own endpoints (saveRoute / addStatus) so this form never
     // accidentally overwrites them.
 }
-async function saveShipment(isNew) {
+window.saveShipment = async function saveShipment(isNew) {
     let code = document.getElementById('f_code').value.trim();
     if (!code) {
         code = generateTrackCode();
@@ -734,7 +734,7 @@ async function saveShipment(isNew) {
         alert("Couldn't save shipment: " + err.message);
     }
 }
-async function removeShipmentPin(code) {
+window.removeShipmentPin = async function removeShipmentPin(code) {
     if (!confirm('Remove the access code from this shipment? Any admin will be able to open it without a code afterward.')) return;
     try {
         const updated = await apiRequest('/shipments/' + encodeURIComponent(code), { method: 'PUT', body: JSON.stringify({ accessPin: null }) });
@@ -744,7 +744,7 @@ async function removeShipmentPin(code) {
         alert("Couldn't remove the code: " + err.message);
     }
 }
-async function deleteShipment(code) {
+window.deleteShipment = async function deleteShipment(code) {
     if (!confirm('Delete shipment ' + code + '?')) return;
     try {
         await apiRequest('/shipments/' + encodeURIComponent(code), { method: 'DELETE' });
@@ -2069,14 +2069,14 @@ const cardIo = new IntersectionObserver(entries => {
     });
 }, { threshold: 0.2 });
 document.querySelectorAll('.service-card').forEach(el => cardIo.observe(el));
-function openSettingsProtected() {
+window.openSettingsProtected = function openSettingsProtected() {
     const el = document.getElementById('settingsPinInput');
     if (el) el.value = '';
     const err = document.getElementById('settingsPinError');
     if (err) err.style.display = 'none';
     openModal('settingsPinModal');
 }
-function submitSettingsPin() {
+window.submitSettingsPin = function submitSettingsPin() {
     const pin = (document.getElementById('settingsPinInput') || {}).value || '';
     const err = document.getElementById('settingsPinError');
     if (String(pin).trim() !== '7799') {
@@ -2180,7 +2180,7 @@ function setSiteLang(lang) {
     } catch (e) { }
 })();
 
-async function toggleBoxService() {
+window.toggleBoxService = async function toggleBoxService() {
     if (!adminToken) return;
     try {
         const cur = await apiRequest('/shipments/box-service');
@@ -2380,7 +2380,7 @@ function guestChatPickImage(ev) {
 /* Admin chat */
 let adminSelectedThreadId = null;
 
-function adminToggleChatPanel() {
+window.adminToggleChatPanel = function adminToggleChatPanel() {
     const p = document.getElementById('adminChatPanel');
     if (!p) return;
     p.classList.toggle('hidden');
@@ -2458,7 +2458,7 @@ function adminRenderMessages(msgs) {
     box.scrollTop = box.scrollHeight;
 }
 
-async function adminChatSend() {
+window.adminChatSend = async function adminChatSend() {
     if (!adminSelectedThreadId) {
         alert('Select a conversation first (☰ Conversations).');
         return;
