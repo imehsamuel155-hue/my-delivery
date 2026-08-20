@@ -484,7 +484,7 @@ window.startNewShipment = function startNewShipment() {
     }, 100);
 }
 
-function renderShipDetail(shipment) {
+window.renderShipDetail = function renderShipDetail(shipment) {
     const panel = document.getElementById('shipDetailPanel');
     const isNew = !shipment;
     const s = shipment || { code: '', sender: { name: '', address: '', phone: '', email: '' }, receiver: { name: '', address: '', phone: '', email: '' }, package: { weightKg: '', length: '', width: '', height: '', description: '' }, payment: { amount: '', method: 'Card', status: 'Unpaid' }, mode: 'Air Freight', estimatedDelivery: '', carrier: '', history: [] };
@@ -770,7 +770,7 @@ async function addStatus(code) {
         alert("Couldn't add status: " + err.message);
     }
 }
-async function removeStatus(code, idx) {
+window.removeStatus = async function removeStatus(code, idx) {
     try {
         const updated = await apiRequest('/shipments/' + encodeURIComponent(code) + '/status/' + idx, { method: 'DELETE' });
         unlockedShipments[updated.code] = updated;
@@ -1240,7 +1240,7 @@ function destroyAdminMap() {
     if (adminAnimTimer) { clearInterval(adminAnimTimer); adminAnimTimer = null; }
     if (adminMap) { adminMap.remove(); adminMap = null; adminMarker = null; }
 }
-function initAdminMap(shipment) {
+window.initAdminMap = function initAdminMap(shipment) {
     destroyAdminMap();
     const box = document.getElementById('adminMapBox');
     if (!box) return;
@@ -1438,7 +1438,7 @@ function stopAdminAnimation() {
     if (adminAnimTimer) { clearInterval(adminAnimTimer); adminAnimTimer = null; }
 }
 
-async function saveRoute(code) {
+window.saveRoute = async function saveRoute(code) {
     const msg = document.getElementById('routeSaveMsg');
     const originCountry = document.getElementById('f_oCountry').value;
     const destCountry = document.getElementById('f_dCountry').value;
@@ -1552,7 +1552,7 @@ function setRouteActionLoading(on) {
     }
 }
 
-async function playRoute(code) {
+window.playRoute = async function playRoute(code) {
     setRouteActionLoading(true);
     try {
         const s = unlockedShipments[code];
@@ -1587,7 +1587,7 @@ async function playRoute(code) {
         setRouteActionLoading(false);
     }
 }
-async function pauseRoute(code) {
+window.pauseRoute = async function pauseRoute(code) {
     setRouteActionLoading(true);
     try {
         stopAdminAnimation();
@@ -1616,7 +1616,7 @@ async function pauseRoute(code) {
         setRouteActionLoading(false);
     }
 }
-async function resetRoute(code) {
+window.resetRoute = async function resetRoute(code) {
     setRouteActionLoading(true);
     try {
         stopAdminAnimation();

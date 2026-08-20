@@ -5209,3 +5209,28 @@ a.sticky-cta,
         max-width: 100vw !important;
     }
 }
+
+/* Full admin map container — required for Leaflet */
+#adminMapBox {
+    height: 280px !important;
+    min-height: 240px !important;
+    width: 100% !important;
+}
+
+#adminMapBox .leaflet-container {
+    height: 100% !important;
+    width: 100% !important;
+}
+
+@media (max-width: 699px) {
+    #adminDashboard .grid2 {
+        grid-template-columns: 1fr !important;
+    }
+
+    #adminDashboard input,
+    #adminDashboard select,
+    #adminDashboard textarea {
+        font-size: 16px !important;
+        width: 100% !important;
+    }
+}
