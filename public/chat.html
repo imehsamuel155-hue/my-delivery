@@ -159,15 +159,16 @@
     }
 
     .bubble.admin {
-      align-self: flex-start;
-      background: #1f1f1f;
-      border: 1px solid #333
-    }
-
-    .bubble.guest {
       align-self: flex-end;
       background: #eab308;
       color: #111
+    }
+
+    .bubble.guest {
+      align-self: flex-start;
+      background: #1f1f1f;
+      border: 1px solid #333;
+      color: #f5f5f5
     }
 
     .bubble img {
@@ -309,8 +310,8 @@
     <div class="panel hidden" id="stepChat">
       <div class="msgs" id="msgs"></div>
       <div class="compose">
-        <input type="file" id="imgIn" accept="image/*" hidden>
-        <button type="button" id="btnImg">📷</button>
+        <input type="file" id="imgIn" accept="image/*,video/*,application/pdf" hidden>
+        <button type="button" id="btnImg">📎</button>
         <input type="text" id="msgIn" placeholder="Reply…">
         <button type="button" id="btnSend">Send</button>
       </div>
@@ -377,19 +378,29 @@
           threadId = d.id || d.threadId;
           $('title').textContent = d.label || trackCode;
           show('stepChat');
-          renderMsgs(d.messages || []);
+          renderMsgs(d.messages || [], true);
           startPoll();
         } catch (e) { $('shipErr').textContent = e.message || 'Wrong PIN'; }
       };
 
-      function renderMsgs(list) {
+      function renderMsgs(list, forceBottom) {
         var box = $('msgs');
+        var nearBottom = forceBottom || ((box.scrollHeight - box.scrollTop - box.clientHeight) < 80);
         box.innerHTML = (list || []).map(function (m) {
           var who = m.from === 'admin' ? 'admin' : 'guest';
-          var img = m.image ? '<img src="' + m.image + '" alt="" onclick="openPhoto(this.src)">' : '';
-          return '<div class="bubble ' + who + '">' + (m.text ? esc(m.text) : '') + img + '</div>';
+          var att = '';
+          if (m.image) {
+            var src = String(m.image);
+            var ft = String(m.fileType || '').toLowerCase();
+            var isVid = ft === 'video' || src.indexOf('data:video') === 0;
+            var isPdf = ft === 'pdf' || src.indexOf('application/pdf') !== -1;
+            if (isVid) att = '<video src="' + src + '" controls playsinline style="max-width:100%;border-radius:10px;margin-top:6px;background:#000"></video>';
+            else if (isPdf) att = '<a href="' + src + '" target="_blank" rel="noopener" style="display:block;margin-top:8px;color:inherit">📄 ' + (m.fileName || 'PDF') + '</a>';
+            else att = '<img src="' + src + '" alt="" onclick="openPhoto(this.src)" style="max-width:100%;border-radius:10px;margin-top:6px;cursor:pointer">';
+          }
+          return '<div class="bubble ' + who + '">' + (m.text ? esc(m.text) : '') + att + '</div>';
         }).join('') || '<p class="hint" style="padding:12px;color:#888">No messages yet. When the customer chats from the site with this tracking code, messages appear here.</p>';
-        box.scrollTop = box.scrollHeight;
+        if (nearBottom) box.scrollTop = box.scrollHeight;
       }
 
       function startPoll() {
@@ -399,7 +410,7 @@
           try {
             var r = await fetch(API + '/chat/admin/threads/' + threadId, { headers: headers() });
             var d = await r.json();
-            if (r.ok) renderMsgs(d.messages || []);
+            if (r.ok) renderMsgs(d.messages || [], false);
           } catch (e) { }
         }, 3000);
       }
@@ -412,19 +423,22 @@
           var d = await r.json();
           if (!r.ok) throw new Error(d.error || 'Send failed');
           $('msgIn').value = '';
-          renderMsgs(d.messages || []);
+          renderMsgs(d.messages || [], true);
         } catch (e) { alert(e.message); }
       };
       $('btnImg').onclick = function () { $('imgIn').click(); };
       $('imgIn').onchange = function (ev) {
         var f = ev.target.files && ev.target.files[0]; if (!f || !threadId) return;
+        if (f.size > 20 * 1024 * 1024) { alert('File too large (max ~20 MB)'); ev.target.value = ''; return; }
         var reader = new FileReader();
         reader.onload = async function () {
           try {
-            var r = await fetch(API + '/chat/admin/threads/' + threadId + '/reply', { method: 'POST', headers: headers(), body: JSON.stringify({ text: '', image: reader.result }) });
+            var t = (f.type || '').toLowerCase();
+            var ft = t.indexOf('video') === 0 ? 'video' : (t.indexOf('pdf') !== -1 ? 'pdf' : (t.indexOf('image') === 0 ? 'image' : 'file'));
+            var r = await fetch(API + '/chat/admin/threads/' + threadId + '/reply', { method: 'POST', headers: headers(), body: JSON.stringify({ text: '', image: reader.result, fileName: f.name || '', fileType: ft }) });
             var d = await r.json();
             if (!r.ok) throw new Error(d.error || 'Upload failed');
-            renderMsgs(d.messages || []);
+            renderMsgs(d.messages || [], true);
           } catch (e) { alert(e.message); }
         };
         reader.readAsDataURL(f);
@@ -433,7 +447,7 @@
         if (!threadId || !confirm('Clear this chat only?')) return;
         try {
           await fetch(API + '/chat/admin/threads/' + threadId + '/clear', { method: 'POST', headers: headers(), body: '{}' });
-          renderMsgs([]);
+          renderMsgs([], true);
         } catch (e) { alert(e.message); }
       };
       $('btnBack').onclick = function () {

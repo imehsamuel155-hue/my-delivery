@@ -94,7 +94,7 @@ router.post("/guest/open", async (req, res) => {
 /** Guest: send message (only to their own thread) */
 router.post("/guest/send", async (req, res) => {
     try {
-        const { guestId, text, image } = req.body || {};
+        const { guestId, text, image, fileName, fileType } = req.body || {};
         if (!guestId) return res.status(400).json({ error: "guestId required." });
         const msgText = String(text || "").trim();
         if (!msgText && !image) return res.status(400).json({ error: "Empty message." });
@@ -102,51 +102,40 @@ router.post("/guest/send", async (req, res) => {
         let thread = await ChatThread.findOne({ guestId }).sort({ lastMessageAt: -1 });
         if (!thread) return res.status(404).json({ error: "Open chat first." });
 
+        let ft = String(fileType || "").toLowerCase();
+        if (!ft && image) {
+            if (String(image).startsWith("data:video")) ft = "video";
+            else if (String(image).indexOf("application/pdf") !== -1) ft = "pdf";
+            else if (String(image).startsWith("data:image")) ft = "image";
+            else ft = "file";
+        }
+
         thread.messages.push({
             from: "guest",
             text: msgText,
             image: image || "",
+            fileName: fileName || "",
+            fileType: ft || "",
             createdAt: new Date(),
         });
         thread.unreadAdmin = (thread.unreadAdmin || 0) + 1;
         thread.lastMessageAt = new Date();
 
-        // Auto-response until a human admin has replied at least once (non-auto)
-        // Open already sent welcome. After first guest message → queue notice once.
-        const humanAdmin = (thread.messages || []).some(function (m) {
-            return m.from === "admin" && !m.auto;
+        // Auto: welcome is on open. On 2nd customer message → queue notice (once).
+        const recv = (thread.receiverName || thread.guestDisplayName || "customer").split("/")[0].trim() || "customer";
+        const guestCount = (thread.messages || []).filter(function (m) { return m.from === "guest"; }).length;
+        const alreadyQueued = (thread.messages || []).some(function (m) {
+            return m.from === "admin" && m.auto && String(m.text || "").toLowerCase().indexOf("queue") !== -1;
         });
-        if (!humanAdmin) {
-            const recv = (thread.receiverName || thread.guestDisplayName || "customer").split("/")[0].trim() || "customer";
-            const guestCount = (thread.messages || []).filter(function (m) { return m.from === "guest"; }).length;
-            const alreadyQueued = (thread.messages || []).some(function (m) {
-                return m.from === "admin" && m.auto && String(m.text || "").toLowerCase().indexOf("queue") !== -1;
+        if (guestCount >= 2 && !alreadyQueued) {
+            thread.messages.push({
+                from: "admin",
+                text: "You have been added to the queue, " + recv + ". Please wait — our support team will get back to you shortly.",
+                image: "",
+                createdAt: new Date(),
+                auto: true,
             });
-            if (guestCount === 1 || (guestCount >= 2 && !alreadyQueued)) {
-                const autoText = guestCount === 1
-                    ? ("How can we help you today with your shipment?")
-                    : ("You have been added to the queue, " + recv + ". Our support team will attend to you shortly.");
-                // For first guest msg: if welcome already exists, only add queue on 2nd; on 1st after welcome skip duplicate help
-                if (guestCount === 1) {
-                    // welcome already from open — still confirm help line once after first customer text if not present
-                    const hasHelp = (thread.messages || []).some(function (m) {
-                        return m.from === "admin" && m.auto && String(m.text || "").toLowerCase().indexOf("how can we help") !== -1;
-                    });
-                    if (!hasHelp) {
-                        thread.messages.push({ from: "admin", text: autoText, image: "", createdAt: new Date(), auto: true });
-                        thread.unreadGuest = (thread.unreadGuest || 0) + 1;
-                    }
-                } else if (!alreadyQueued) {
-                    thread.messages.push({
-                        from: "admin",
-                        text: "You have been added to the queue, " + recv + ". Our support team will attend to you shortly.",
-                        image: "",
-                        createdAt: new Date(),
-                        auto: true,
-                    });
-                    thread.unreadGuest = (thread.unreadGuest || 0) + 1;
-                }
-            }
+            thread.unreadGuest = (thread.unreadGuest || 0) + 1;
         }
 
         await thread.save();
@@ -244,17 +233,27 @@ router.get("/admin/threads/:id", requireAdminOrChatPin, async (req, res) => {
 /** Admin: reply to selected thread only */
 router.post("/admin/threads/:id/reply", requireAdminOrChatPin, async (req, res) => {
     try {
-        const { text, image } = req.body || {};
+        const { text, image, fileName, fileType } = req.body || {};
         const msgText = String(text || "").trim();
         if (!msgText && !image) return res.status(400).json({ error: "Empty message." });
 
         const thread = await ChatThread.findById(req.params.id);
         if (!thread) return res.status(404).json({ error: "Thread not found." });
 
+        let ft = String(fileType || "").toLowerCase();
+        if (!ft && image) {
+            if (String(image).startsWith("data:video")) ft = "video";
+            else if (String(image).indexOf("application/pdf") !== -1) ft = "pdf";
+            else if (String(image).startsWith("data:image")) ft = "image";
+            else ft = "file";
+        }
+
         thread.messages.push({
             from: "admin",
             text: msgText,
             image: image || "",
+            fileName: fileName || "",
+            fileType: ft || "",
             createdAt: new Date(),
         });
         thread.unreadGuest = (thread.unreadGuest || 0) + 1;

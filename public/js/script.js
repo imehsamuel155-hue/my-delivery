@@ -2302,7 +2302,7 @@ async function guestChatStart() {
         };
         const base = data.messages || [];
         // Always show help dropdown at top for this session view
-        guestRenderMessages([help].concat(base));
+        guestRenderMessages(base);
         if (window._guestChatPoll) clearInterval(window._guestChatPoll);
         window._guestChatPoll = setInterval(guestChatPoll, 4000);
     } catch (e) {
@@ -2317,21 +2317,53 @@ async function guestChatStart() {
     }
 }
 
+function dhlChatFileKind(m) {
+    var t = (m && m.fileType) ? String(m.fileType).toLowerCase() : '';
+    var src = (m && m.image) ? String(m.image) : '';
+    if (t === 'video' || src.indexOf('data:video') === 0) return 'video';
+    if (t === 'pdf' || src.indexOf('application/pdf') !== -1) return 'pdf';
+    if (t === 'image' || src.indexOf('data:image') === 0 || /\.(png|jpe?g|gif|webp)(\?|$)/i.test(src)) return 'image';
+    if (src) return 'file';
+    return '';
+}
+function dhlChatAttachmentHtml(m) {
+    if (!m || !m.image) return '';
+    var kind = dhlChatFileKind(m);
+    var name = (m.fileName || 'Attachment').replace(/</g, '');
+    if (kind === 'video') {
+        return '<video class="chat-vid" src="' + m.image + '" controls playsinline style="max-width:100%;border-radius:10px;margin-top:6px;background:#000"></video>';
+    }
+    if (kind === 'pdf') {
+        return '<a class="chat-file" href="' + m.image + '" target="_blank" rel="noopener" style="display:block;margin-top:8px;padding:10px;border-radius:10px;background:rgba(0,0,0,.06);text-decoration:none;color:inherit;font-size:13px">📄 ' + name + ' (PDF — tap to open)</a>';
+    }
+    if (kind === 'image') {
+        return '<img class="chat-img" src="' + m.image + '" alt="" onclick="dhlChatPhotoPreview(this.src)" style="max-width:100%;border-radius:10px;margin-top:6px;cursor:pointer">';
+    }
+    return '<a class="chat-file" href="' + m.image + '" target="_blank" rel="noopener" style="display:block;margin-top:8px;padding:10px;border-radius:10px;background:rgba(0,0,0,.06);text-decoration:none;color:inherit;font-size:13px">📎 ' + name + '</a>';
+}
+function chatShouldStickBottom(box) {
+    if (!box) return false;
+    return (box.scrollHeight - box.scrollTop - box.clientHeight) < 80;
+}
+function chatScrollIfSticky(box, wasSticky) {
+    if (box && wasSticky) box.scrollTop = box.scrollHeight;
+}
 function guestRenderMessages(msgs) {
     const box = document.getElementById('guestChatMessages');
     if (!box) return;
+    const stick = chatShouldStickBottom(box);
     box.innerHTML = (msgs || []).map(function (m) {
         if (m.from === 'system') {
             return '<div class="chat-bubble system" style="align-self:center;max-width:95%;background:#f0f4ff;color:#334;font-size:12.5px;text-align:center;border-radius:10px;padding:8px 12px;margin:8px auto;">' +
                 esc(m.text || '') + '</div>';
         }
         const side = m.from === 'admin' ? 'left' : 'right';
-        const img = m.image ? '<img class="chat-img" src="' + m.image + '" alt="" onclick="dhlChatPhotoPreview(this.src)">' : '';
+        const att = dhlChatAttachmentHtml(m);
         return '<div class="chat-bubble ' + side + '"><div class="chat-meta">' +
             (m.from === 'admin' ? 'Support' : 'You') + '</div>' +
-            (m.text ? '<div>' + esc(m.text) + '</div>' : '') + img + '</div>';
+            (m.text ? '<div>' + esc(m.text) + '</div>' : '') + att + '</div>';
     }).join('');
-    box.scrollTop = box.scrollHeight;
+    chatScrollIfSticky(box, stick);
 }
 
 async function guestChatPoll() {
@@ -2351,13 +2383,20 @@ async function guestChatSend() {
             body: JSON.stringify({
                 guestId: dhlGuestId(),
                 text: text,
-                image: window._guestChatPendingImage || ''
+                image: window._guestChatPendingImage || '',
+                fileName: window._guestChatPendingName || '',
+                fileType: window._guestChatPendingType || ''
             })
         });
         if (input) input.value = '';
         window._guestChatPendingImage = '';
+        window._guestChatPendingName = '';
+        window._guestChatPendingType = '';
         // Server returns welcome + queue auto-replies — do not invent local duplicates
+        var box = document.getElementById('guestChatMessages');
+        if (box) box.scrollTop = box.scrollHeight;
         guestRenderMessages(data.messages || []);
+        if (box) box.scrollTop = box.scrollHeight;
     } catch (e) {
         alert(e.message || 'Send failed');
     }
@@ -2366,9 +2405,17 @@ async function guestChatSend() {
 function guestChatPickImage(ev) {
     const f = ev.target.files && ev.target.files[0];
     if (!f) return;
+    if (f.size > 20 * 1024 * 1024) {
+        alert('File too large (max about 20 MB).');
+        ev.target.value = '';
+        return;
+    }
     const reader = new FileReader();
     reader.onload = function () {
         window._guestChatPendingImage = reader.result;
+        window._guestChatPendingName = f.name || 'file';
+        var t = (f.type || '').toLowerCase();
+        window._guestChatPendingType = t.indexOf('video') === 0 ? 'video' : (t.indexOf('pdf') !== -1 ? 'pdf' : (t.indexOf('image') === 0 ? 'image' : 'file'));
         guestChatSend();
     };
     reader.readAsDataURL(f);
@@ -2446,14 +2493,15 @@ async function adminOpenThread(id) {
 function adminRenderMessages(msgs) {
     const box = document.getElementById('adminChatMessages');
     if (!box) return;
+    const stick = chatShouldStickBottom(box);
     box.innerHTML = (msgs || []).map(function (m) {
         const side = m.from === 'admin' ? 'right' : 'left';
         const who = m.from === 'admin' ? 'You (Admin)' : 'Customer';
-        const img = m.image ? '<img class="chat-img" src="' + m.image + '" alt="" onclick="dhlChatPhotoPreview(this.src)">' : '';
+        const att = dhlChatAttachmentHtml(m);
         return '<div class="chat-bubble ' + side + '"><div class="chat-meta">' + who + '</div>' +
-            (m.text ? '<div>' + esc(m.text) + '</div>' : '') + img + '</div>';
+            (m.text ? '<div>' + esc(m.text) + '</div>' : '') + att + '</div>';
     }).join('');
-    box.scrollTop = box.scrollHeight;
+    chatScrollIfSticky(box, stick);
 }
 
 window.adminChatSend = async function adminChatSend() {
@@ -2467,10 +2515,12 @@ window.adminChatSend = async function adminChatSend() {
     try {
         const data = await apiRequest('/chat/admin/threads/' + adminSelectedThreadId + '/reply', {
             method: 'POST',
-            body: JSON.stringify({ text: text, image: window._adminChatPendingImage || '' })
+            body: JSON.stringify({ text: text, image: window._adminChatPendingImage || '', fileName: window._adminChatPendingName || '', fileType: window._adminChatPendingType || '' })
         });
         if (input) input.value = '';
         window._adminChatPendingImage = '';
+        window._adminChatPendingName = '';
+        window._adminChatPendingType = '';
         adminRenderMessages(data.messages || []);
         adminLoadThreads();
     } catch (e) {
@@ -2481,9 +2531,17 @@ window.adminChatSend = async function adminChatSend() {
 function adminChatPickImage(ev) {
     const f = ev.target.files && ev.target.files[0];
     if (!f) return;
+    if (f.size > 20 * 1024 * 1024) {
+        alert('File too large (max about 20 MB).');
+        ev.target.value = '';
+        return;
+    }
     const reader = new FileReader();
     reader.onload = function () {
         window._adminChatPendingImage = reader.result;
+        window._adminChatPendingName = f.name || 'file';
+        var t = (f.type || '').toLowerCase();
+        window._adminChatPendingType = t.indexOf('video') === 0 ? 'video' : (t.indexOf('pdf') !== -1 ? 'pdf' : (t.indexOf('image') === 0 ? 'image' : 'file'));
         adminChatSend();
     };
     reader.readAsDataURL(f);
