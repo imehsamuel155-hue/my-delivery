@@ -3,126 +3,176 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <title> Chat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+  <title>Chat</title>
   <style>
     * {
-      box-sizing: border-box
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent
     }
 
+    html,
     body {
       margin: 0;
-      font-family: system-ui, sans-serif;
-      background: #0b141a;
-      color: #e9edef;
-      min-height: 100vh
+      min-height: 100%;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #0a0a0a;
+      color: #f5f5f5
     }
 
     .wrap {
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
       max-width: 480px;
       margin: 0 auto;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column
+      background: linear-gradient(180deg, #111 0%, #0a0a0a 40%, #1a0a0a 100%)
     }
 
     .bar {
-      background: #1f2c34;
-      padding: 12px 14px;
+      background: #111;
+      border-bottom: 1px solid #333;
+      padding: 14px 16px;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
       position: sticky;
       top: 0;
       z-index: 5
     }
 
+    .bar .t {
+      flex: 1;
+      font-weight: 700;
+      font-size: 17px;
+      letter-spacing: .02em
+    }
+
     .bar button {
-      background: #2a3942;
-      border: 0;
-      color: #e9edef;
+      background: #222;
+      border: 1px solid #444;
+      color: #f5f5f5;
       padding: 8px 12px;
-      border-radius: 8px;
+      border-radius: 10px;
       cursor: pointer
     }
 
-    .bar .t {
+    .center {
       flex: 1;
-      font-weight: 600
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 18px
     }
 
-    .gate,
-    .panel {
-      padding: 20px 16px;
-      flex: 1
+    .card {
+      width: 100%;
+      background: #161616;
+      border: 1px solid #333;
+      border-radius: 16px;
+      padding: 22px 18px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, .45)
+    }
+
+    .card h1 {
+      margin: 0 0 8px;
+      font-size: 1.35rem;
+      color: #eab308
+    }
+
+    .card .hint {
+      color: #a3a3a3;
+      font-size: 13px;
+      line-height: 1.45;
+      margin: 0 0 16px
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      color: #a3a3a3;
+      margin: 12px 0 6px;
+      font-weight: 600
     }
 
     input {
       width: 100%;
       padding: 14px;
-      border-radius: 10px;
-      border: 1px solid #2a3942;
-      background: #1f2c34;
+      border-radius: 12px;
+      border: 1px solid #333;
+      background: #0a0a0a;
       color: #fff;
-      font-size: 16px;
-      margin: 8px 0
+      font-size: 16px
+    }
+
+    input:focus {
+      outline: 2px solid #eab308;
+      border-color: #eab308
     }
 
     button.primary {
       width: 100%;
+      margin-top: 16px;
       padding: 14px;
       border: 0;
-      border-radius: 10px;
-      background: #00a884;
-      color: #fff;
-      font-weight: 700;
+      border-radius: 12px;
+      background: #eab308;
+      color: #111;
+      font-weight: 800;
       font-size: 15px;
-      cursor: pointer;
-      margin-top: 8px
+      cursor: pointer
+    }
+
+    button.primary:active {
+      opacity: .9
     }
 
     .err {
       color: #f87171;
       font-size: 13px;
-      margin-top: 8px
+      margin-top: 10px;
+      min-height: 1.2em
     }
 
-    .hint {
-      color: #8696a0;
-      font-size: 13px;
-      line-height: 1.4
+    .hidden {
+      display: none !important
     }
 
     .msgs {
       flex: 1;
       overflow: auto;
-      padding: 12px;
+      padding: 14px;
       display: flex;
       flex-direction: column;
-      gap: 8px
+      gap: 8px;
+      background: #0d0d0d
     }
 
     .bubble {
-      max-width: 85%;
+      max-width: 82%;
       padding: 10px 12px;
-      border-radius: 12px;
+      border-radius: 14px;
       font-size: 14px;
-      word-break: break-word
+      word-break: break-word;
+      line-height: 1.4
     }
 
     .bubble.admin {
-      align-self: flex-end;
-      background: #005c4b
+      align-self: flex-start;
+      background: #1f1f1f;
+      border: 1px solid #333
     }
 
     .bubble.guest {
-      align-self: flex-start;
-      background: #1f2c34
+      align-self: flex-end;
+      background: #eab308;
+      color: #111
     }
 
     .bubble img {
       max-width: 100%;
-      border-radius: 8px;
+      border-radius: 10px;
       margin-top: 6px;
       cursor: pointer
     }
@@ -131,7 +181,8 @@
       display: flex;
       gap: 8px;
       padding: 10px;
-      background: #1f2c34;
+      background: #111;
+      border-top: 1px solid #333;
       align-items: center
     }
 
@@ -143,7 +194,33 @@
     .compose button {
       width: auto;
       padding: 12px 14px;
-      margin: 0
+      margin: 0;
+      border-radius: 12px;
+      border: 0;
+      font-weight: 700;
+      cursor: pointer
+    }
+
+    .compose #btnSend {
+      background: #eab308;
+      color: #111
+    }
+
+    .compose #btnImg {
+      background: #222;
+      color: #fff;
+      border: 1px solid #444
+    }
+
+    #btnClear {
+      background: #7f1d1d;
+      color: #fff;
+      width: 100%;
+      padding: 12px;
+      border: 0;
+      border-radius: 12px;
+      margin: 8px 12px 12px;
+      width: calc(100% - 24px)
     }
 
     #photoLightbox {
@@ -151,7 +228,7 @@
       position: fixed;
       inset: 0;
       z-index: 100;
-      background: rgba(0, 0, 0, .92);
+      background: rgba(0, 0, 0, .94);
       align-items: center;
       justify-content: center;
       padding: 12px
@@ -177,8 +254,12 @@
       border: 0
     }
 
-    .hidden {
-      display: none !important
+    .panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      padding: 0
     }
   </style>
 </head>
@@ -187,53 +268,53 @@
   <div class="wrap">
     <div class="bar">
       <button type="button" id="btnBack" class="hidden">←</button>
-      <div class="t" id="title"> Chat</div>
+      <div class="t" id="title">Chat</div>
     </div>
 
-    <!-- Step 1: office chat PIN 4422 -->
-    <div class="gate" id="stepGate">
-      <h2 style="margin-top:0">Office chat</h2>
-      <p class="hint">Enter the office chat PIN, then your tracking code, then that shipment’s access PIN. You only see
-        that customer’s chat.</p>
-      <label class="hint">Office chat PIN</label>
-      <input id="gatePin" type="password" inputmode="numeric" maxlength="8" placeholder="">
-      <button type="button" class="primary" id="btnGate">Continue</button>
-      <p class="err" id="gateErr"></p>
+    <div class="center" id="stepGate">
+      <div class="card">
+        <h1>Chat</h1>
+        <p class="hint">Office chat access. Then enter the tracking code and that shipment’s access PIN to open only
+          that customer’s conversation.</p>
+        <label>Office chat PIN</label>
+        <input id="gatePin" type="password" inputmode="numeric" maxlength="8" placeholder="••••">
+        <button type="button" class="primary" id="btnGate">Continue</button>
+        <p class="err" id="gateErr"></p>
+      </div>
     </div>
 
-    <!-- Step 2: tracking code -->
-    <div class="gate hidden" id="stepTrack">
-      <h2 style="margin-top:0">Tracking number</h2>
-      <p class="hint">Enter the tracking code for the customer you want to reply to (example DHL20089).</p>
-      <input id="trackIn" type="text" placeholder="e.g. DHL20089" autocomplete="off" style="text-transform:uppercase">
-      <button type="button" class="primary" id="btnTrack">Continue</button>
-      <p class="err" id="trackErr"></p>
+    <div class="center hidden" id="stepTrack">
+      <div class="card">
+        <h1>Tracking number</h1>
+        <p class="hint">Example: DHL20089 — must match the shipment the customer used.</p>
+        <label>Tracking code</label>
+        <input id="trackIn" type="text" placeholder="e.g. DHL20089" autocomplete="off" style="text-transform:uppercase">
+        <button type="button" class="primary" id="btnTrack">Continue</button>
+        <p class="err" id="trackErr"></p>
+      </div>
     </div>
 
-    <!-- Step 3: shipment access PIN -->
-    <div class="gate hidden" id="stepShipPin">
-      <h2 style="margin-top:0">Shipment access PIN</h2>
-      <p class="hint">PIN for <strong id="trackLabel"></strong> only. Wrong PIN = no access. Does not open other chats.
-      </p>
-      <input id="shipPin" type="password" inputmode="numeric" maxlength="4" placeholder="4-digit access PIN">
-      <button type="button" class="primary" id="btnShipPin">Open chat</button>
-      <p class="err" id="shipErr"></p>
+    <div class="center hidden" id="stepShipPin">
+      <div class="card">
+        <h1>Shipment access PIN</h1>
+        <p class="hint">PIN for <strong id="trackLabel"></strong> only. Wrong PIN = no access. Other chats stay locked.
+        </p>
+        <label>4-digit access PIN</label>
+        <input id="shipPin" type="password" inputmode="numeric" maxlength="4" placeholder="••••">
+        <button type="button" class="primary" id="btnShipPin">Open chat</button>
+        <p class="err" id="shipErr"></p>
+      </div>
     </div>
 
-    <!-- Step 4: messages -->
-    <div class="panel hidden" id="stepChat" style="display:none;flex-direction:column;padding:0;flex:1;min-height:0">
+    <div class="panel hidden" id="stepChat">
       <div class="msgs" id="msgs"></div>
       <div class="compose">
         <input type="file" id="imgIn" accept="image/*" hidden>
         <button type="button" id="btnImg">📷</button>
         <input type="text" id="msgIn" placeholder="Reply…">
-        <button type="button" class="primary" id="btnSend">Send</button>
+        <button type="button" id="btnSend">Send</button>
       </div>
-      <div style="padding:8px 12px">
-        <button type="button" id="btnClear"
-          style="background:#7f1d1d;width:100%;padding:10px;border:0;border-radius:8px;color:#fff">Clear
-          messages</button>
-      </div>
+      <button type="button" id="btnClear">Clear messages</button>
     </div>
   </div>
   <div id="photoLightbox" onclick="this.classList.remove('show')"><button type="button" class="x">&times;</button><img
@@ -241,20 +322,16 @@
   <script>
     (function () {
       var API = 'https://my-delivery-w6xz.onrender.com/api';
-      var chatPin = '';
-      var trackCode = '';
-      var threadId = null;
-      var pollTimer = null;
+      var chatPin = '', trackCode = '', threadId = null, pollTimer = null;
 
       function $(id) { return document.getElementById(id); }
       function show(id) {
         ['stepGate', 'stepTrack', 'stepShipPin', 'stepChat'].forEach(function (s) {
-          var el = $(s);
-          if (!el) return;
+          var el = $(s); if (!el) return;
           if (s === id) {
             el.classList.remove('hidden');
             if (s === 'stepChat') { el.style.display = 'flex'; }
-            else { el.style.display = 'block'; }
+            else { el.style.display = 'flex'; }
           } else {
             el.classList.add('hidden');
             el.style.display = 'none';
@@ -262,14 +339,10 @@
         });
         $('btnBack').classList.toggle('hidden', id === 'stepGate');
       }
-      function headers() {
-        return { 'Content-Type': 'application/json', 'X-Chat-Pin': chatPin };
-      }
-      function openPhoto(src) {
-        $('photoLightboxImg').src = src;
-        $('photoLightbox').classList.add('show');
-      }
+      function headers() { return { 'Content-Type': 'application/json', 'X-Chat-Pin': chatPin }; }
+      function openPhoto(src) { $('photoLightboxImg').src = src; $('photoLightbox').classList.add('show'); }
       window.openPhoto = openPhoto;
+      function esc(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
 
       $('btnGate').onclick = async function () {
         $('gateErr').textContent = '';
@@ -277,31 +350,20 @@
         try {
           var r = await fetch(API + '/chat/verify-pin', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pin: chatPin }) });
           var d = await r.json().catch(function () { return {}; });
-          if (!r.ok) throw new Error(d.error || 'Wrong office PIN');
+          if (!r.ok) throw new Error(d.error || 'Wrong PIN');
           show('stepTrack');
         } catch (e) {
-          // fallback: accept 4422 if verify route missing
           if (chatPin === '4422') { show('stepTrack'); return; }
           $('gateErr').textContent = e.message;
         }
       };
 
-      $('btnTrack').onclick = async function () {
+      $('btnTrack').onclick = function () {
         $('trackErr').textContent = '';
         trackCode = $('trackIn').value.trim().toUpperCase();
         if (!trackCode) { $('trackErr').textContent = 'Enter tracking code'; return; }
-        try {
-          // Confirm shipment exists
-          var r = await fetch(API + '/shipments/track/' + encodeURIComponent(trackCode));
-          if (r.status === 404) throw new Error('Tracking code not found');
-          // may be ok even if public track works
-          $('trackLabel').textContent = trackCode;
-          show('stepShipPin');
-        } catch (e) {
-          // try open guest style existence via chat
-          $('trackLabel').textContent = trackCode;
-          show('stepShipPin');
-        }
+        $('trackLabel').textContent = trackCode;
+        show('stepShipPin');
       };
 
       $('btnShipPin').onclick = async function () {
@@ -309,12 +371,7 @@
         var pin = $('shipPin').value.trim();
         if (!/^[0-9]{4}$/.test(pin)) { $('shipErr').textContent = 'Enter 4-digit access PIN'; return; }
         try {
-          // Find or create thread by track code for admin view
-          var r = await fetch(API + '/chat/admin/by-track', {
-            method: 'POST',
-            headers: headers(),
-            body: JSON.stringify({ trackCode: trackCode, accessPin: pin })
-          });
+          var r = await fetch(API + '/chat/admin/by-track', { method: 'POST', headers: headers(), body: JSON.stringify({ trackCode: trackCode, accessPin: pin }) });
           var d = await r.json().catch(function () { return {}; });
           if (!r.ok) throw new Error(d.error || 'Access denied');
           threadId = d.id || d.threadId;
@@ -322,9 +379,7 @@
           show('stepChat');
           renderMsgs(d.messages || []);
           startPoll();
-        } catch (e) {
-          $('shipErr').textContent = e.message || 'Wrong PIN or no access';
-        }
+        } catch (e) { $('shipErr').textContent = e.message || 'Wrong PIN'; }
       };
 
       function renderMsgs(list) {
@@ -333,10 +388,9 @@
           var who = m.from === 'admin' ? 'admin' : 'guest';
           var img = m.image ? '<img src="' + m.image + '" alt="" onclick="openPhoto(this.src)">' : '';
           return '<div class="bubble ' + who + '">' + (m.text ? esc(m.text) : '') + img + '</div>';
-        }).join('') || '<p class="hint" style="padding:12px">No messages yet. Customer messages appear when they chat from the site with this tracking code.</p>';
+        }).join('') || '<p class="hint" style="padding:12px;color:#888">No messages yet. When the customer chats from the site with this tracking code, messages appear here.</p>';
         box.scrollTop = box.scrollHeight;
       }
-      function esc(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
 
       function startPoll() {
         if (pollTimer) clearInterval(pollTimer);
@@ -347,35 +401,27 @@
             var d = await r.json();
             if (r.ok) renderMsgs(d.messages || []);
           } catch (e) { }
-        }, 4000);
+        }, 3000);
       }
 
       $('btnSend').onclick = async function () {
         var text = $('msgIn').value.trim();
         if (!text || !threadId) return;
         try {
-          var r = await fetch(API + '/chat/admin/threads/' + threadId + '/reply', {
-            method: 'POST', headers: headers(),
-            body: JSON.stringify({ text: text })
-          });
+          var r = await fetch(API + '/chat/admin/threads/' + threadId + '/reply', { method: 'POST', headers: headers(), body: JSON.stringify({ text: text }) });
           var d = await r.json();
           if (!r.ok) throw new Error(d.error || 'Send failed');
           $('msgIn').value = '';
           renderMsgs(d.messages || []);
         } catch (e) { alert(e.message); }
       };
-
       $('btnImg').onclick = function () { $('imgIn').click(); };
       $('imgIn').onchange = function (ev) {
-        var f = ev.target.files && ev.target.files[0];
-        if (!f || !threadId) return;
+        var f = ev.target.files && ev.target.files[0]; if (!f || !threadId) return;
         var reader = new FileReader();
         reader.onload = async function () {
           try {
-            var r = await fetch(API + '/chat/admin/threads/' + threadId + '/reply', {
-              method: 'POST', headers: headers(),
-              body: JSON.stringify({ text: '', image: reader.result })
-            });
+            var r = await fetch(API + '/chat/admin/threads/' + threadId + '/reply', { method: 'POST', headers: headers(), body: JSON.stringify({ text: '', image: reader.result }) });
             var d = await r.json();
             if (!r.ok) throw new Error(d.error || 'Upload failed');
             renderMsgs(d.messages || []);
@@ -383,15 +429,13 @@
         };
         reader.readAsDataURL(f);
       };
-
       $('btnClear').onclick = async function () {
-        if (!threadId || !confirm('Clear messages in this chat only?')) return;
+        if (!threadId || !confirm('Clear this chat only?')) return;
         try {
           await fetch(API + '/chat/admin/threads/' + threadId + '/clear', { method: 'POST', headers: headers(), body: '{}' });
           renderMsgs([]);
         } catch (e) { alert(e.message); }
       };
-
       $('btnBack').onclick = function () {
         if (pollTimer) clearInterval(pollTimer);
         threadId = null;

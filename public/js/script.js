@@ -2326,7 +2326,7 @@ function guestRenderMessages(msgs) {
                 esc(m.text || '') + '</div>';
         }
         const side = m.from === 'admin' ? 'left' : 'right';
-        const img = m.image ? '<img class="chat-img" src="' + m.image + '" alt="" onclick="window.open(this.src)">' : '';
+        const img = m.image ? '<img class="chat-img" src="' + m.image + '" alt="" onclick="dhlChatPhotoPreview(this.src)">' : '';
         return '<div class="chat-bubble ' + side + '"><div class="chat-meta">' +
             (m.from === 'admin' ? 'Support' : 'You') + '</div>' +
             (m.text ? '<div>' + esc(m.text) + '</div>' : '') + img + '</div>';
@@ -2356,19 +2356,8 @@ async function guestChatSend() {
         });
         if (input) input.value = '';
         window._guestChatPendingImage = '';
-        const now = new Date();
-        const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        const help = { from: 'system', text: '[' + timeStr + '] How can we help you today with your shipment?' };
-        let msgs = data.messages || [];
-        // After first customer message, show queue notice with receiver name
-        if (!window._guestChatSysStep) window._guestChatSysStep = 0;
-        window._guestChatSysStep++;
-        const recv = window._guestChatReceiver || 'customer';
-        const queue = {
-            from: 'system',
-            text: '[' + timeStr + '] You have been added to the queue, ' + recv + '. Our support team will attend to you shortly.'
-        };
-        guestRenderMessages([help, queue].concat(msgs));
+        // Server returns welcome + queue auto-replies — do not invent local duplicates
+        guestRenderMessages(data.messages || []);
     } catch (e) {
         alert(e.message || 'Send failed');
     }
@@ -2460,7 +2449,7 @@ function adminRenderMessages(msgs) {
     box.innerHTML = (msgs || []).map(function (m) {
         const side = m.from === 'admin' ? 'right' : 'left';
         const who = m.from === 'admin' ? 'You (Admin)' : 'Customer';
-        const img = m.image ? '<img class="chat-img" src="' + m.image + '" alt="" onclick="window.open(this.src)">' : '';
+        const img = m.image ? '<img class="chat-img" src="' + m.image + '" alt="" onclick="dhlChatPhotoPreview(this.src)">' : '';
         return '<div class="chat-bubble ' + side + '"><div class="chat-meta">' + who + '</div>' +
             (m.text ? '<div>' + esc(m.text) + '</div>' : '') + img + '</div>';
     }).join('');
@@ -2553,3 +2542,19 @@ logoutAdmin = function () {
     if (typeof _logoutAdminOrig === 'function') _logoutAdminOrig();
     else showSite();
 };
+
+
+function dhlChatPhotoPreview(src) {
+    var box = document.getElementById('dhlChatLightbox');
+    if (!box) {
+        box = document.createElement('div');
+        box.id = 'dhlChatLightbox';
+        box.style.cssText = 'display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.92);align-items:center;justify-content:center;padding:12px;';
+        box.innerHTML = '<button type="button" style="position:absolute;top:12px;right:16px;font-size:28px;color:#fff;background:0;border:0;cursor:pointer">&times;</button><img alt="" style="max-width:100%;max-height:92vh;object-fit:contain;border-radius:8px">';
+        box.onclick = function (e) { if (e.target === box || e.target.tagName === 'BUTTON') box.style.display = 'none'; };
+        document.body.appendChild(box);
+    }
+    box.querySelector('img').src = src;
+    box.style.display = 'flex';
+}
+window.dhlChatPhotoPreview = dhlChatPhotoPreview;

@@ -1,6 +1,7 @@
 const express = require("express");
 const ChatThread = require("../models/ChatThread");
 const Shipment = require("../models/Shipment");
+const AdminSettings = require("../models/AdminSettings");
 const authMw = require("../middleware/auth");
 const requireAdmin = authMw.requireAdmin || authMw;
 const requireAdminOrChatPin = authMw.requireAdminOrChatPin || requireAdmin;
@@ -98,7 +99,7 @@ router.post("/guest/send", async (req, res) => {
         const msgText = String(text || "").trim();
         if (!msgText && !image) return res.status(400).json({ error: "Empty message." });
 
-        const thread = await ChatThread.findOne({ guestId });
+        let thread = await ChatThread.findOne({ guestId }).sort({ lastMessageAt: -1 });
         if (!thread) return res.status(404).json({ error: "Open chat first." });
 
         thread.messages.push({
@@ -111,31 +112,40 @@ router.post("/guest/send", async (req, res) => {
         thread.lastMessageAt = new Date();
 
         // Auto-response until a human admin has replied at least once (non-auto)
+        // Open already sent welcome. After first guest message → queue notice once.
         const humanAdmin = (thread.messages || []).some(function (m) {
             return m.from === "admin" && !m.auto;
         });
         if (!humanAdmin) {
             const recv = (thread.receiverName || thread.guestDisplayName || "customer").split("/")[0].trim() || "customer";
             const guestCount = (thread.messages || []).filter(function (m) { return m.from === "guest"; }).length;
-            let autoText;
-            if (guestCount <= 1) {
-                autoText = "How can we help you today with your shipment?";
-            } else {
-                autoText = "You have been added to the queue, " + recv + ". Our support team will attend to you shortly.";
-            }
-            // Don't spam identical auto if last was already auto
-            const last = thread.messages[thread.messages.length - 1];
-            const prev = thread.messages[thread.messages.length - 2];
-            const lastAuto = prev && prev.from === "admin" && prev.auto;
-            if (!lastAuto || guestCount === 1) {
-                thread.messages.push({
-                    from: "admin",
-                    text: autoText,
-                    image: "",
-                    createdAt: new Date(),
-                    auto: true,
-                });
-                thread.unreadGuest = (thread.unreadGuest || 0) + 1;
+            const alreadyQueued = (thread.messages || []).some(function (m) {
+                return m.from === "admin" && m.auto && String(m.text || "").toLowerCase().indexOf("queue") !== -1;
+            });
+            if (guestCount === 1 || (guestCount >= 2 && !alreadyQueued)) {
+                const autoText = guestCount === 1
+                    ? ("How can we help you today with your shipment?")
+                    : ("You have been added to the queue, " + recv + ". Our support team will attend to you shortly.");
+                // For first guest msg: if welcome already exists, only add queue on 2nd; on 1st after welcome skip duplicate help
+                if (guestCount === 1) {
+                    // welcome already from open — still confirm help line once after first customer text if not present
+                    const hasHelp = (thread.messages || []).some(function (m) {
+                        return m.from === "admin" && m.auto && String(m.text || "").toLowerCase().indexOf("how can we help") !== -1;
+                    });
+                    if (!hasHelp) {
+                        thread.messages.push({ from: "admin", text: autoText, image: "", createdAt: new Date(), auto: true });
+                        thread.unreadGuest = (thread.unreadGuest || 0) + 1;
+                    }
+                } else if (!alreadyQueued) {
+                    thread.messages.push({
+                        from: "admin",
+                        text: "You have been added to the queue, " + recv + ". Our support team will attend to you shortly.",
+                        image: "",
+                        createdAt: new Date(),
+                        auto: true,
+                    });
+                    thread.unreadGuest = (thread.unreadGuest || 0) + 1;
+                }
             }
         }
 
@@ -268,12 +278,23 @@ router.get("/admin/unread-count", requireAdminOrChatPin, async (req, res) => {
     }
 });
 
-module.exports = router;
 
 
-const AdminSettings = require("../models/AdminSettings");
+
 
 /** Verify standalone chat page PIN (default 4422) */
+router.post("/verify-pin", async (req, res) => {
+    try {
+        const pin = String((req.body && req.body.pin) || "").trim();
+        const s = await AdminSettings.findOne();
+        const expected = (s && s.chatPin) ? String(s.chatPin).trim() : "4422";
+        if (pin !== expected) return res.status(401).json({ error: "Incorrect chat PIN." });
+        res.json({ ok: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 router.post("/chat-pin", async (req, res) => {
     try {
         const pin = String((req.body && req.body.pin) || "").trim();
@@ -356,7 +377,11 @@ router.post("/admin/by-track", requireAdminOrChatPin, async (req, res) => {
             return res.status(401).json({ error: "Wrong access PIN. No access to this chat." });
         }
 
-        let thread = await ChatThread.findOne({ trackCode });
+        let thread = await ChatThread.findOne({ trackCode }).sort({ lastMessageAt: -1 });
+        if (!thread) {
+            // also try case variants
+            thread = await ChatThread.findOne({ trackCode: new RegExp("^" + trackCode.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$", "i") }).sort({ lastMessageAt: -1 });
+        }
         if (!thread) {
             const senderName = (ship.sender && ship.sender.name) || "";
             const receiverName = (ship.receiver && ship.receiver.name) || "";
@@ -441,3 +466,5 @@ router.post("/admin/unlock-thread", requireAdminOrChatPin, async (req, res) => {
         res.status(500).json({ error: e.message });
     }
 });
+
+module.exports = router;
