@@ -583,7 +583,9 @@
                     '<div class="two"><div><label>Status label</label><input id="f_st" placeholder="e.g. In Transit"></div><div><label>Location</label><input id="f_loc"></div></div>' +
                     '<label>Status date &amp; time</label><input id="f_sttime" type="datetime-local">' +
                     '<button type="button" id="btnAddSt" style="margin-top:8px;width:100%;min-height:44px;border:0;border-radius:10px;background:#eab308;font-weight:700">Add status</button>' +
+                    '<div id="statusMsg" class="toast" style="display:none"></div>' +
                     '<div class="timeline" id="tl">' + histHtml + '</div>' +
+                    '<p class="hint">Only statuses you Add appear. Save shipment does not add extra timeline rows.</p>' +
                     '<h3 style="font-size:14px;margin:18px 0 0">Live map (last section)</h3>' +
                     '<div class="two"><div><label>Origin country</label><select id="f_o">' + optsCountry(oC) + '</select></div>' +
                     '<div><label>Destination country</label><select id="f_d">' + optsCountry(dC) + '</select></div></div>' +
@@ -601,7 +603,8 @@
                     '<button type="button" id="mLeft">Turn left</button>' +
                     '<button type="button" id="mRight">Turn right</button></div>' +
                     '<div id="mapMsg" class="toast" style="display:none"></div>' +
-                    '<p class="hint">Play / Pause / Restart auto-save map movement only. 1 week = full trip in 1 week from current %. Drag bar or vehicle to set position.</p>' +
+                    '<button type="button" class="go" id="mDone" style="width:100%;min-height:48px;margin-top:8px;border:0;border-radius:10px;background:#0f172a;color:#fff;font-weight:700">✓ Done — save map position &amp; direction</button>' +
+                    '<p class="hint">Play starts auto-move for the duration (e.g. 1 week). Pause freezes. Restart → 0%. Turn / face apply immediately. Done saves how you set the vehicle. Shipment Save is separate below.</p>' +
                     '<div class="actions">' +
                     '<button type="button" class="save" id="btnSave">Save shipment</button>' +
                     '<button type="button" class="sec" id="btnClose">Close</button>' +
@@ -627,44 +630,64 @@
                 $('f_d').addEventListener('change', function () { setupMap($('f_o').value, $('f_d').value); });
                 $('f_icon').addEventListener('change', function () { placeVehicle(liveProgress()); });
                 $('chips').addEventListener('click', function (e) { var b = e.target.closest('[data-st]'); if (b) $('f_st').value = b.getAttribute('data-st'); });
+                function paintTimeline() {
+                    var tl = $('tl'); if (!tl) return;
+                    if (!historyLocal.length) { tl.innerHTML = '<p class="hint">No status yet — only what you Add appears here.</p>'; return; }
+                    tl.innerHTML = historyLocal.map(function (h, i) {
+                        return '<div class="step"><strong>' + esc(h.label || '') + '</strong>' + esc(h.date || '') + (h.time ? (' ' + esc(h.time)) : '') + ' — ' + esc(h.location || '') +
+                            ' <button type="button" data-rm="' + i + '" style="font-size:11px">Remove</button></div>';
+                    }).join('');
+                    Array.prototype.forEach.call(tl.querySelectorAll('[data-rm]'), function (btn) {
+                        btn.addEventListener('click', onRemoveStatus);
+                    });
+                }
+                async function onRemoveStatus(ev) {
+                    var btn = ev.currentTarget;
+                    var idx = +btn.getAttribute('data-rm');
+                    var stMsg = $('statusMsg');
+                    if (codeEdit) {
+                        if (stMsg) { stMsg.className = 'toast wait'; stMsg.textContent = '......'; stMsg.style.display = 'block'; }
+                        try {
+                            var updated = await api('/shipments/' + encodeURIComponent(codeEdit) + '/status/' + idx, { method: 'DELETE' });
+                            historyLocal = (updated.history || []).slice();
+                            paintTimeline();
+                            if (stMsg) { stMsg.className = 'toast ok'; stMsg.textContent = 'Saved'; }
+                        } catch (e) {
+                            if (stMsg) { stMsg.className = 'toast err'; stMsg.textContent = e.message || 'Failed'; }
+                            alert(e.message || 'Failed to remove');
+                        }
+                    } else {
+                        historyLocal.splice(idx, 1);
+                        paintTimeline();
+                    }
+                }
                 $('btnAddSt').addEventListener('click', async function () {
                     var lab = $('f_st').value.trim(); if (!lab) { alert('Pick or type a status'); return; }
                     var dt = $('f_sttime').value; var date = '', time = '';
                     if (dt) { var p = dt.split('T'); date = p[0]; time = p[1] || ''; }
                     else { date = new Date().toISOString().slice(0, 10); time = new Date().toTimeString().slice(0, 5); }
                     var loc = $('f_loc').value.trim() || '—';
-                    var mapMsg = $('mapMsg');
+                    var stMsg = $('statusMsg');
                     if (codeEdit) {
-                        if (mapMsg) { mapMsg.className = 'toast wait'; mapMsg.textContent = '...... adding status'; }
+                        if (stMsg) { stMsg.className = 'toast wait'; stMsg.textContent = '......'; stMsg.style.display = 'block'; }
                         try {
                             var updated = await api('/shipments/' + encodeURIComponent(codeEdit) + '/status', { method: 'POST', body: JSON.stringify({ label: lab, location: loc, date: date }) });
                             historyLocal = (updated.history || []).slice();
-                            if (mapMsg) { mapMsg.className = 'toast ok'; mapMsg.textContent = 'Saved'; }
-                            openForm(Object.assign(collectDraft(s), { history: historyLocal, pinProtected: true }));
-                            unlockedPins[codeEdit] = true;
-                        } catch (e) { if (mapMsg) { mapMsg.className = 'toast err'; mapMsg.textContent = e.message; } alert(e.message); }
+                            paintTimeline();
+                            $('f_st').value = '';
+                            if (stMsg) { stMsg.className = 'toast ok'; stMsg.textContent = 'Saved'; }
+                        } catch (e) {
+                            if (stMsg) { stMsg.className = 'toast err'; stMsg.textContent = e.message; }
+                            alert(e.message);
+                        }
                     } else {
                         historyLocal.push({ label: lab, location: loc, date: date, time: time });
-                        openForm(collectDraft(s));
+                        paintTimeline();
+                        $('f_st').value = '';
                     }
                 });
                 Array.prototype.forEach.call($('tl').querySelectorAll('[data-rm]'), function (btn) {
-                    btn.addEventListener('click', async function () {
-                        var idx = +btn.getAttribute('data-rm');
-                        var mapMsg = $('mapMsg');
-                        if (codeEdit) {
-                            if (mapMsg) { mapMsg.className = 'toast wait'; mapMsg.textContent = '...... removing status'; }
-                            try {
-                                var updated = await api('/shipments/' + encodeURIComponent(codeEdit) + '/status/' + idx, { method: 'DELETE' });
-                                historyLocal = (updated.history || []).slice();
-                                if (mapMsg) { mapMsg.className = 'toast ok'; mapMsg.textContent = 'Saved'; }
-                                openForm(Object.assign(collectDraft(s), { history: historyLocal, pinProtected: true }));
-                                unlockedPins[codeEdit] = true;
-                            } catch (e) { if (mapMsg) { mapMsg.className = 'toast err'; mapMsg.textContent = e.message; } alert(e.message); }
-                        } else {
-                            historyLocal.splice(idx, 1); openForm(collectDraft(s));
-                        }
-                    });
+                    btn.addEventListener('click', onRemoveStatus);
                 });
                 $('btnClose').addEventListener('click', function () { stopAnim(); $('editor').style.display = 'none'; });
                 $('btnSave').addEventListener('click', function () { saveShipment(false); });
@@ -672,9 +695,10 @@
                 $('mPlay').addEventListener('click', function () { playMove(); });
                 $('mPause').addEventListener('click', function () { pauseMove(); });
                 $('mReset').addEventListener('click', function () { resetMove(); });
-                $('mFace').addEventListener('click', function () { rotationDeg = null; placeVehicle(liveProgress()); });
-                $('mLeft').addEventListener('click', function () { rotationDeg = ((rotationDeg != null ? rotationDeg : 0) - 15 + 360) % 360; placeVehicle(liveProgress()); });
-                $('mRight').addEventListener('click', function () { rotationDeg = ((rotationDeg != null ? rotationDeg : 0) + 15) % 360; placeVehicle(liveProgress()); });
+                $('mFace').addEventListener('click', function () { rotationDeg = null; placeVehicle(liveProgress()); mapStatus('ok', 'Facing destination'); });
+                $('mLeft').addEventListener('click', function () { rotationDeg = ((rotationDeg != null ? rotationDeg : 0) - 15 + 360) % 360; placeVehicle(liveProgress()); mapStatus('ok', 'Turned left'); });
+                $('mRight').addEventListener('click', function () { rotationDeg = ((rotationDeg != null ? rotationDeg : 0) + 15) % 360; placeVehicle(liveProgress()); mapStatus('ok', 'Turned right'); });
+                var md = $('mDone'); if (md) md.addEventListener('click', function () { saveRouteAuto('Done · Saved map'); });
                 bindBarDrag();
             }
 
@@ -767,8 +791,8 @@
                 animTimer = setInterval(function () {
                     var p = liveProgress();
                     setProgressUI(p);
-                    if (p >= 100) { pauseMove(); }
-                }, 500);
+                    if (p >= 100) { progress = 100; baseProgress = 100; isMoving = false; movingSince = null; stopAnim(); setProgressUI(100); saveRouteAuto('Arrived · Saved 100%'); }
+                }, 1000);
             }
             function stopAnim() { if (animTimer) { clearInterval(animTimer); animTimer = null; } }
             function mapStatus(type, text) {
@@ -874,9 +898,7 @@
                     } else {
                         saved = await api('/shipments/' + encodeURIComponent(codeEdit), { method: 'PUT', body: JSON.stringify(body) });
                     }
-                    for (var i = 0; i < historyLocal.length; i++) {
-                        try { await api('/shipments/' + encodeURIComponent(codeEdit) + '/status', { method: 'POST', body: JSON.stringify(historyLocal[i]) }); } catch (e2) { }
-                    }
+                    // Do NOT re-post status history here (that caused duplicates). Status only via Add/Remove.
                     try {
                         await api('/shipments/' + encodeURIComponent(codeEdit) + '/route', { method: 'PATCH', body: JSON.stringify(body.route) });
                     } catch (e3) { }
