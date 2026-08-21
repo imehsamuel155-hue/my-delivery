@@ -17,12 +17,10 @@ function makeLabel(sender, receiver, fallback) {
     return fallback || "Guest";
 }
 
-/** Guest: open or create thread — tracking code REQUIRED (must match a shipment). */
+/** Guest: open or create thread — ONE shared thread per tracking code (any device). */
 router.post("/guest/open", async (req, res) => {
     try {
         const { guestId, trackCode } = req.body || {};
-        if (!guestId) return res.status(400).json({ error: "guestId required." });
-
         const code = String(trackCode || "").trim().toUpperCase();
         if (!code) {
             return res.status(400).json({ error: "Please enter a valid tracking code." });
@@ -37,12 +35,12 @@ router.post("/guest/open", async (req, res) => {
         const receiverName = (ship.receiver && ship.receiver.name) || "";
         const label = makeLabel(senderName, receiverName, code);
 
-        let thread = await ChatThread.findOne({ guestId, trackCode: code });
-        if (!thread) thread = await ChatThread.findOne({ guestId });
+        // Privacy: only this tracking code's thread — never reuse another code's chat
+        let thread = await ChatThread.findOne({ trackCode: code }).sort({ lastMessageAt: -1 });
 
         if (!thread) {
             thread = await ChatThread.create({
-                guestId,
+                guestId: guestId || ("track-" + code),
                 label,
                 senderName,
                 receiverName,
@@ -53,17 +51,17 @@ router.post("/guest/open", async (req, res) => {
                 unreadGuest: 0,
             });
         } else {
-            thread.trackCode = code;
+            // Update labels only — never change trackCode or wipe messages
             thread.senderName = senderName;
             thread.receiverName = receiverName;
             thread.label = label;
             thread.guestDisplayName = label;
+            if (guestId) thread.guestId = String(guestId);
             await thread.save();
         }
 
         // Auto welcome if no messages yet
         if (!thread.messages || thread.messages.length === 0) {
-            const recv = receiverName || "customer";
             const now = new Date();
             const timeStr = now.toLocaleString("en-US", { hour: "2-digit", minute: "2-digit" });
             thread.messages = [
@@ -83,6 +81,7 @@ router.post("/guest/open", async (req, res) => {
         res.json({
             threadId: thread._id,
             label: thread.label,
+            trackCode: thread.trackCode,
             messages: thread.messages,
             unreadGuest: thread.unreadGuest,
         });
@@ -94,13 +93,15 @@ router.post("/guest/open", async (req, res) => {
 /** Guest: send message (only to their own thread) */
 router.post("/guest/send", async (req, res) => {
     try {
-        const { guestId, text, image, fileName, fileType } = req.body || {};
-        if (!guestId) return res.status(400).json({ error: "guestId required." });
+        const { guestId, trackCode, text, image, fileName, fileType } = req.body || {};
+        const code = String(trackCode || "").trim().toUpperCase();
+        if (!code) return res.status(400).json({ error: "Tracking code required." });
         const msgText = String(text || "").trim();
         if (!msgText && !image) return res.status(400).json({ error: "Empty message." });
 
-        let thread = await ChatThread.findOne({ guestId }).sort({ lastMessageAt: -1 });
-        if (!thread) return res.status(404).json({ error: "Open chat first." });
+        // Only this shipment's thread
+        let thread = await ChatThread.findOne({ trackCode: code }).sort({ lastMessageAt: -1 });
+        if (!thread) return res.status(404).json({ error: "Open chat first with this tracking code." });
 
         let ft = String(fileType || "").toLowerCase();
         if (!ft && image) {
@@ -146,10 +147,33 @@ router.post("/guest/send", async (req, res) => {
     }
 });
 
-/** Guest: poll own messages + mark admin replies as read */
+/** Guest: poll by tracking code (shared across devices) */
+router.get("/guest/by-track/:code", async (req, res) => {
+    try {
+        const code = String(req.params.code || "").trim().toUpperCase();
+        const thread = await ChatThread.findOne({ trackCode: code }).sort({ lastMessageAt: -1 });
+        if (!thread) return res.json({ messages: [], unreadGuest: 0, label: "", trackCode: code });
+        if (thread.unreadGuest > 0) {
+            thread.unreadGuest = 0;
+            await thread.save();
+        }
+        res.json({
+            messages: thread.messages || [],
+            unreadGuest: 0,
+            label: thread.label,
+            trackCode: thread.trackCode,
+            threadId: thread._id,
+        });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+/** Guest: poll own messages + mark admin replies as read (legacy guestId — prefer by-track) */
 router.get("/guest/:guestId", async (req, res) => {
     try {
-        const thread = await ChatThread.findOne({ guestId: req.params.guestId });
+        // If looks like a track code request misuse, still safe
+        const thread = await ChatThread.findOne({ guestId: req.params.guestId }).sort({ lastMessageAt: -1 });
         if (!thread) return res.json({ messages: [], unreadGuest: 0, label: "" });
         if (thread.unreadGuest > 0) {
             thread.unreadGuest = 0;

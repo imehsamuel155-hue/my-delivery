@@ -29,5 +29,6 @@ const ChatThreadSchema = new mongoose.Schema(
 );
 
 ChatThreadSchema.index({ lastMessageAt: -1 });
+ChatThreadSchema.index({ trackCode: 1 });
 
 module.exports = mongoose.model("ChatThread", ChatThreadSchema);

@@ -2263,6 +2263,8 @@ function closeGuestChat() {
     const box = document.getElementById('guestChatMessages');
     if (box) box.innerHTML = '';
     window._guestChatSysStep = 0;
+    window._guestChatTrackCode = '';
+    try { sessionStorage.removeItem('dhlGuestTrackCode'); } catch (e) { }
 }
 
 async function guestChatStart() {
@@ -2294,14 +2296,11 @@ async function guestChatStart() {
         if (lab) lab.textContent = data.label || track;
         window._guestChatReceiver = (data.label || '').split('/').pop().trim() || 'customer';
         window._guestChatSysStep = 0;
-        const now = new Date();
-        const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        const help = {
-            from: 'system',
-            text: '[' + timeStr + '] How can we help you today with your shipment?'
-        };
+        // Shared MongoDB thread key = tracking code (works on any device)
+        var codeKey = (data.trackCode || track || '').toString().trim().toUpperCase();
+        window._guestChatTrackCode = codeKey;
+        try { sessionStorage.setItem('dhlGuestTrackCode', codeKey); } catch (e) { }
         const base = data.messages || [];
-        // Always show help dropdown at top for this session view
         guestRenderMessages(base);
         if (window._guestChatPoll) clearInterval(window._guestChatPoll);
         window._guestChatPoll = setInterval(guestChatPoll, 4000);
@@ -2368,7 +2367,9 @@ function guestRenderMessages(msgs) {
 
 async function guestChatPoll() {
     try {
-        const data = await apiRequest('/chat/guest/' + encodeURIComponent(dhlGuestId()));
+        var code = window._guestChatTrackCode || sessionStorage.getItem('dhlGuestTrackCode') || '';
+        if (!code) return;
+        const data = await apiRequest('/chat/guest/by-track/' + encodeURIComponent(code));
         guestRenderMessages(data.messages || []);
     } catch (e) { }
 }
@@ -2382,6 +2383,7 @@ async function guestChatSend() {
             method: 'POST',
             body: JSON.stringify({
                 guestId: dhlGuestId(),
+                trackCode: window._guestChatTrackCode || sessionStorage.getItem('dhlGuestTrackCode') || '',
                 text: text,
                 image: window._guestChatPendingImage || '',
                 fileName: window._guestChatPendingName || '',
