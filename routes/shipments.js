@@ -223,6 +223,24 @@ router.post("/:code/status", requireAdmin, async (req, res) => {
     res.json(shipment);
 });
 
+
+// POST /api/shipments/:code/status/remove - same as DELETE (mobile/proxy friendly)
+router.post("/:code/status/remove", requireAdmin, async (req, res) => {
+    try {
+        const shipment = await Shipment.findOne({ code: req.params.code.trim().toUpperCase() });
+        if (!shipment) return res.status(404).json({ error: "Shipment not found." });
+        const idx = parseInt((req.body && req.body.index), 10);
+        if (Number.isNaN(idx) || idx < 0 || idx >= shipment.history.length) {
+            return res.status(400).json({ error: "Invalid status index." });
+        }
+        shipment.history.splice(idx, 1);
+        await shipment.save();
+        res.json(shipment);
+    } catch (e) {
+        res.status(500).json({ error: e.message || "Remove failed." });
+    }
+});
+
 // DELETE /api/shipments/:code/status/:index - remove a status timeline step
 router.delete("/:code/status/:index", requireAdmin, async (req, res) => {
     const shipment = await Shipment.findOne({ code: req.params.code.trim().toUpperCase() });
