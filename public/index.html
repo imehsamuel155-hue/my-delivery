@@ -233,13 +233,9 @@
         <!-- Auto-scroll photo carousel (3 images) -->
         <section class="photo-carousel-sec" id="gallery">
             <div class="photo-carousel" id="photoCarousel">
-                <div class="pc-item active"><img
-                        src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=800&q=80"
-                        alt="Truck loading"></div>
                 <div class="pc-item"><img src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&q=80"
                         alt="Warehouse"></div>
-                <div class="pc-item"><img src="https://images.unsplash.com/photo-1521791136064-7986c2920216?w=800&q=80"
-                        alt="Partnership"></div>
+
             </div>
         </section>
 
@@ -676,7 +672,8 @@
             <div class="guest-chat-label" id="guestChatLabel"></div>
             <div class="guest-chat-messages" id="guestChatMessages"></div>
             <div class="guest-chat-compose">
-                <input type="file" id="guestChatImage" accept="image/*" hidden onchange="guestChatPickImage(event)">
+                <input type="file" id="guestChatImage" accept="image/*,video/*,application/pdf" hidden
+                    onchange="guestChatPickImage(event)">
                 <button type="button" class="btn btn-outline small-btn"
                     onclick="document.getElementById('guestChatImage').click()" title="Send photo">📷</button>
                 <input type="text" id="guestChatInput" placeholder="Type a message…" autocomplete="off">

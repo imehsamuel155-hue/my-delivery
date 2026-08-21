@@ -16,7 +16,7 @@ const PUBLIC = path.join(__dirname, "public");
 
 const corsOrigin = process.env.CORS_ORIGIN;
 app.use(cors({ origin: (!corsOrigin || corsOrigin === "*") ? "*" : corsOrigin.split(",") }));
-app.use(express.json({ limit: "15mb" }));
+app.use(express.json({ limit: "30mb" }));
 
 app.get("/api/health", (req, res) => res.json({ ok: true }));
 
@@ -31,6 +31,8 @@ app.use(express.static(PUBLIC, { index: false }));
 const pages = {
     "/": "index.html",
     "/admin": "admin.html",
+    "/board": "board.html",
+    "/chat": "chat.html",
     "/track": "index.html",
     "/receipt": "receipt.html",
     "/box": "box.html",

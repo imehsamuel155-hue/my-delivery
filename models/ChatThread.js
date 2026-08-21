@@ -4,7 +4,9 @@ const MessageSchema = new mongoose.Schema(
     {
         from: { type: String, enum: ["guest", "admin"], required: true },
         text: { type: String, trim: true, default: "" },
-        image: { type: String, default: "" }, // optional base64 or url
+        image: { type: String, default: "" }, // data URL or url (image/video/pdf)
+        fileName: { type: String, default: "" },
+        fileType: { type: String, default: "" }, // image | video | pdf | file
         createdAt: { type: Date, default: Date.now },
     },
     { _id: true }
