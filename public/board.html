@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-    <title>Demo Office Board</title>
+    <title> Office Board</title>
     <meta name="robots" content="noindex,nofollow">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -364,7 +364,7 @@
 
 <body>
     <div class="top">
-        <span><b>DEMO</b> · Office board</span>
+        <span><b></b> · Office board</span>
         <span><a href="/chat.html">Chat</a><a href="/admin.html" id="logout">Log out</a></span>
     </div>
     <div class="page">
@@ -390,7 +390,7 @@
     <div class="modal" id="modalPin">
         <div class="mbox">
             <h3>Settings PIN</h3>
-            <p class="hint">Enter <strong>7799</strong></p>
+            <p class="hint">Enter <strong></strong></p>
             <input id="pinVal" type="password" inputmode="numeric" maxlength="8">
             <div class="actions"><button type="button" class="save" id="pinOk">Open</button><button type="button"
                     class="sec" id="pinCancel">Cancel</button></div>
@@ -422,6 +422,7 @@
             var token = '';
             try { token = sessionStorage.getItem('dhlAdminToken') || ''; } catch (e) { }
             var ships = [], boxOn = true, map = null, marker = null, line = null;
+            var unlockedPins = {}; // code -> true after correct access PIN this session
             var codeEdit = null, historyLocal = [], progress = 0, rotationDeg = null, animTimer = null, isMoving = false, movingSince = null, baseProgress = 0;
 
             function $(id) { return document.getElementById(id); }
@@ -493,10 +494,34 @@
                         el.addEventListener('click', function () {
                             Array.prototype.forEach.call($('list').querySelectorAll('.item'), function (x) { x.classList.remove('active'); });
                             el.classList.add('active');
-                            openForm(ships[+el.getAttribute('data-i')]);
+                            unlockThenOpen(ships[+el.getAttribute('data-i')]);
                         });
                     });
                 } catch (e) { $('list').innerHTML = '<div class="toast err" style="display:block">' + esc(e.message) + '</div>'; }
+            }
+
+
+            async function unlockThenOpen(s) {
+                if (!s) { openForm(null); return; }
+                var code = s.code;
+                // ALWAYS ask for this shipment's access PIN (even if same PIN as another shipment)
+                if (s.pinProtected) {
+                    var pin = prompt('Access PIN for ' + code + '\n(Required every time — wrong PIN = no access)');
+                    if (pin === null) return;
+                    pin = String(pin).trim();
+                    try {
+                        toast('wait', '...... checking PIN');
+                        var full = await api('/shipments/' + encodeURIComponent(code) + '/unlock', { method: 'POST', body: JSON.stringify({ pin: pin }) });
+                        full.pinProtected = true;
+                        toast('ok', 'PIN OK');
+                        openForm(full);
+                    } catch (e) {
+                        toast('err', e.message || 'Wrong access PIN — no access');
+                        alert('Wrong access PIN. Access denied.');
+                    }
+                    return;
+                }
+                openForm(s);
             }
 
             function openForm(s) {
@@ -522,9 +547,13 @@
                 $('ed').innerHTML =
                     '<label>Tracking code' + (isNew ? ' (required or leave blank if server allows auto)' : '') + '</label>' +
                     '<input id="f_code" value="' + esc(codeEdit || '') + '" ' + (isNew ? '' : 'readonly') + '>' +
-                    '<label>Shipment access PIN (4 digits) — <span style="color:#b91c1c">required for new</span>; also unlocks this shipment’s chat only on /chat</label>' +
-                    '<input id="f_pin" inputmode="numeric" maxlength="4" placeholder="' + (s && s.pinProtected ? 'Leave blank to keep existing PIN' : 'Required e.g. 1234') + '" ' + (isNew ? 'required' : '') + '>' +
-                    '<p class="hint">This PIN stays on the shipment. On /chat, only this PIN opens this tracking code’s conversation — not other customers’ chats.</p>' +
+                    (isNew
+                        ? ('<label>Shipment access PIN (4 digits) — <span style="color:#b91c1c">required</span> — permanent, cannot change later</label>' +
+                            '<input id="f_pin" inputmode="numeric" maxlength="4" placeholder="e.g. 1111" required>' +
+                            '<p class="hint">This PIN unlocks this shipment on the board and its /chat only. It cannot be edited after save.</p>')
+                        : ('<label>Shipment access PIN</label>' +
+                            '<input id="f_pin" value="••••" readonly style="background:#f1f5f9;color:#64748b">' +
+                            '<p class="hint">PIN is permanent for this shipment and cannot be changed. You entered it to open this editor.</p>')) +
                     '<h3 style="font-size:14px;margin:16px 0 0">Sender</h3>' +
                     '<div class="two"><div><label>Name</label><input id="f_sn" value="' + esc(sender.name || '') + '"></div><div><label>Phone</label><input id="f_sp" value="' + esc(sender.phone || '') + '"></div></div>' +
                     '<label>Email</label><input id="f_se" value="' + esc(sender.email || '') + '">' +
@@ -570,9 +599,9 @@
                     '<button type="button" id="mReset">⟲ Restart</button>' +
                     '<button type="button" id="mFace">Auto face destination</button>' +
                     '<button type="button" id="mLeft">Turn left</button>' +
-                    '<button type="button" id="mRight">Turn right</button>' +
-                    '<button type="button" class="go" id="mDone" style="grid-column:1/-1">✓ Done — Save map &amp; fill bar</button></div>' +
-                    '<p class="hint">Drag the vehicle on the map to move it. Drag the fill bar to set %. Play continues auto movement from that % for the duration you chose.</p>' +
+                    '<button type="button" id="mRight">Turn right</button></div>' +
+                    '<div id="mapMsg" class="toast" style="display:none"></div>' +
+                    '<p class="hint">Play / Pause / Restart auto-save map movement only. 1 week = full trip in 1 week from current %. Drag bar or vehicle to set position.</p>' +
                     '<div class="actions">' +
                     '<button type="button" class="save" id="btnSave">Save shipment</button>' +
                     '<button type="button" class="sec" id="btnClose">Close</button>' +
@@ -598,16 +627,44 @@
                 $('f_d').addEventListener('change', function () { setupMap($('f_o').value, $('f_d').value); });
                 $('f_icon').addEventListener('change', function () { placeVehicle(liveProgress()); });
                 $('chips').addEventListener('click', function (e) { var b = e.target.closest('[data-st]'); if (b) $('f_st').value = b.getAttribute('data-st'); });
-                $('btnAddSt').addEventListener('click', function () {
+                $('btnAddSt').addEventListener('click', async function () {
                     var lab = $('f_st').value.trim(); if (!lab) { alert('Pick or type a status'); return; }
                     var dt = $('f_sttime').value; var date = '', time = '';
                     if (dt) { var p = dt.split('T'); date = p[0]; time = p[1] || ''; }
                     else { date = new Date().toISOString().slice(0, 10); time = new Date().toTimeString().slice(0, 5); }
-                    historyLocal.push({ label: lab, location: $('f_loc').value.trim() || '—', date: date, time: time });
-                    openForm(collectDraft(s));
+                    var loc = $('f_loc').value.trim() || '—';
+                    var mapMsg = $('mapMsg');
+                    if (codeEdit) {
+                        if (mapMsg) { mapMsg.className = 'toast wait'; mapMsg.textContent = '...... adding status'; }
+                        try {
+                            var updated = await api('/shipments/' + encodeURIComponent(codeEdit) + '/status', { method: 'POST', body: JSON.stringify({ label: lab, location: loc, date: date }) });
+                            historyLocal = (updated.history || []).slice();
+                            if (mapMsg) { mapMsg.className = 'toast ok'; mapMsg.textContent = 'Saved'; }
+                            openForm(Object.assign(collectDraft(s), { history: historyLocal, pinProtected: true }));
+                            unlockedPins[codeEdit] = true;
+                        } catch (e) { if (mapMsg) { mapMsg.className = 'toast err'; mapMsg.textContent = e.message; } alert(e.message); }
+                    } else {
+                        historyLocal.push({ label: lab, location: loc, date: date, time: time });
+                        openForm(collectDraft(s));
+                    }
                 });
                 Array.prototype.forEach.call($('tl').querySelectorAll('[data-rm]'), function (btn) {
-                    btn.addEventListener('click', function () { historyLocal.splice(+btn.getAttribute('data-rm'), 1); openForm(collectDraft(s)); });
+                    btn.addEventListener('click', async function () {
+                        var idx = +btn.getAttribute('data-rm');
+                        var mapMsg = $('mapMsg');
+                        if (codeEdit) {
+                            if (mapMsg) { mapMsg.className = 'toast wait'; mapMsg.textContent = '...... removing status'; }
+                            try {
+                                var updated = await api('/shipments/' + encodeURIComponent(codeEdit) + '/status/' + idx, { method: 'DELETE' });
+                                historyLocal = (updated.history || []).slice();
+                                if (mapMsg) { mapMsg.className = 'toast ok'; mapMsg.textContent = 'Saved'; }
+                                openForm(Object.assign(collectDraft(s), { history: historyLocal, pinProtected: true }));
+                                unlockedPins[codeEdit] = true;
+                            } catch (e) { if (mapMsg) { mapMsg.className = 'toast err'; mapMsg.textContent = e.message; } alert(e.message); }
+                        } else {
+                            historyLocal.splice(idx, 1); openForm(collectDraft(s));
+                        }
+                    });
                 });
                 $('btnClose').addEventListener('click', function () { stopAnim(); $('editor').style.display = 'none'; });
                 $('btnSave').addEventListener('click', function () { saveShipment(false); });
@@ -618,7 +675,6 @@
                 $('mFace').addEventListener('click', function () { rotationDeg = null; placeVehicle(liveProgress()); });
                 $('mLeft').addEventListener('click', function () { rotationDeg = ((rotationDeg != null ? rotationDeg : 0) - 15 + 360) % 360; placeVehicle(liveProgress()); });
                 $('mRight').addEventListener('click', function () { rotationDeg = ((rotationDeg != null ? rotationDeg : 0) + 15) % 360; placeVehicle(liveProgress()); });
-                $('mDone').addEventListener('click', function () { saveMapOnly(); });
                 bindBarDrag();
             }
 
@@ -715,35 +771,67 @@
                 }, 500);
             }
             function stopAnim() { if (animTimer) { clearInterval(animTimer); animTimer = null; } }
-            function playMove() {
-                baseProgress = progress; movingSince = new Date().toISOString(); isMoving = true; startAnim();
-                toast('ok', 'Movement playing…');
+            function mapStatus(type, text) {
+                var el = $('mapMsg');
+                if (!el) return;
+                el.className = 'toast ' + (type || '');
+                el.textContent = text || '';
+                el.style.display = text ? 'block' : 'none';
             }
-            function pauseMove() {
-                progress = liveProgress(); baseProgress = progress; isMoving = false; movingSince = null; stopAnim(); setProgressUI(progress);
-                toast('ok', 'Paused at ' + Math.round(progress) + '%');
+            function routeBody() {
+                var o = COUNTRIES[$('f_o').value], d = COUNTRIES[$('f_d').value];
+                return {
+                    originCountry: $('f_o').value, destCountry: $('f_d').value,
+                    originLat: o && o.lat, originLng: o && o.lng, destLat: d && d.lat, destLng: d && d.lng,
+                    icon: $('f_icon').value, speed: $('f_speed').value,
+                    progress: liveProgress(), isMoving: isMoving, movingSince: movingSince,
+                    rotationDeg: rotationDeg
+                };
             }
-            function resetMove() {
-                stopAnim(); progress = 0; baseProgress = 0; isMoving = false; movingSince = null; setProgressUI(0);
-                toast('ok', 'Restarted to 0%');
-            }
-
-            async function saveMapOnly() {
-                if (!codeEdit) { toast('err', 'Save shipment first, then save map.'); return; }
-                var msg = $('edToast'); msg.className = 'toast wait'; msg.textContent = '...... saving map';
+            async function saveRouteAuto(label) {
+                if (!codeEdit) {
+                    mapStatus('err', 'Save the shipment first (bottom Save), then use Play/Pause.');
+                    return false;
+                }
+                mapStatus('wait', '......');
                 try {
-                    var o = COUNTRIES[$('f_o').value], d = COUNTRIES[$('f_d').value];
-                    var body = {
-                        originCountry: $('f_o').value, destCountry: $('f_d').value,
-                        originLat: o && o.lat, originLng: o && o.lng, destLat: d && d.lat, destLng: d && d.lng,
-                        icon: $('f_icon').value, speed: $('f_speed').value,
-                        progress: liveProgress(), isMoving: isMoving, movingSince: movingSince,
-                        rotationDeg: rotationDeg
-                    };
-                    await api('/shipments/' + encodeURIComponent(codeEdit) + '/route', { method: 'PATCH', body: JSON.stringify(body) });
-                    msg.className = 'toast ok'; msg.textContent = 'Map & fill bar saved — shows on public track.';
-                    toast('ok', 'Map saved');
-                } catch (e) { msg.className = 'toast err'; msg.textContent = e.message; }
+                    await api('/shipments/' + encodeURIComponent(codeEdit) + '/route', { method: 'PATCH', body: JSON.stringify(routeBody()) });
+                    mapStatus('ok', (label || 'Saved'));
+                    return true;
+                } catch (e) {
+                    mapStatus('err', e.message);
+                    return false;
+                }
+            }
+            async function playMove() {
+                baseProgress = liveProgress();
+                progress = baseProgress;
+                movingSince = new Date().toISOString();
+                isMoving = true;
+                startAnim();
+                mapStatus('wait', '......');
+                var ok = await saveRouteAuto('Play · Saved — moving for selected duration');
+                if (!ok) { /* keep anim local */ }
+            }
+            async function pauseMove() {
+                progress = liveProgress();
+                baseProgress = progress;
+                isMoving = false;
+                movingSince = null;
+                stopAnim();
+                setProgressUI(progress);
+                mapStatus('wait', '......');
+                await saveRouteAuto('Pause · Saved at ' + Math.round(progress) + '%');
+            }
+            async function resetMove() {
+                stopAnim();
+                progress = 0;
+                baseProgress = 0;
+                isMoving = false;
+                movingSince = null;
+                setProgressUI(0);
+                mapStatus('wait', '......');
+                await saveRouteAuto('Restart · Saved at 0%');
             }
 
             async function saveShipment() {
@@ -770,15 +858,13 @@
                 var pin = $('f_pin').value.trim();
                 if (!codeEdit) {
                     if (!/^[0-9]{4}$/.test(pin)) {
-                        msg.className = 'toast err'; msg.textContent = 'New shipment needs a 4-digit access PIN (also used for /chat).';
+                        msg.className = 'toast err'; msg.textContent = 'New shipment needs a permanent 4-digit access PIN.';
                         toast('err', 'Access PIN required (4 digits)');
                         return;
                     }
                     body.accessPin = pin;
-                } else if (pin) {
-                    if (!/^[0-9]{4}$/.test(pin)) { msg.className = 'toast err'; msg.textContent = 'Access PIN must be 4 digits'; return; }
-                    body.accessPin = pin;
                 }
+                // Existing shipment: never change accessPin
                 try {
                     var saved;
                     if (!codeEdit) {

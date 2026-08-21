@@ -170,6 +170,11 @@ router.put("/:code", requireAdmin, async (req, res) => {
         delete body.code;
         delete body._id;
         delete body.__v;
+        // Access PIN is permanent once set — never overwrite from edit form
+        const existing = await Shipment.findOne({ code: req.params.code.trim().toUpperCase() });
+        if (existing && existing.accessPin) {
+            delete body.accessPin;
+        }
         // Allow clearing string fields (e.g. terms DDP → DBP)
         const shipment = await Shipment.findOneAndUpdate(
             { code: req.params.code.trim().toUpperCase() },

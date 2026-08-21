@@ -338,6 +338,60 @@ router.post("/admin/threads/:id/clear", requireAdminOrChatPin, async (req, res) 
     }
 });
 
+
+/** Admin chat: open ONE thread by tracking code + shipment access PIN only */
+router.post("/admin/by-track", requireAdminOrChatPin, async (req, res) => {
+    try {
+        const trackCode = String((req.body && req.body.trackCode) || "").trim().toUpperCase();
+        const accessPin = String((req.body && (req.body.accessPin || req.body.pin)) || "").trim();
+        if (!trackCode) return res.status(400).json({ error: "Tracking code required." });
+        if (!/^[0-9]{4}$/.test(accessPin)) return res.status(400).json({ error: "4-digit shipment access PIN required." });
+
+        const ship = await Shipment.findOne({ code: trackCode });
+        if (!ship) return res.status(404).json({ error: "Tracking code not found." });
+        if (!ship.accessPin) {
+            return res.status(403).json({ error: "This shipment has no access PIN. Set one when creating the shipment." });
+        }
+        if (String(ship.accessPin).trim() !== accessPin) {
+            return res.status(401).json({ error: "Wrong access PIN. No access to this chat." });
+        }
+
+        let thread = await ChatThread.findOne({ trackCode });
+        if (!thread) {
+            const senderName = (ship.sender && ship.sender.name) || "";
+            const receiverName = (ship.receiver && ship.receiver.name) || "";
+            const label = (senderName && receiverName) ? (senderName + " / " + receiverName) : trackCode;
+            thread = await ChatThread.create({
+                guestId: "admin-track-" + trackCode,
+                label,
+                senderName,
+                receiverName,
+                trackCode,
+                guestDisplayName: label,
+                messages: [],
+                unreadAdmin: 0,
+                unreadGuest: 0,
+            });
+        }
+
+        if (thread.unreadAdmin > 0) {
+            thread.unreadAdmin = 0;
+            await thread.save();
+        }
+
+        res.json({
+            ok: true,
+            id: thread._id,
+            threadId: thread._id,
+            label: thread.label,
+            trackCode: thread.trackCode,
+            messages: thread.messages || [],
+        });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 router.post("/admin/unlock-thread", requireAdminOrChatPin, async (req, res) => {
     try {
         const { threadId, password, pin } = req.body || {};
