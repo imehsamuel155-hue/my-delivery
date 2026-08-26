@@ -1985,7 +1985,7 @@ header.navbar .btn-outline {
         min-height: 260px;
     }
 }
-
+}
 
 /* Old full-width black language bar removed */
 .lang-strip,
@@ -4696,13 +4696,10 @@ body.menu-open #overlay {
     overflow: hidden;
     padding: 0 !important;
     background-color: #1a1a1a;
-    /* >>> PUT YOUR PHOTO HERE <<<
-     1) Save file as: public/images/hero-bg.jpg
-     2) Keep this line (or change the filename):
-  */
+    /* Background file: public/images/0bb6d71f2100ec98646099d8716334e5.jpg */
+
     background-image:
-        linear-gradient(180deg, rgba(0, 0, 0, .30), rgba(0, 0, 0, .45)),
-        url('/my-delivery/public/images/0bb6d71f2100ec98646099d8716334e5.jpg');
+        url('/images/0bb6d71f2100ec98646099d8716334e5.jpg');
     background-size: cover, cover;
     background-position: center center, center center;
     background-repeat: no-repeat, no-repeat;
