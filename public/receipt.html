@@ -285,7 +285,7 @@
             display: block;
         }
 
-        /* Receipt background watermark — put your logo at /images/receipt-watermark.png */
+        /* Receipt watermark — public/images/receipt-watermark.png */
         .receipt-watermark {
             position: absolute;
             inset: 0;
@@ -298,13 +298,14 @@
         }
 
         .receipt-watermark img {
-            width: min(78%, 520px);
-            max-height: 70%;
+            width: min(82%, 560px);
+            max-height: 72%;
             object-fit: contain;
-            /* 7.5% brightness watermark */
-            filter: brightness(0.075);
-            opacity: 1;
+            /* visible light watermark (0.075 brightness was invisible on white) */
+            opacity: 0.14;
+            filter: none;
             user-select: none;
+            -webkit-user-drag: none;
         }
 
         .sheet>*:not(.receipt-watermark) {
@@ -314,7 +315,7 @@
 
         @media print {
             .receipt-watermark img {
-                filter: brightness(0.075);
+                opacity: 0.14;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
@@ -569,10 +570,11 @@
 
     <div class="sheet-wrap">
         <div class="sheet" id="sheet">
-            <!-- Watermark: replace file at public/images/receipt-watermark.png with your DHL logo -->
+            <!-- Watermark: put logo at public/images/receipt-watermark.png (redeploy after adding) -->
             <div class="receipt-watermark" aria-hidden="true">
-                <img src="/my-delivery/public/images/Screenshot_20260818-050108-removebg-preview.png" alt=""
-                    onerror="this.style.display='none'">
+                <img id="receiptWatermarkImg"
+                    src="/my-delivery/public/images/Screenshot_20260818-050108-removebg-preview.png" alt=""
+                    onerror="this.onerror=null;this.src='/images/receipt-watermark.jpg?v=2';this.onerror=function(){this.style.display='none'};">
             </div>
             <div class="hdr">
                 <div>

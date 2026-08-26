@@ -2557,8 +2557,12 @@ function setSiteLang(lang) {
 
     function shouldSkip(el) {
         if (!el || !el.closest) return true;
-        if (el.closest('#langStrip') || el.closest('.site-lang-bar') || el.closest('#heroLang')) return true;
+        if (el.closest('#langStrip') || el.closest('.site-lang-bar') || el.closest('#heroLang') || el.closest('.hero-lang-pill')) return true;
         if (el.closest('#adminDashboard') || el.closest('#adminView') || el.closest('.modal-overlay')) return true;
+        // never touch animated stats counters (language change was resetting them to 0)
+        if (el.classList && el.classList.contains('count-up')) return true;
+        if (el.getAttribute && el.getAttribute('data-target') != null) return true;
+        if (el.closest && el.closest('.count-up')) return true;
         // never translate live admin-entered receipt values
         if (el.id && /^(sName|sAddr|sPhone|sEmail|rName|rAddr|rPhone|rEmail|rCode|dDate|dWaybill|dService|dPack|dPieces|dWeight|dDim|dCharge|dInsure|dTerms|dDecl|dDuties|dEtd|dMode|dCarrier|dPayMethod|dPayStatus|dAmount|dBillAcct|dSpecial|dRef|dDesc)$/.test(el.id)) return true;
         if (el.getAttribute && el.getAttribute('data-no-i18n') === '1') return true;
@@ -2633,6 +2637,18 @@ function setSiteLang(lang) {
 
     const sel = document.getElementById('siteLang');
     if (sel) sel.value = lang;
+
+    // Restore stats numbers (never leave them stuck at 0 after language change)
+    document.querySelectorAll('.count-up').forEach(function (el) {
+        var target = parseFloat(el.getAttribute('data-target') || '0');
+        var suffix = el.getAttribute('data-suffix') || '';
+        var decimals = parseInt(el.getAttribute('data-decimals') || '0', 10);
+        el.textContent = (decimals ? target.toFixed(decimals) : String(Math.round(target))) + suffix;
+        el.dataset.done = '1';
+    });
+    if (typeof window.rerunStatCounters === 'function') {
+        try { window.rerunStatCounters(true); } catch (e) { }
+    }
 }
 window.setSiteLang = setSiteLang;
 (function initLang() {
