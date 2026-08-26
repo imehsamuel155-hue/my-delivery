@@ -1985,7 +1985,7 @@ header.navbar .btn-outline {
         min-height: 260px;
     }
 }
-}
+
 
 /* Old full-width black language bar removed */
 .lang-strip,
@@ -4686,7 +4686,7 @@ body.menu-open #overlay {
     cursor: pointer;
 }
 
-/* HERO BACKGROUND — CSS only (no broken <img>) */
+/* HERO BACKGROUND — add YOUR photo path below (no online image) */
 .video-hero {
     position: relative;
     min-height: 72vh;
@@ -4696,19 +4696,20 @@ body.menu-open #overlay {
     overflow: hidden;
     padding: 0 !important;
     background-color: #1a1a1a;
-    /* local file first, remote photo if local missing */
+    /* >>> PUT YOUR PHOTO HERE <<<
+     1) Save file as: public/images/hero-bg.jpg
+     2) Keep this line (or change the filename):
+  */
     background-image:
         linear-gradient(180deg, rgba(0, 0, 0, .30), rgba(0, 0, 0, .45)),
-        url('/images/hero-bg.jpg'),
-        url('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1920&q=80');
-    background-size: cover, cover, cover;
-    background-position: center center, center center, center center;
-    background-repeat: no-repeat, no-repeat, no-repeat;
+        url('/my-delivery/public/images/0bb6d71f2100ec98646099d8716334e5.jpg');
+    background-size: cover, cover;
+    background-position: center center, center center;
+    background-repeat: no-repeat, no-repeat;
 }
 
 .video-hero .hero-bg {
     display: none !important;
-    /* CSS handles background — no img tag needed */
 }
 
 .hero-bg-overlay {
