@@ -102,18 +102,49 @@
 </head>
 
 <body>
-    <div class="bar"><b>DHL</b><a href="/">Back</a></div>
+    <div class="bar"><b>DHL</b><a href="/" id="boxBack">Back</a></div>
     <div class="wrap">
-        <div class="pick">
+        <div class="pick" id="boxPick">
             Receipt QR only
             <input type="file" id="file" accept="image/*" style="display:block;margin:10px auto 0;">
         </div>
         <div class="wait" id="wait"><b id="dots">......</b>
-            <div>Please wait</div>
+            <div data-i18n-box="Please wait">Please wait</div>
         </div>
         <p class="msg" id="msg"></p>
         <div id="stage"></div>
     </div>
+    <script>
+        /* Language follows index dropdown (localStorage dhl_lang) */
+        (function () {
+            var BOX = {
+                en: { Back: 'Back', 'Receipt QR only': 'Receipt QR only', 'Please wait': 'Please wait' },
+                id: { Back: 'Kembali', 'Receipt QR only': 'Hanya QR tanda terima', 'Please wait': 'Mohon tunggu' },
+                ms: { Back: 'Kembali', 'Receipt QR only': 'QR resit sahaja', 'Please wait': 'Sila tunggu' },
+                es: { Back: 'Volver', 'Receipt QR only': 'Solo QR del recibo', 'Please wait': 'Por favor espere' },
+                mx: { Back: 'Volver', 'Receipt QR only': 'Solo QR del recibo', 'Please wait': 'Por favor espere' },
+                fr: { Back: 'Retour', 'Receipt QR only': 'QR du reçu uniquement', 'Please wait': 'Veuillez patienter' },
+                de: { Back: 'Zurück', 'Receipt QR only': 'Nur Beleg-QR', 'Please wait': 'Bitte warten' },
+                zh: { Back: '返回', 'Receipt QR only': '仅收据二维码', 'Please wait': '请稍候' }
+            };
+            try {
+                var L = localStorage.getItem('dhl_lang') || 'en';
+                var m = BOX[L] || BOX.en;
+                document.documentElement.lang = L === 'mx' ? 'es' : L;
+                var back = document.getElementById('boxBack');
+                if (back) back.textContent = m.Back || 'Back';
+                var pick = document.getElementById('boxPick');
+                if (pick) {
+                    var txt = pick.firstChild;
+                    if (txt && txt.nodeType === 3) txt.textContent = (m['Receipt QR only'] || 'Receipt QR only') + '\n    ';
+                }
+                document.querySelectorAll('[data-i18n-box]').forEach(function (el) {
+                    var k = el.getAttribute('data-i18n-box');
+                    if (m[k]) el.textContent = m[k];
+                });
+            } catch (e) { }
+        })();
+    </script>
     <script>
         const API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
             ? 'http://localhost:5000/api' : 'https://my-delivery-w6xz.onrender.com/api';
@@ -123,7 +154,7 @@
          *  Optional per tracking code (never mixed): public/videos/DHL20089.mp4
          */
         const PROMPT_VIDEO = '/videos/box-prompt.mp4';
-        const PACKAGE_VIDEO = '/videos/WA_1786454066409.mp4';
+        const PACKAGE_VIDEO = '/videos/package.mp4';
 
         const ERR_QR = 'Please input correct QRCODE to access this server.';
         const ERR_OFF = 'Server unavailable for now. Try again or refresh the site.';
@@ -186,7 +217,7 @@
 
         async function isBoxServiceOn() {
             try {
-                const res = await fetch(API + '/auth/box-service');
+                const res = await fetch(API + '/shipments/box-service');
                 const data = await res.json().catch(() => ({}));
                 return data.on !== false;
             } catch (e) {

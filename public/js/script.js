@@ -2105,87 +2105,540 @@ window.verifySettingsPin = submitSettingsPin;
 
 
 
-/* ---- Site language (public pages + receipt; not admin login) ---- */
+/* ---- Site language (index controls whole public site: index + receipt + box) ---- */
 const SITE_I18N = {
     en: {
         'Track Now': 'Track Now', 'Service': 'Service', 'About Us': 'About Us', 'Contact Us': 'Contact Us',
         'Receipt': 'Receipt', 'Box': 'Box', 'Log In': 'Log In', 'Track Package': 'Track Package',
         'Live Location': 'Live Location', 'Sender': 'Sender', 'Receiver': 'Receiver',
         'Shipment Date': 'Shipment Date', 'Est. Delivery': 'Est. Delivery', 'Language': 'Language',
-        'Your package, tracked': 'Your package, tracked', 'Home': 'Home', 'Testimonials': 'Testimonials'
+        'Your package, tracked': 'Your package, tracked', 'Home': 'Home', 'Testimonials': 'Testimonials',
+        'Customer Service': 'Customer Service', 'Our Services': 'Our Services', 'Track': 'Track',
+        'Ship ▾': 'Ship ▾', 'Find a Service Point': 'Find a Service Point',
+        'What clients say': 'What clients say', 'TRUSTED BY SHIPPERS': 'TRUSTED BY SHIPPERS',
+        'Please wait': 'Please wait', 'Loading…': 'Loading…',
+        'Enter tracking code': 'Enter tracking code',
+        'DISPATCHED DAILY · 120+ COUNTRIES': 'DISPATCHED DAILY · 120+ COUNTRIES'
     },
     id: {
         'Track Now': 'Lacak Sekarang', 'Service': 'Layanan', 'About Us': 'Tentang Kami', 'Contact Us': 'Hubungi Kami',
         'Receipt': 'Tanda Terima', 'Box': 'Kotak', 'Log In': 'Masuk', 'Track Package': 'Lacak Paket',
         'Live Location': 'Lokasi Langsung', 'Sender': 'Pengirim', 'Receiver': 'Penerima',
         'Shipment Date': 'Tanggal Pengiriman', 'Est. Delivery': 'Perkiraan Tiba', 'Language': 'Bahasa',
-        'Home': 'Beranda', 'Testimonials': 'Testimoni'
+        'Home': 'Beranda', 'Testimonials': 'Testimoni',
+        'Customer Service': 'Layanan Pelanggan', 'Our Services': 'Layanan Kami', 'Track': 'Lacak',
+        'Ship ▾': 'Kirim ▾', 'Find a Service Point': 'Temukan Titik Layanan',
+        'What clients say': 'Kata klien', 'TRUSTED BY SHIPPERS': 'DIPERCAYA PENGIRIM',
+        'Please wait': 'Mohon tunggu', 'Loading…': 'Memuat…',
+        'Enter tracking code': 'Masukkan kode pelacakan',
+        'DISPATCHED DAILY · 120+ COUNTRIES': 'DIKIRIM SETIAP HARI · 120+ NEGARA'
     },
     ms: {
         'Track Now': 'Jejak Sekarang', 'Service': 'Perkhidmatan', 'About Us': 'Tentang Kami', 'Contact Us': 'Hubungi Kami',
         'Receipt': 'Resit', 'Box': 'Kotak', 'Log In': 'Log Masuk', 'Track Package': 'Jejak Pakej',
         'Live Location': 'Lokasi Langsung', 'Sender': 'Pengirim', 'Receiver': 'Penerima',
         'Shipment Date': 'Tarikh Penghantaran', 'Est. Delivery': 'Anggaran Sampai', 'Language': 'Bahasa',
-        'Home': 'Laman Utama', 'Testimonials': 'Testimoni'
+        'Home': 'Laman Utama', 'Testimonials': 'Testimoni',
+        'Customer Service': 'Khidmat Pelanggan', 'Our Services': 'Perkhidmatan Kami', 'Track': 'Jejak',
+        'Ship ▾': 'Hantar ▾', 'Find a Service Point': 'Cari Titik Perkhidmatan',
+        'What clients say': 'Kata pelanggan', 'TRUSTED BY SHIPPERS': 'DIPERCAYAI PENGIRIM',
+        'Please wait': 'Sila tunggu', 'Loading…': 'Memuatkan…',
+        'Enter tracking code': 'Masukkan kod penjejakan',
+        'DISPATCHED DAILY · 120+ COUNTRIES': 'DIHANTAR SETIAP HARI · 120+ NEGARA'
     },
     es: {
         'Track Now': 'Rastrear', 'Service': 'Servicio', 'About Us': 'Sobre nosotros', 'Contact Us': 'Contacto',
         'Receipt': 'Recibo', 'Box': 'Caja', 'Log In': 'Iniciar sesión', 'Track Package': 'Rastrear paquete',
         'Live Location': 'Ubicación en vivo', 'Sender': 'Remitente', 'Receiver': 'Destinatario',
         'Shipment Date': 'Fecha de envío', 'Est. Delivery': 'Entrega est.', 'Language': 'Idioma',
-        'Home': 'Inicio', 'Testimonials': 'Testimonios'
+        'Home': 'Inicio', 'Testimonials': 'Testimonios',
+        'Customer Service': 'Atención al cliente', 'Our Services': 'Nuestros servicios', 'Track': 'Rastrear',
+        'Ship ▾': 'Enviar ▾', 'Find a Service Point': 'Buscar punto de servicio',
+        'What clients say': 'Lo que dicen los clientes', 'TRUSTED BY SHIPPERS': 'CONFIANZA DE REMITENTES',
+        'Please wait': 'Por favor espere', 'Loading…': 'Cargando…',
+        'Enter tracking code': 'Ingrese el código de seguimiento',
+        'DISPATCHED DAILY · 120+ COUNTRIES': 'ENVÍOS DIARIOS · 120+ PAÍSES'
+    },
+    mx: {
+        'Track Now': 'Rastrear', 'Service': 'Servicio', 'About Us': 'Sobre nosotros', 'Contact Us': 'Contacto',
+        'Receipt': 'Recibo', 'Box': 'Caja', 'Log In': 'Iniciar sesión', 'Track Package': 'Rastrear paquete',
+        'Live Location': 'Ubicación en vivo', 'Sender': 'Remitente', 'Receiver': 'Destinatario',
+        'Shipment Date': 'Fecha de envío', 'Est. Delivery': 'Entrega est.', 'Language': 'Idioma',
+        'Home': 'Inicio', 'Testimonials': 'Testimonios',
+        'Customer Service': 'Atención al cliente', 'Our Services': 'Nuestros servicios', 'Track': 'Rastrear',
+        'Ship ▾': 'Enviar ▾', 'Find a Service Point': 'Buscar punto de servicio',
+        'What clients say': 'Lo que dicen los clientes', 'TRUSTED BY SHIPPERS': 'CONFIANZA DE REMITENTES',
+        'Please wait': 'Por favor espere', 'Loading…': 'Cargando…',
+        'Enter tracking code': 'Ingrese el código de seguimiento',
+        'DISPATCHED DAILY · 120+ COUNTRIES': 'ENVÍOS DIARIOS · 120+ PAÍSES'
     },
     fr: {
         'Track Now': 'Suivre', 'Service': 'Service', 'About Us': 'À propos', 'Contact Us': 'Contact',
         'Receipt': 'Reçu', 'Box': 'Colis', 'Log In': 'Connexion', 'Track Package': 'Suivre le colis',
         'Live Location': 'Localisation', 'Sender': 'Expéditeur', 'Receiver': 'Destinataire',
         'Shipment Date': "Date d'envoi", 'Est. Delivery': 'Livraison est.', 'Language': 'Langue',
-        'Home': 'Accueil', 'Testimonials': 'Témoignages'
+        'Home': 'Accueil', 'Testimonials': 'Témoignages',
+        'Customer Service': 'Service client', 'Our Services': 'Nos services', 'Track': 'Suivre',
+        'Ship ▾': 'Expédier ▾', 'Find a Service Point': 'Trouver un point de service',
+        'What clients say': 'Ce que disent les clients', 'TRUSTED BY SHIPPERS': 'LA CONFIANCE DES EXPÉDITEURS',
+        'Please wait': 'Veuillez patienter', 'Loading…': 'Chargement…',
+        'Enter tracking code': 'Entrez le code de suivi',
+        'DISPATCHED DAILY · 120+ COUNTRIES': 'EXPÉDIÉ CHAQUE JOUR · 120+ PAYS'
     },
     de: {
         'Track Now': 'Sendung verfolgen', 'Service': 'Service', 'About Us': 'Über uns', 'Contact Us': 'Kontakt',
         'Receipt': 'Beleg', 'Box': 'Paket', 'Log In': 'Anmelden', 'Track Package': 'Paket verfolgen',
         'Live Location': 'Live-Standort', 'Sender': 'Absender', 'Receiver': 'Empfänger',
         'Shipment Date': 'Versanddatum', 'Est. Delivery': 'Vorauss. Lieferung', 'Language': 'Sprache',
-        'Home': 'Start', 'Testimonials': 'Meinungen'
+        'Home': 'Start', 'Testimonials': 'Meinungen',
+        'Customer Service': 'Kundenservice', 'Our Services': 'Unsere Dienste', 'Track': 'Verfolgen',
+        'Ship ▾': 'Versenden ▾', 'Find a Service Point': 'Servicepunkt finden',
+        'What clients say': 'Kundenstimmen', 'TRUSTED BY SHIPPERS': 'VERTRAUEN VON VERSENDERN',
+        'Please wait': 'Bitte warten', 'Loading…': 'Wird geladen…',
+        'Enter tracking code': 'Sendungsnummer eingeben',
+        'DISPATCHED DAILY · 120+ COUNTRIES': 'TÄGLICH VERSANDT · 120+ LÄNDER'
     },
     zh: {
         'Track Now': '追踪', 'Service': '服务', 'About Us': '关于我们', 'Contact Us': '联系我们',
         'Receipt': '收据', 'Box': '包裹', 'Log In': '登录', 'Track Package': '追踪包裹',
         'Live Location': '实时位置', 'Sender': '寄件人', 'Receiver': '收件人',
         'Shipment Date': '发货日期', 'Est. Delivery': '预计送达', 'Language': '语言',
-        'Home': '首页', 'Testimonials': '评价'
+        'Home': '首页', 'Testimonials': '评价',
+        'Customer Service': '客户服务', 'Our Services': '我们的服务', 'Track': '追踪',
+        'Ship ▾': '寄件 ▾', 'Find a Service Point': '查找服务点',
+        'What clients say': '客户评价', 'TRUSTED BY SHIPPERS': '深受发件人信赖',
+        'Please wait': '请稍候', 'Loading…': '加载中…',
+        'Enter tracking code': '输入运单号',
+        'DISPATCHED DAILY · 120+ COUNTRIES': '每日发运 · 120+ 国家/地区'
     }
 };
+/* Extra long-form strings for full public UI (index + nav + chat) */
+const SITE_I18N_EXTRA = {
+    id: {
+        'Your package, tracked every mile of the way.': 'Paket Anda, dilacak di setiap mil perjalanan.',
+        'Your package, tracked': 'Paket Anda, dilacak',
+        'every mile of the way.': 'di setiap mil perjalanan.',
+        'Moves freight by air, sea and land with live status updates from pickup to your door.': 'Mengangkut kargo lewat udara, laut, dan darat dengan status langsung dari penjemputan hingga ke pintu Anda.',
+        'What clients say': 'Kata klien',
+        'Our containers arrived two days early and the tracking page told us exactly which port they were at. Made our own customer updates painless.': 'Kontainer kami tiba dua hari lebih awal dan halaman pelacakan memberi tahu pelabuhan yang tepat. Pembaruan ke pelanggan jadi mudah.',
+        'Switched from a competitor after one bad delivery window. Air freight team kept us posted at every leg of a rush order.': 'Beralih dari kompetitor setelah satu pengiriman buruk. Tim kargo udara selalu memberi kabar di setiap tahap pesanan mendesak.',
+        'Navigating Latest Tariff Developments': 'Menavigasi Perkembangan Tarif Terbaru',
+        'Document and Parcel Shipping': 'Pengiriman Dokumen dan Paket',
+        'For All Shippers': 'Untuk Semua Pengirim',
+        'Learn about DHL Express – the undisputed global leader in international express shipping.': 'Pelajari DHL Express – pemimpin global pengiriman ekspres internasional.',
+        'Services Available': 'Layanan Tersedia',
+        'Next Possible Business Day': 'Hari Kerja Berikutnya yang Memungkinkan',
+        'Flexible Import/Export Options': 'Opsi Impor/Ekspor Fleksibel',
+        'DHL for Business': 'DHL untuk Bisnis',
+        'Get connected to the right experts in a few easy steps': 'Terhubung dengan ahli yang tepat dalam beberapa langkah mudah',
+        'Cargo Shipping': 'Pengiriman Kargo',
+        'Business Only': 'Khusus Bisnis',
+        'Discover shipping and logistics service options from DHL Global Forwarding.': 'Temukan opsi pengiriman dan logistik dari DHL Global Forwarding.',
+        'Air Freight': 'Kargo Udara',
+        'Road Freight': 'Kargo Darat',
+        'Ocean Freight': 'Kargo Laut',
+        'Rail Freight': 'Kargo Kereta',
+        'Important Service Updates': 'Pembaruan Layanan Penting',
+        'Service bulletins keep you up to date with news and alerts': 'Buletin layanan menjaga Anda tetap mendapat berita dan peringatan',
+        'What We Offer': 'Apa yang Kami Tawarkan',
+        'Our core logistics services': 'Layanan logistik inti kami',
+        'Air Express': 'Ekspres Udara',
+        'Road & Land': 'Darat & Jalan',
+        'Ocean & Freight': 'Laut & Kargo',
+        'Warehousing': 'Pergudangan',
+        'Time-critical international document and parcel delivery by air — next possible business day options worldwide.': 'Pengiriman dokumen dan paket internasional mendesak lewat udara — opsi hari kerja berikutnya di seluruh dunia.',
+        'Reliable ground transport for domestic and regional shipments with flexible pickup and delivery windows.': 'Transportasi darat andal untuk pengiriman domestik dan regional dengan jendela penjemputan dan pengantaran fleksibel.',
+        'Cost-effective ocean and multimodal freight for pallets, containers and larger cargo volumes.': 'Kargo laut dan multimodal hemat biaya untuk palet, kontainer, dan volume kargo lebih besar.',
+        'Fulfilment, storage and distribution solutions so your goods move smoothly from origin to last mile.': 'Solusi fulfillment, penyimpanan, dan distribusi agar barang bergerak lancar dari asal hingga last mile.',
+        'Frequently Asked Questions': 'Pertanyaan yang Sering Diajukan',
+        'How do you use my contact information?': 'Bagaimana Anda menggunakan informasi kontak saya?',
+        'We use your contact details only to respond to your shipping and support requests.': 'Kami menggunakan detail kontak Anda hanya untuk menanggapi permintaan pengiriman dan dukungan.',
+        'Customer Service': 'Layanan Pelanggan',
+        'Tracking online is the fastest way to check the status of your shipment(s). No account, no password and no phone calls required. All you need is the waybill number(s).': 'Pelacakan online adalah cara tercepat memeriksa status pengiriman. Tanpa akun, tanpa kata sandi, tanpa telepon. Cukup nomor waybill.',
+        'Track Your Shipment': 'Lacak Pengiriman Anda',
+        'Shipment Receipt': 'Tanda Terima Pengiriman',
+        'Package / Box': 'Paket / Kotak',
+        '24/7 Support': 'Dukungan 24/7',
+        'DHL Live Chat': 'Obrolan Langsung DHL',
+        '● Online': '● Online',
+        'Enter your tracking code to open a private chat. Labeled as shipment Sender / Receiver. Only you and support can see this conversation.': 'Masukkan kode pelacakan untuk membuka chat pribadi. Ditandai sebagai Pengirim / Penerima. Hanya Anda dan dukungan yang dapat melihat percakapan ini.',
+        'Enter your tracking code to open a private chat. Labeled as shipment Sender / Receiver.\n                Only you and support can see this conversation.': 'Masukkan kode pelacakan untuk membuka chat pribadi. Ditandai sebagai Pengirim / Penerima. Hanya Anda dan dukungan yang dapat melihat percakapan ini.',
+        'Tracking code': 'Kode pelacakan',
+        'Start chat': 'Mulai chat',
+        'Type a message…': 'Ketik pesan…',
+        'Send': 'Kirim',
+        'Please enter a tracking code.': 'Silakan masukkan kode pelacakan.',
+        'Please wait': 'Mohon tunggu',
+        'Loading…': 'Memuat…',
+        'SHIPMENTS HANDLED (K)': 'PENGIRIMAN DITANGANI (K)',
+        'ON-TIME DELIVERY RATE': 'TINGKAT TEPAT WAKTU',
+        'CUSTOMER SUPPORT': 'DUKUNGAN PELANGGAN',
+        'COUNTRIES SERVED': 'NEGARA DILAYANI',
+        'Get a Quote': 'Dapatkan Penawaran',
+        'Ship Now': 'Kirim Sekarang',
+        'Customer Portal Logins': 'Login Portal Pelanggan',
+        'Find a Service Point': 'Temukan Titik Layanan',
+        'Testimonials': 'Testimoni',
+        'Home': 'Beranda',
+        'Back': 'Kembali',
+        'Sustainability': 'Keberlanjutan',
+        'Explore DHL Global Forwarding': 'Jelajahi DHL Global Forwarding',
+        'Explore Our U.S. Tariff Solutions': 'Jelajahi Solusi Tarif AS Kami'
+    },
+    ms: {
+        'Your package, tracked every mile of the way.': 'Pakej anda, dijejak pada setiap batu perjalanan.',
+        'Moves freight by air, sea and land with live status updates from pickup to your door.': 'Menghantar kargo melalui udara, laut dan darat dengan status langsung dari pengambilan hingga ke pintu anda.',
+        'What clients say': 'Kata pelanggan',
+        'Our containers arrived two days early and the tracking page told us exactly which port they were at. Made our own customer updates painless.': 'Kontena kami tiba dua hari lebih awal dan halaman penjejakan memberitahu pelabuhan yang tepat. Kemaskini kepada pelanggan menjadi mudah.',
+        'Switched from a competitor after one bad delivery window. Air freight team kept us posted at every leg of a rush order.': 'Beralih dari pesaing selepas satu penghantaran buruk. Pasukan kargo udara sentiasa memberi maklum di setiap peringkat pesanan mendesak.',
+        'Navigating Latest Tariff Developments': 'Menavigasi Perkembangan Tarif Terkini',
+        'Document and Parcel Shipping': 'Penghantaran Dokumen dan Bungkusan',
+        'For All Shippers': 'Untuk Semua Pengirim',
+        'Learn about DHL Express – the undisputed global leader in international express shipping.': 'Ketahui tentang DHL Express – peneraju global penghantaran ekspres antarabangsa.',
+        'Services Available': 'Perkhidmatan Tersedia',
+        'Next Possible Business Day': 'Hari Perniagaan Seterusnya yang Mungkin',
+        'Flexible Import/Export Options': 'Pilihan Import/Eksport Fleksibel',
+        'DHL for Business': 'DHL untuk Perniagaan',
+        'Get connected to the right experts in a few easy steps': 'Berhubung dengan pakar yang betul dalam beberapa langkah mudah',
+        'Cargo Shipping': 'Penghantaran Kargo',
+        'Business Only': 'Perniagaan Sahaja',
+        'Discover shipping and logistics service options from DHL Global Forwarding.': 'Temui pilihan penghantaran dan logistik daripada DHL Global Forwarding.',
+        'Air Freight': 'Kargo Udara', 'Road Freight': 'Kargo Jalan', 'Ocean Freight': 'Kargo Laut', 'Rail Freight': 'Kargo Kereta Api',
+        'Important Service Updates': 'Kemaskini Perkhidmatan Penting',
+        'Service bulletins keep you up to date with news and alerts': 'Buletin perkhidmatan memastikan anda mendapat berita dan amaran',
+        'What We Offer': 'Apa Yang Kami Tawarkan',
+        'Our core logistics services': 'Perkhidmatan logistik teras kami',
+        'Air Express': 'Ekspres Udara', 'Road & Land': 'Jalan & Darat', 'Ocean & Freight': 'Laut & Kargo', 'Warehousing': 'Pergudangan',
+        'Time-critical international document and parcel delivery by air — next possible business day options worldwide.': 'Penghantaran dokumen dan bungkusan antarabangsa mendesak melalui udara — pilihan hari perniagaan seterusnya di seluruh dunia.',
+        'Reliable ground transport for domestic and regional shipments with flexible pickup and delivery windows.': 'Pengangkutan darat yang boleh dipercayai untuk penghantaran domestik dan serantau dengan tingkap pengambilan dan penghantaran fleksibel.',
+        'Cost-effective ocean and multimodal freight for pallets, containers and larger cargo volumes.': 'Kargo laut dan multimodal yang menjimatkan untuk palet, kontena dan volum kargo lebih besar.',
+        'Fulfilment, storage and distribution solutions so your goods move smoothly from origin to last mile.': 'Penyelesaian pemenuhan, penyimpanan dan pengedaran supaya barangan bergerak lancar dari asal ke last mile.',
+        'Frequently Asked Questions': 'Soalan Lazim',
+        'How do you use my contact information?': 'Bagaimana anda menggunakan maklumat hubungan saya?',
+        'We use your contact details only to respond to your shipping and support requests.': 'Kami menggunakan butiran hubungan anda hanya untuk membalas permintaan penghantaran dan sokongan.',
+        'Customer Service': 'Khidmat Pelanggan',
+        'Tracking online is the fastest way to check the status of your shipment(s). No account, no password and no phone calls required. All you need is the waybill number(s).': 'Penjejakan dalam talian adalah cara terpantas untuk semak status penghantaran. Tiada akaun, tiada kata laluan, tiada panggilan. Cukup nombor waybill.',
+        'Track Your Shipment': 'Jejak Penghantaran Anda', 'Shipment Receipt': 'Resit Penghantaran', 'Package / Box': 'Pakej / Kotak',
+        '24/7 Support': 'Sokongan 24/7', 'DHL Live Chat': 'Sembang Langsung DHL', '● Online': '● Dalam talian',
+        'Enter your tracking code to open a private chat. Labeled as shipment Sender / Receiver. Only you and support can see this conversation.': 'Masukkan kod penjejakan untuk buka sembang peribadi. Dilabel sebagai Pengirim / Penerima. Hanya anda dan sokongan dapat melihat perbualan ini.',
+        'Tracking code': 'Kod penjejakan', 'Start chat': 'Mula sembang', 'Type a message…': 'Taip mesej…', 'Send': 'Hantar',
+        'Please enter a tracking code.': 'Sila masukkan kod penjejakan.', 'Please wait': 'Sila tunggu', 'Loading…': 'Memuatkan…',
+        'SHIPMENTS HANDLED (K)': 'PENGHANTARAN DIKENDALIKAN (K)', 'ON-TIME DELIVERY RATE': 'KADAR TEPAT MASA',
+        'CUSTOMER SUPPORT': 'SOKONGAN PELANGGAN', 'COUNTRIES SERVED': 'NEGARA DILAYANI',
+        'Get a Quote': 'Dapatkan Sebut Harga', 'Ship Now': 'Hantar Sekarang', 'Customer Portal Logins': 'Log Masuk Portal Pelanggan',
+        'Find a Service Point': 'Cari Titik Perkhidmatan', 'Testimonials': 'Testimoni', 'Home': 'Laman Utama', 'Back': 'Kembali',
+        'Sustainability': 'Kelestarian', 'Explore DHL Global Forwarding': 'Terokai DHL Global Forwarding',
+        'Explore Our U.S. Tariff Solutions': 'Terokai Penyelesaian Tarif AS Kami', 'Track Package': 'Jejak Pakej', 'Language': 'Bahasa'
+    },
+    es: {
+        'Your package, tracked every mile of the way.': 'Su paquete, rastreado en cada kilómetro del camino.',
+        'Moves freight by air, sea and land with live status updates from pickup to your door.': 'Mueve carga por aire, mar y tierra con actualizaciones en vivo desde la recogida hasta su puerta.',
+        'What clients say': 'Lo que dicen los clientes',
+        'Our containers arrived two days early and the tracking page told us exactly which port they were at. Made our own customer updates painless.': 'Nuestros contenedores llegaron dos días antes y la página de seguimiento nos dijo exactamente en qué puerto estaban. Actualizar a nuestros clientes fue fácil.',
+        'Switched from a competitor after one bad delivery window. Air freight team kept us posted at every leg of a rush order.': 'Cambiamos de competidor tras una mala ventana de entrega. El equipo de carga aérea nos informó en cada tramo de un pedido urgente.',
+        'Navigating Latest Tariff Developments': 'Navegar los últimos desarrollos arancelarios',
+        'Document and Parcel Shipping': 'Envío de documentos y paquetes',
+        'For All Shippers': 'Para todos los remitentes',
+        'Learn about DHL Express – the undisputed global leader in international express shipping.': 'Conozca DHL Express, el líder mundial indiscutible del envío exprés internacional.',
+        'Services Available': 'Servicios disponibles',
+        'Next Possible Business Day': 'Siguiente día hábil posible',
+        'Flexible Import/Export Options': 'Opciones flexibles de importación/exportación',
+        'DHL for Business': 'DHL para empresas',
+        'Get connected to the right experts in a few easy steps': 'Conéctese con los expertos adecuados en unos pocos pasos',
+        'Cargo Shipping': 'Envío de carga', 'Business Only': 'Solo empresas',
+        'Discover shipping and logistics service options from DHL Global Forwarding.': 'Descubra las opciones de envío y logística de DHL Global Forwarding.',
+        'Air Freight': 'Carga aérea', 'Road Freight': 'Carga por carretera', 'Ocean Freight': 'Carga marítima', 'Rail Freight': 'Carga ferroviaria',
+        'Important Service Updates': 'Actualizaciones importantes del servicio',
+        'Service bulletins keep you up to date with news and alerts': 'Los boletines de servicio le mantienen al día con noticias y alertas',
+        'What We Offer': 'Lo que ofrecemos', 'Our core logistics services': 'Nuestros servicios logísticos principales',
+        'Air Express': 'Exprés aéreo', 'Road & Land': 'Carretera y tierra', 'Ocean & Freight': 'Mar y carga', 'Warehousing': 'Almacenamiento',
+        'Time-critical international document and parcel delivery by air — next possible business day options worldwide.': 'Entrega internacional urgente de documentos y paquetes por aire — opciones del siguiente día hábil en todo el mundo.',
+        'Reliable ground transport for domestic and regional shipments with flexible pickup and delivery windows.': 'Transporte terrestre fiable para envíos nacionales y regionales con ventanas de recogida y entrega flexibles.',
+        'Cost-effective ocean and multimodal freight for pallets, containers and larger cargo volumes.': 'Carga marítima y multimodal rentable para palés, contenedores y mayores volúmenes.',
+        'Fulfilment, storage and distribution solutions so your goods move smoothly from origin to last mile.': 'Soluciones de fulfillment, almacenamiento y distribución para que sus mercancías se muevan sin problemas del origen a la última milla.',
+        'Frequently Asked Questions': 'Preguntas frecuentes',
+        'How do you use my contact information?': '¿Cómo usan mi información de contacto?',
+        'We use your contact details only to respond to your shipping and support requests.': 'Usamos sus datos de contacto solo para responder a sus solicitudes de envío y soporte.',
+        'Customer Service': 'Atención al cliente',
+        'Tracking online is the fastest way to check the status of your shipment(s). No account, no password and no phone calls required. All you need is the waybill number(s).': 'El seguimiento en línea es la forma más rápida de consultar el estado de su envío. Sin cuenta, sin contraseña y sin llamadas. Solo necesita el número de guía.',
+        'Track Your Shipment': 'Rastrear su envío', 'Shipment Receipt': 'Recibo de envío', 'Package / Box': 'Paquete / Caja',
+        '24/7 Support': 'Soporte 24/7', 'DHL Live Chat': 'Chat en vivo DHL', '● Online': '● En línea',
+        'Enter your tracking code to open a private chat. Labeled as shipment Sender / Receiver. Only you and support can see this conversation.': 'Ingrese su código de seguimiento para abrir un chat privado. Etiquetado como Remitente / Destinatario. Solo usted y el soporte pueden ver esta conversación.',
+        'Tracking code': 'Código de seguimiento', 'Start chat': 'Iniciar chat', 'Type a message…': 'Escriba un mensaje…', 'Send': 'Enviar',
+        'Please enter a tracking code.': 'Ingrese un código de seguimiento.', 'Please wait': 'Por favor espere', 'Loading…': 'Cargando…',
+        'SHIPMENTS HANDLED (K)': 'ENVÍOS GESTIONADOS (K)', 'ON-TIME DELIVERY RATE': 'TASA DE ENTREGA A TIEMPO',
+        'CUSTOMER SUPPORT': 'ATENCIÓN AL CLIENTE', 'COUNTRIES SERVED': 'PAÍSES ATENDIDOS',
+        'Get a Quote': 'Obtener cotización', 'Ship Now': 'Enviar ahora', 'Customer Portal Logins': 'Accesos al portal del cliente',
+        'Find a Service Point': 'Buscar punto de servicio', 'Testimonials': 'Testimonios', 'Home': 'Inicio', 'Back': 'Volver',
+        'Sustainability': 'Sostenibilidad', 'Explore DHL Global Forwarding': 'Explorar DHL Global Forwarding',
+        'Explore Our U.S. Tariff Solutions': 'Explorar nuestras soluciones arancelarias de EE. UU.', 'Track Package': 'Rastrear paquete', 'Language': 'Idioma'
+    },
+    mx: {
+        'Your package, tracked every mile of the way.': 'Su paquete, rastreado en cada kilómetro del camino.',
+        'Moves freight by air, sea and land with live status updates from pickup to your door.': 'Mueve carga por aire, mar y tierra con actualizaciones en vivo desde la recolección hasta su puerta.',
+        'What clients say': 'Lo que dicen los clientes',
+        'Our containers arrived two days early and the tracking page told us exactly which port they were at. Made our own customer updates painless.': 'Nuestros contenedores llegaron dos días antes y la página de seguimiento nos dijo exactamente en qué puerto estaban. Actualizar a nuestros clientes fue fácil.',
+        'Switched from a competitor after one bad delivery window. Air freight team kept us posted at every leg of a rush order.': 'Cambiamos de competidor tras una mala ventana de entrega. El equipo de carga aérea nos informó en cada tramo de un pedido urgente.',
+        'Navigating Latest Tariff Developments': 'Navegar los últimos desarrollos arancelarios',
+        'Document and Parcel Shipping': 'Envío de documentos y paquetes',
+        'For All Shippers': 'Para todos los remitentes',
+        'Learn about DHL Express – the undisputed global leader in international express shipping.': 'Conozca DHL Express, el líder mundial indiscutible del envío exprés internacional.',
+        'Services Available': 'Servicios disponibles',
+        'Next Possible Business Day': 'Siguiente día hábil posible',
+        'Flexible Import/Export Options': 'Opciones flexibles de importación/exportación',
+        'DHL for Business': 'DHL para empresas',
+        'Get connected to the right experts in a few easy steps': 'Conéctese con los expertos adecuados en unos cuantos pasos',
+        'Cargo Shipping': 'Envío de carga', 'Business Only': 'Solo empresas',
+        'Discover shipping and logistics service options from DHL Global Forwarding.': 'Descubra las opciones de envío y logística de DHL Global Forwarding.',
+        'Air Freight': 'Carga aérea', 'Road Freight': 'Carga por carretera', 'Ocean Freight': 'Carga marítima', 'Rail Freight': 'Carga ferroviaria',
+        'Important Service Updates': 'Actualizaciones importantes del servicio',
+        'Service bulletins keep you up to date with news and alerts': 'Los boletines de servicio le mantienen al día con noticias y alertas',
+        'What We Offer': 'Lo que ofrecemos', 'Our core logistics services': 'Nuestros servicios logísticos principales',
+        'Air Express': 'Exprés aéreo', 'Road & Land': 'Carretera y tierra', 'Ocean & Freight': 'Mar y carga', 'Warehousing': 'Almacenamiento',
+        'Time-critical international document and parcel delivery by air — next possible business day options worldwide.': 'Entrega internacional urgente de documentos y paquetes por aire — opciones del siguiente día hábil en todo el mundo.',
+        'Reliable ground transport for domestic and regional shipments with flexible pickup and delivery windows.': 'Transporte terrestre confiable para envíos nacionales y regionales con ventanas de recolección y entrega flexibles.',
+        'Cost-effective ocean and multimodal freight for pallets, containers and larger cargo volumes.': 'Carga marítima y multimodal rentable para tarimas, contenedores y mayores volúmenes.',
+        'Fulfilment, storage and distribution solutions so your goods move smoothly from origin to last mile.': 'Soluciones de fulfillment, almacenamiento y distribución para que su mercancía se mueva sin problemas del origen a la última milla.',
+        'Frequently Asked Questions': 'Preguntas frecuentes',
+        'How do you use my contact information?': '¿Cómo usan mi información de contacto?',
+        'We use your contact details only to respond to your shipping and support requests.': 'Usamos sus datos de contacto solo para responder a sus solicitudes de envío y soporte.',
+        'Customer Service': 'Atención al cliente',
+        'Tracking online is the fastest way to check the status of your shipment(s). No account, no password and no phone calls required. All you need is the waybill number(s).': 'El seguimiento en línea es la forma más rápida de consultar el estado de su envío. Sin cuenta, sin contraseña y sin llamadas. Solo necesita el número de guía.',
+        'Track Your Shipment': 'Rastrear su envío', 'Shipment Receipt': 'Recibo de envío', 'Package / Box': 'Paquete / Caja',
+        '24/7 Support': 'Soporte 24/7', 'DHL Live Chat': 'Chat en vivo DHL', '● Online': '● En línea',
+        'Enter your tracking code to open a private chat. Labeled as shipment Sender / Receiver. Only you and support can see this conversation.': 'Ingrese su código de seguimiento para abrir un chat privado. Etiquetado como Remitente / Destinatario. Solo usted y el soporte pueden ver esta conversación.',
+        'Tracking code': 'Código de seguimiento', 'Start chat': 'Iniciar chat', 'Type a message…': 'Escriba un mensaje…', 'Send': 'Enviar',
+        'Please enter a tracking code.': 'Ingrese un código de seguimiento.', 'Please wait': 'Por favor espere', 'Loading…': 'Cargando…',
+        'SHIPMENTS HANDLED (K)': 'ENVÍOS GESTIONADOS (K)', 'ON-TIME DELIVERY RATE': 'TASA DE ENTREGA A TIEMPO',
+        'CUSTOMER SUPPORT': 'ATENCIÓN AL CLIENTE', 'COUNTRIES SERVED': 'PAÍSES ATENDIDOS',
+        'Get a Quote': 'Obtener cotización', 'Ship Now': 'Enviar ahora', 'Customer Portal Logins': 'Accesos al portal del cliente',
+        'Find a Service Point': 'Buscar punto de servicio', 'Testimonials': 'Testimonios', 'Home': 'Inicio', 'Back': 'Volver',
+        'Sustainability': 'Sostenibilidad', 'Explore DHL Global Forwarding': 'Explorar DHL Global Forwarding',
+        'Explore Our U.S. Tariff Solutions': 'Explorar nuestras soluciones arancelarias de EE. UU.', 'Track Package': 'Rastrear paquete', 'Language': 'Idioma'
+    },
+    fr: {
+        'Your package, tracked every mile of the way.': 'Votre colis, suivi à chaque kilomètre du trajet.',
+        'Moves freight by air, sea and land with live status updates from pickup to your door.': 'Transport de fret par air, mer et terre avec mises à jour en direct de l’enlèvement jusqu’à votre porte.',
+        'What clients say': 'Ce que disent les clients',
+        'Our containers arrived two days early and the tracking page told us exactly which port they were at. Made our own customer updates painless.': 'Nos conteneurs sont arrivés deux jours plus tôt et la page de suivi nous a indiqué le port exact. Mettre à jour nos clients a été simple.',
+        'Switched from a competitor after one bad delivery window. Air freight team kept us posted at every leg of a rush order.': 'Nous avons changé de concurrent après une mauvaise fenêtre de livraison. L’équipe fret aérien nous a tenus informés à chaque étape d’une commande urgente.',
+        'Navigating Latest Tariff Developments': 'Naviguer les derniers développements tarifaires',
+        'Document and Parcel Shipping': 'Envoi de documents et de colis',
+        'For All Shippers': 'Pour tous les expéditeurs',
+        'Learn about DHL Express – the undisputed global leader in international express shipping.': 'Découvrez DHL Express – le leader mondial incontesté de l’express international.',
+        'Services Available': 'Services disponibles',
+        'Next Possible Business Day': 'Prochain jour ouvrable possible',
+        'Flexible Import/Export Options': 'Options flexibles d’import/export',
+        'DHL for Business': 'DHL pour les entreprises',
+        'Get connected to the right experts in a few easy steps': 'Connectez-vous aux bons experts en quelques étapes simples',
+        'Cargo Shipping': 'Transport de fret', 'Business Only': 'Entreprises uniquement',
+        'Discover shipping and logistics service options from DHL Global Forwarding.': 'Découvrez les options d’expédition et de logistique de DHL Global Forwarding.',
+        'Air Freight': 'Fret aérien', 'Road Freight': 'Fret routier', 'Ocean Freight': 'Fret maritime', 'Rail Freight': 'Fret ferroviaire',
+        'Important Service Updates': 'Mises à jour importantes du service',
+        'Service bulletins keep you up to date with news and alerts': 'Les bulletins de service vous tiennent informés des actualités et alertes',
+        'What We Offer': 'Ce que nous offrons', 'Our core logistics services': 'Nos services logistiques essentiels',
+        'Air Express': 'Express aérien', 'Road & Land': 'Route et terre', 'Ocean & Freight': 'Mer et fret', 'Warehousing': 'Entreposage',
+        'Time-critical international document and parcel delivery by air — next possible business day options worldwide.': 'Livraison internationale urgente de documents et colis par avion — options du prochain jour ouvrable dans le monde.',
+        'Reliable ground transport for domestic and regional shipments with flexible pickup and delivery windows.': 'Transport terrestre fiable pour envois nationaux et régionaux avec fenêtres d’enlèvement et de livraison flexibles.',
+        'Cost-effective ocean and multimodal freight for pallets, containers and larger cargo volumes.': 'Fret maritime et multimodal économique pour palettes, conteneurs et volumes plus importants.',
+        'Fulfilment, storage and distribution solutions so your goods move smoothly from origin to last mile.': 'Solutions de fulfillment, stockage et distribution pour un flux fluide de l’origine au dernier kilomètre.',
+        'Frequently Asked Questions': 'Questions fréquentes',
+        'How do you use my contact information?': 'Comment utilisez-vous mes coordonnées ?',
+        'We use your contact details only to respond to your shipping and support requests.': 'Nous utilisons vos coordonnées uniquement pour répondre à vos demandes d’expédition et de support.',
+        'Customer Service': 'Service client',
+        'Tracking online is the fastest way to check the status of your shipment(s). No account, no password and no phone calls required. All you need is the waybill number(s).': 'Le suivi en ligne est le moyen le plus rapide de vérifier le statut de votre envoi. Pas de compte, pas de mot de passe, pas d’appel. Il suffit du numéro de lettre de transport.',
+        'Track Your Shipment': 'Suivre votre envoi', 'Shipment Receipt': "Reçu d'expédition", 'Package / Box': 'Colis / Boîte',
+        '24/7 Support': 'Support 24/7', 'DHL Live Chat': 'Chat en direct DHL', '● Online': '● En ligne',
+        'Enter your tracking code to open a private chat. Labeled as shipment Sender / Receiver. Only you and support can see this conversation.': 'Entrez votre code de suivi pour ouvrir un chat privé. Étiqueté Expéditeur / Destinataire. Seuls vous et le support voyez cette conversation.',
+        'Tracking code': 'Code de suivi', 'Start chat': 'Démarrer le chat', 'Type a message…': 'Tapez un message…', 'Send': 'Envoyer',
+        'Please enter a tracking code.': 'Veuillez entrer un code de suivi.', 'Please wait': 'Veuillez patienter', 'Loading…': 'Chargement…',
+        'SHIPMENTS HANDLED (K)': 'ENVOIS TRAITÉS (K)', 'ON-TIME DELIVERY RATE': 'TAUX DE LIVRAISON À TEMPS',
+        'CUSTOMER SUPPORT': 'SERVICE CLIENT', 'COUNTRIES SERVED': 'PAYS DESSERVIS',
+        'Get a Quote': 'Obtenir un devis', 'Ship Now': 'Expédier maintenant', 'Customer Portal Logins': 'Connexions portail client',
+        'Find a Service Point': 'Trouver un point de service', 'Testimonials': 'Témoignages', 'Home': 'Accueil', 'Back': 'Retour',
+        'Sustainability': 'Durabilité', 'Explore DHL Global Forwarding': 'Explorer DHL Global Forwarding',
+        'Explore Our U.S. Tariff Solutions': 'Explorer nos solutions tarifaires US', 'Track Package': 'Suivre le colis', 'Language': 'Langue'
+    },
+    de: {
+        'Your package, tracked every mile of the way.': 'Ihr Paket, auf jedem Kilometer des Weges verfolgt.',
+        'Moves freight by air, sea and land with live status updates from pickup to your door.': 'Fracht per Luft, See und Land mit Live-Status von der Abholung bis zu Ihrer Tür.',
+        'What clients say': 'Das sagen Kunden',
+        'Our containers arrived two days early and the tracking page told us exactly which port they were at. Made our own customer updates painless.': 'Unsere Container kamen zwei Tage früher an und die Tracking-Seite zeigte uns den genauen Hafen. Kundenupdates waren einfach.',
+        'Switched from a competitor after one bad delivery window. Air freight team kept us posted at every leg of a rush order.': 'Nach einem schlechten Lieferfenster vom Wettbewerber gewechselt. Das Luftfracht-Team hielt uns bei jedem Abschnitt einer Eilbestellung auf dem Laufenden.',
+        'Navigating Latest Tariff Developments': 'Aktuelle Zollentwicklungen navigieren',
+        'Document and Parcel Shipping': 'Dokumenten- und Paketversand',
+        'For All Shippers': 'Für alle Versender',
+        'Learn about DHL Express – the undisputed global leader in international express shipping.': 'Erfahren Sie mehr über DHL Express – den unbestrittenen Weltmarktführer im internationalen Expressversand.',
+        'Services Available': 'Verfügbare Dienste',
+        'Next Possible Business Day': 'Nächster möglicher Werktag',
+        'Flexible Import/Export Options': 'Flexible Import-/Exportoptionen',
+        'DHL for Business': 'DHL für Unternehmen',
+        'Get connected to the right experts in a few easy steps': 'In wenigen Schritten mit den richtigen Experten verbinden',
+        'Cargo Shipping': 'Frachtversand', 'Business Only': 'Nur Unternehmen',
+        'Discover shipping and logistics service options from DHL Global Forwarding.': 'Entdecken Sie Versand- und Logistikoptionen von DHL Global Forwarding.',
+        'Air Freight': 'Luftfracht', 'Road Freight': 'Straßenfracht', 'Ocean Freight': 'Seefracht', 'Rail Freight': 'Schienenfracht',
+        'Important Service Updates': 'Wichtige Service-Updates',
+        'Service bulletins keep you up to date with news and alerts': 'Service-Bulletins halten Sie mit Nachrichten und Warnungen auf dem Laufenden',
+        'What We Offer': 'Unser Angebot', 'Our core logistics services': 'Unsere zentralen Logistikdienste',
+        'Air Express': 'Luft-Express', 'Road & Land': 'Straße & Land', 'Ocean & Freight': 'See & Fracht', 'Warehousing': 'Lagerung',
+        'Time-critical international document and parcel delivery by air — next possible business day options worldwide.': 'Zeitkritische internationale Dokumenten- und Paketzustellung per Luft — Optionen für den nächsten Werktag weltweit.',
+        'Reliable ground transport for domestic and regional shipments with flexible pickup and delivery windows.': 'Zuverlässiger Landtransport für nationale und regionale Sendungen mit flexiblen Abhol- und Zustellfenstern.',
+        'Cost-effective ocean and multimodal freight for pallets, containers and larger cargo volumes.': 'Kostengünstige See- und multimodale Fracht für Paletten, Container und größere Volumina.',
+        'Fulfilment, storage and distribution solutions so your goods move smoothly from origin to last mile.': 'Fulfillment-, Lager- und Distributionslösungen für einen reibungslosen Warenfluss vom Ursprung bis zur letzten Meile.',
+        'Frequently Asked Questions': 'Häufige Fragen',
+        'How do you use my contact information?': 'Wie verwenden Sie meine Kontaktdaten?',
+        'We use your contact details only to respond to your shipping and support requests.': 'Wir verwenden Ihre Kontaktdaten nur, um auf Ihre Versand- und Supportanfragen zu antworten.',
+        'Customer Service': 'Kundenservice',
+        'Tracking online is the fastest way to check the status of your shipment(s). No account, no password and no phone calls required. All you need is the waybill number(s).': 'Online-Tracking ist der schnellste Weg, den Status Ihrer Sendung zu prüfen. Kein Konto, kein Passwort, kein Anruf. Sie brauchen nur die Frachtbriefnummer.',
+        'Track Your Shipment': 'Sendung verfolgen', 'Shipment Receipt': 'Sendungsbeleg', 'Package / Box': 'Paket / Box',
+        '24/7 Support': 'Support 24/7', 'DHL Live Chat': 'DHL Live-Chat', '● Online': '● Online',
+        'Enter your tracking code to open a private chat. Labeled as shipment Sender / Receiver. Only you and support can see this conversation.': 'Geben Sie Ihren Tracking-Code ein, um einen privaten Chat zu öffnen. Beschriftet als Absender / Empfänger. Nur Sie und der Support sehen dieses Gespräch.',
+        'Tracking code': 'Sendungsnummer', 'Start chat': 'Chat starten', 'Type a message…': 'Nachricht eingeben…', 'Send': 'Senden',
+        'Please enter a tracking code.': 'Bitte Sendungsnummer eingeben.', 'Please wait': 'Bitte warten', 'Loading…': 'Wird geladen…',
+        'SHIPMENTS HANDLED (K)': 'SENDUNGEN BEARBEITET (K)', 'ON-TIME DELIVERY RATE': 'PÜNKTLICHKEITSRATE',
+        'CUSTOMER SUPPORT': 'KUNDENSERVICE', 'COUNTRIES SERVED': 'BEDIENTE LÄNDER',
+        'Get a Quote': 'Angebot holen', 'Ship Now': 'Jetzt versenden', 'Customer Portal Logins': 'Kundenportal-Logins',
+        'Find a Service Point': 'Servicepunkt finden', 'Testimonials': 'Kundenstimmen', 'Home': 'Start', 'Back': 'Zurück',
+        'Sustainability': 'Nachhaltigkeit', 'Explore DHL Global Forwarding': 'DHL Global Forwarding entdecken',
+        'Explore Our U.S. Tariff Solutions': 'Unsere US-Zolllösungen entdecken', 'Track Package': 'Paket verfolgen', 'Language': 'Sprache'
+    },
+    zh: {
+        'Your package, tracked every mile of the way.': '您的包裹，全程每一程都可追踪。',
+        'Moves freight by air, sea and land with live status updates from pickup to your door.': '通过空运、海运和陆运运输货物，从取件到送达实时更新状态。',
+        'What clients say': '客户评价',
+        'Our containers arrived two days early and the tracking page told us exactly which port they were at. Made our own customer updates painless.': '我们的集装箱提前两天到达，追踪页面准确显示所在港口。向客户更新信息非常轻松。',
+        'Switched from a competitor after one bad delivery window. Air freight team kept us posted at every leg of a rush order.': '一次糟糕的派送窗口后我们换掉了竞争对手。空运团队在加急订单的每一段都及时通知我们。',
+        'Navigating Latest Tariff Developments': '了解最新关税动态',
+        'Document and Parcel Shipping': '文件与包裹运输',
+        'For All Shippers': '适用于所有发件人',
+        'Learn about DHL Express – the undisputed global leader in international express shipping.': '了解 DHL 快递——国际快递领域无可争议的全球领导者。',
+        'Services Available': '可用服务',
+        'Next Possible Business Day': '下一个可能的工作日',
+        'Flexible Import/Export Options': '灵活的进出口选项',
+        'DHL for Business': 'DHL 商务服务',
+        'Get connected to the right experts in a few easy steps': '几步即可联系到合适的专家',
+        'Cargo Shipping': '货运', 'Business Only': '仅限企业',
+        'Discover shipping and logistics service options from DHL Global Forwarding.': '探索 DHL 全球货运的运输与物流服务选项。',
+        'Air Freight': '空运', 'Road Freight': '公路货运', 'Ocean Freight': '海运', 'Rail Freight': '铁路货运',
+        'Important Service Updates': '重要服务更新',
+        'Service bulletins keep you up to date with news and alerts': '服务公告让您及时了解新闻与提醒',
+        'What We Offer': '我们提供的服务', 'Our core logistics services': '我们的核心物流服务',
+        'Air Express': '空运快递', 'Road & Land': '公路与陆运', 'Ocean & Freight': '海运与货运', 'Warehousing': '仓储',
+        'Time-critical international document and parcel delivery by air — next possible business day options worldwide.': '时效要求高的国际文件与包裹空运——全球下一工作日可选方案。',
+        'Reliable ground transport for domestic and regional shipments with flexible pickup and delivery windows.': '可靠的国内与区域陆运，取件与派送时间窗口灵活。',
+        'Cost-effective ocean and multimodal freight for pallets, containers and larger cargo volumes.': '经济高效的海运与多式联运，适用于托盘、集装箱及更大货量。',
+        'Fulfilment, storage and distribution solutions so your goods move smoothly from origin to last mile.': '履约、仓储与配送解决方案，让货物从始发地到最后一公里顺畅流转。',
+        'Frequently Asked Questions': '常见问题',
+        'How do you use my contact information?': '你们如何使用我的联系信息？',
+        'We use your contact details only to respond to your shipping and support requests.': '我们仅使用您的联系方式回复您的运输与支持请求。',
+        'Customer Service': '客户服务',
+        'Tracking online is the fastest way to check the status of your shipment(s). No account, no password and no phone calls required. All you need is the waybill number(s).': '在线追踪是查看运单状态的最快方式。无需账户、密码或电话。只需运单号。',
+        'Track Your Shipment': '追踪您的运单', 'Shipment Receipt': '运单收据', 'Package / Box': '包裹 / 箱',
+        '24/7 Support': '全天候支持', 'DHL Live Chat': 'DHL 在线客服', '● Online': '● 在线',
+        'Enter your tracking code to open a private chat. Labeled as shipment Sender / Receiver. Only you and support can see this conversation.': '输入运单号以开启私密聊天。标记为寄件人 / 收件人。仅您与客服可见此对话。',
+        'Tracking code': '运单号', 'Start chat': '开始聊天', 'Type a message…': '输入消息…', 'Send': '发送',
+        'Please enter a tracking code.': '请输入运单号。', 'Please wait': '请稍候', 'Loading…': '加载中…',
+        'SHIPMENTS HANDLED (K)': '处理运单数 (K)', 'ON-TIME DELIVERY RATE': '准时送达率',
+        'CUSTOMER SUPPORT': '客户支持', 'COUNTRIES SERVED': '服务国家/地区',
+        'Get a Quote': '获取报价', 'Ship Now': '立即寄件', 'Customer Portal Logins': '客户门户登录',
+        'Find a Service Point': '查找服务点', 'Testimonials': '评价', 'Home': '首页', 'Back': '返回',
+        'Sustainability': '可持续发展', 'Explore DHL Global Forwarding': '探索 DHL 全球货运',
+        'Explore Our U.S. Tariff Solutions': '探索我们的美国关税方案', 'Track Package': '追踪包裹', 'Language': '语言'
+    }
+};
+
 function setSiteLang(lang) {
     try { localStorage.setItem('dhl_lang', lang); } catch (e) { }
-    document.documentElement.lang = lang || 'en';
-    const map = SITE_I18N[lang] || SITE_I18N.en;
+    const htmlLang = lang === 'mx' ? 'es' : (lang || 'en');
+    document.documentElement.lang = htmlLang;
+    const base = SITE_I18N[lang] || SITE_I18N.en || {};
+    const extra = SITE_I18N_EXTRA[lang] || {};
+    const map = Object.assign({}, base, extra);
+
+    function shouldSkip(el) {
+        if (!el || !el.closest) return true;
+        if (el.closest('#langStrip') || el.closest('.site-lang-bar') || el.closest('#heroLang')) return true;
+        if (el.closest('#adminDashboard') || el.closest('#adminView') || el.closest('.modal-overlay')) return true;
+        // never translate live admin-entered receipt values
+        if (el.id && /^(sName|sAddr|sPhone|sEmail|rName|rAddr|rPhone|rEmail|rCode|dDate|dWaybill|dService|dPack|dPieces|dWeight|dDim|dCharge|dInsure|dTerms|dDecl|dDuties|dEtd|dMode|dCarrier|dPayMethod|dPayStatus|dAmount|dBillAcct|dSpecial|dRef|dDesc)$/.test(el.id)) return true;
+        if (el.getAttribute && el.getAttribute('data-no-i18n') === '1') return true;
+        return false;
+    }
+
+    function translateText(raw) {
+        if (!raw) return null;
+        const t = String(raw).replace(/\s+/g, ' ').trim();
+        if (!t || t.length < 2) return null;
+        if (map[t]) return map[t];
+        // partial hero title
+        if (t.indexOf('tracked') !== -1 && map['Your package, tracked']) return null;
+        return null;
+    }
+
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
         if (map[key]) el.textContent = map[key];
     });
-    document.querySelectorAll('a, button, h1, h2, h3, h4, p, label, span, .eyebrow').forEach(el => {
-        if (el.closest('#adminDashboard') || el.closest('#adminView') || el.closest('.modal-overlay') || el.closest('#langStrip') || el.closest('#heroLang')) return;
-        if (el.querySelector('input,button,select,img,svg')) return;
+
+    // Walk common text hosts across whole public page (index nav, sections, chat)
+    const nodes = document.querySelectorAll('a, button, h1, h2, h3, h4, p, label, span, li, summary, strong, small, .eyebrow, .hero-kicker, .sec-eyebrow, .guest-chat-head strong, .guest-chat-setup p, .guest-chat-label');
+    nodes.forEach(el => {
+        if (shouldSkip(el)) return;
+        if (el.querySelector && el.querySelector('input, button, select, img, svg, video, canvas')) {
+            // still try pure single text child
+        }
+        // only pure text elements or single text child
         if (el.childNodes.length === 1 && el.childNodes[0].nodeType === 3) {
-            const t = el.textContent.trim();
-            if (map[t]) el.textContent = map[t];
-            else {
-                // restore from data-en if stored
-                const en = el.getAttribute('data-en');
-                if (en && map[en]) el.textContent = map[en];
-                if (!en && t) el.setAttribute('data-en', t);
-            }
+            const original = el.getAttribute('data-en') || el.textContent.trim();
+            if (!el.getAttribute('data-en') && original) el.setAttribute('data-en', original);
+            const key = el.getAttribute('data-en');
+            if (map[key]) el.textContent = map[key];
+            else if (lang === 'en' || !map[key]) el.textContent = key;
+        } else if (!el.children.length) {
+            const original = el.getAttribute('data-en') || el.textContent.trim();
+            if (!el.getAttribute('data-en') && original) el.setAttribute('data-en', original);
+            const key = el.getAttribute('data-en');
+            if (map[key]) el.textContent = map[key];
+            else el.textContent = key;
         }
     });
+
+    // placeholders
+    document.querySelectorAll('input[placeholder]').forEach(inp => {
+        if (shouldSkip(inp)) return;
+        const ph = inp.getAttribute('data-en-ph') || inp.getAttribute('placeholder') || '';
+        if (!inp.getAttribute('data-en-ph')) inp.setAttribute('data-en-ph', ph);
+        if (map[ph]) inp.setAttribute('placeholder', map[ph]);
+        else inp.setAttribute('placeholder', inp.getAttribute('data-en-ph'));
+    });
+
+    // Hero title special (has nested span.accent)
+    document.querySelectorAll('.hero-content-center h1').forEach(h1 => {
+        if (lang === 'id') {
+            h1.innerHTML = 'Paket Anda, <span class="accent">dilacak</span><br>di setiap mil perjalanan.';
+        } else if (lang === 'ms') {
+            h1.innerHTML = 'Pakej anda, <span class="accent">dijejak</span><br>setiap batu perjalanan.';
+        } else if (lang === 'es' || lang === 'mx') {
+            h1.innerHTML = 'Su paquete, <span class="accent">rastreado</span><br>en cada kilómetro.';
+        } else if (lang === 'fr') {
+            h1.innerHTML = 'Votre colis, <span class="accent">suivi</span><br>à chaque kilomètre.';
+        } else if (lang === 'de') {
+            h1.innerHTML = 'Ihr Paket, <span class="accent">verfolgt</span><br>auf jedem Kilometer.';
+        } else if (lang === 'zh') {
+            h1.innerHTML = '您的包裹，<span class="accent">全程追踪</span><br>每一程。';
+        } else {
+            h1.innerHTML = 'Your package, <span class="accent">tracked</span><br>every mile of the way.';
+        }
+    });
+
     const sel = document.getElementById('siteLang');
     if (sel) sel.value = lang;
 }
+window.setSiteLang = setSiteLang;
 (function initLang() {
     try {
         const L = localStorage.getItem('dhl_lang') || 'en';
-        setTimeout(function () { setSiteLang(L); }, 50);
+        setTimeout(function () { setSiteLang(L); }, 80);
     } catch (e) { }
 })();
 

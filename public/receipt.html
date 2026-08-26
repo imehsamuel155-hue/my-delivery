@@ -277,10 +277,47 @@
             padding: 14px 16px 12px;
             font-size: 11.5px;
             line-height: 1.35;
+            position: relative;
+            overflow: hidden;
         }
 
         .sheet.show {
             display: block;
+        }
+
+        /* Receipt background watermark — put your logo at /images/receipt-watermark.png */
+        .receipt-watermark {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .receipt-watermark img {
+            width: min(78%, 520px);
+            max-height: 70%;
+            object-fit: contain;
+            /* 7.5% brightness watermark */
+            filter: brightness(0.075);
+            opacity: 1;
+            user-select: none;
+        }
+
+        .sheet>*:not(.receipt-watermark) {
+            position: relative;
+            z-index: 1;
+        }
+
+        @media print {
+            .receipt-watermark img {
+                filter: brightness(0.075);
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
         }
 
         .hdr {
@@ -520,17 +557,6 @@
     </div>
 
     <div class="toolbar no-print">
-        <select id="siteLangReceipt" onchange="setReceiptLang(this.value)"
-            style="padding:10px;border-radius:6px;border:1px solid #ccc;">
-            <option value="en">🇺🇸 English</option>
-            <option value="id">🇮🇩 Indonesia</option>
-            <option value="ms">🇲🇾 Malaysia</option>
-            <option value="es">🇪🇸 Spanish</option>
-            <option value="fr">🇫🇷 French</option>
-            <option value="de">🇩🇪 German</option>
-            <option value="zh">🇨🇳 Chinese</option>
-        </select>
-
         <input id="code" class="mono" placeholder="Enter tracking / delivery code" autocomplete="off">
         <button type="button" class="btn-y" id="btnLoad">Show receipt</button>
         <button type="button" class="btn-g" id="btnDl" title="Print / save PDF (one page)" disabled>Download / Print
@@ -543,6 +569,11 @@
 
     <div class="sheet-wrap">
         <div class="sheet" id="sheet">
+            <!-- Watermark: replace file at public/images/receipt-watermark.png with your DHL logo -->
+            <div class="receipt-watermark" aria-hidden="true">
+                <img src="/my-delivery/public/images/Screenshot_20260818-050108-removebg-preview.png" alt=""
+                    onerror="this.style.display='none'">
+            </div>
             <div class="hdr">
                 <div>
                     <div class="logo">DHL</div>
@@ -622,8 +653,8 @@
             </div>
 
             <div class="foot">
-                Official shipment record · Track: <a href="https://dhltrackpackage.web.app"
-                    style="color:#D40511;font-weight:700;">dhltrackpackage.web.app</a> · © DHL
+                Official shipment record · Track: <a href="https://trackmyshipmentorder.web.app"
+                    style="color:#D40511;font-weight:700;">trackmyshipmentorder.web.app</a> · © DHL
             </div>
         </div>
     </div>
@@ -769,30 +800,196 @@
         if (q) { document.getElementById('code').value = q; load(); }
     </script>
     <script>
-        function setReceiptLang(lang) {
-            try { localStorage.setItem('dhl_lang', lang); } catch (e) { }
-            var map = {
+        /* Language follows index dropdown (localStorage dhl_lang) — no separate selector on receipt */
+        (function () {
+            var MAP = {
                 en: {},
-                id: { 'Shipment Receipt': 'Tanda Terima Pengiriman', 'Sender': 'Pengirim', 'Receiver': 'Penerima', 'Reference Information': 'Informasi Referensi', 'Description of Contents': 'Deskripsi Isi' },
-                ms: { 'Shipment Receipt': 'Resit Penghantaran', 'Sender': 'Pengirim', 'Receiver': 'Penerima' },
-                es: { 'Shipment Receipt': 'Recibo de envío', 'Sender': 'Remitente', 'Receiver': 'Destinatario' },
-                fr: { 'Shipment Receipt': 'Reçu d\'expédition', 'Sender': 'Expéditeur', 'Receiver': 'Destinataire' },
-                de: { 'Shipment Receipt': 'Sendungsbeleg', 'Sender': 'Absender', 'Receiver': 'Empfänger' },
-                zh: { 'Shipment Receipt': '运单收据', 'Sender': '寄件人', 'Receiver': '收件人' }
+                id: {
+                    'Shipment Receipt': 'Tanda Terima Pengiriman',
+                    'Shipment From': 'Pengiriman Dari',
+                    'Shipment To': 'Pengiriman Ke',
+                    'Sender': 'Pengirim',
+                    'Receiver': 'Penerima',
+                    'Reference Information': 'Informasi Referensi',
+                    'Description of Contents': 'Deskripsi Isi',
+                    'Tracking code': 'Kode pelacakan',
+                    'Show receipt': 'Tampilkan tanda terima',
+                    'Download / Print PDF': 'Unduh / Cetak PDF',
+                    'Save JPG photo': 'Simpan foto JPG',
+                    'Enter the exact tracking code. Receipt unlocks only when the code is correct.': 'Masukkan kode pelacakan yang tepat. Tanda terima terbuka hanya jika kode benar.',
+                    'Please wait': 'Mohon tunggu',
+                    'Loading receipt…': 'Memuat tanda terima…'
+                },
+                ms: {
+                    'Shipment Receipt': 'Resit Penghantaran',
+                    'Shipment From': 'Penghantaran Dari',
+                    'Shipment To': 'Penghantaran Ke',
+                    'Sender': 'Pengirim',
+                    'Receiver': 'Penerima',
+                    'Reference Information': 'Maklumat Rujukan',
+                    'Description of Contents': 'Penerangan Kandungan',
+                    'Tracking code': 'Kod penjejakan',
+                    'Show receipt': 'Tunjuk resit',
+                    'Download / Print PDF': 'Muat turun / Cetak PDF',
+                    'Save JPG photo': 'Simpan foto JPG',
+                    'Please wait': 'Sila tunggu',
+                    'Loading receipt…': 'Memuatkan resit…'
+                },
+                es: {
+                    'Shipment Receipt': 'Recibo de envío',
+                    'Shipment From': 'Envío de',
+                    'Shipment To': 'Envío a',
+                    'Sender': 'Remitente',
+                    'Receiver': 'Destinatario',
+                    'Reference Information': 'Información de referencia',
+                    'Description of Contents': 'Descripción del contenido',
+                    'Tracking code': 'Código de seguimiento',
+                    'Show receipt': 'Mostrar recibo',
+                    'Download / Print PDF': 'Descargar / Imprimir PDF',
+                    'Save JPG photo': 'Guardar foto JPG',
+                    'Please wait': 'Por favor espere',
+                    'Loading receipt…': 'Cargando recibo…'
+                },
+                mx: {
+                    'Shipment Receipt': 'Recibo de envío',
+                    'Shipment From': 'Envío de',
+                    'Shipment To': 'Envío a',
+                    'Sender': 'Remitente',
+                    'Receiver': 'Destinatario',
+                    'Reference Information': 'Información de referencia',
+                    'Description of Contents': 'Descripción del contenido',
+                    'Tracking code': 'Código de seguimiento',
+                    'Show receipt': 'Mostrar recibo',
+                    'Download / Print PDF': 'Descargar / Imprimir PDF',
+                    'Save JPG photo': 'Guardar foto JPG',
+                    'Please wait': 'Por favor espere',
+                    'Loading receipt…': 'Cargando recibo…'
+                },
+                fr: {
+                    'Shipment Receipt': "Reçu d'expédition",
+                    'Shipment From': 'Expédition de',
+                    'Shipment To': 'Expédition vers',
+                    'Sender': 'Expéditeur',
+                    'Receiver': 'Destinataire',
+                    'Reference Information': 'Informations de référence',
+                    'Description of Contents': 'Description du contenu',
+                    'Tracking code': 'Code de suivi',
+                    'Show receipt': 'Afficher le reçu',
+                    'Download / Print PDF': 'Télécharger / Imprimer PDF',
+                    'Save JPG photo': 'Enregistrer photo JPG',
+                    'Please wait': 'Veuillez patienter',
+                    'Loading receipt…': 'Chargement du reçu…'
+                },
+                de: {
+                    'Shipment Receipt': 'Sendungsbeleg',
+                    'Shipment From': 'Sendung von',
+                    'Shipment To': 'Sendung an',
+                    'Sender': 'Absender',
+                    'Receiver': 'Empfänger',
+                    'Reference Information': 'Referenzinformationen',
+                    'Description of Contents': 'Inhaltsbeschreibung',
+                    'Tracking code': 'Sendungsnummer',
+                    'Show receipt': 'Beleg anzeigen',
+                    'Download / Print PDF': 'PDF herunterladen / drucken',
+                    'Save JPG photo': 'JPG-Foto speichern',
+                    'Please wait': 'Bitte warten',
+                    'Loading receipt…': 'Beleg wird geladen…'
+                },
+                zh: {
+                    'Shipment Receipt': '运单收据',
+                    'Shipment From': '发件方',
+                    'Shipment To': '收件方',
+                    'Sender': '寄件人',
+                    'Receiver': '收件人',
+                    'Reference Information': '参考信息',
+                    'Description of Contents': '内件描述',
+                    'Tracking code': '运单号',
+                    'Show receipt': '显示收据',
+                    'Download / Print PDF': '下载 / 打印 PDF',
+                    'Save JPG photo': '保存 JPG 照片',
+                    'Please wait': '请稍候',
+                    'Loading receipt…': '正在加载收据…'
+                }
             };
-            var m = map[lang] || {};
-            document.querySelectorAll('h1,h3').forEach(function (el) {
-                var t = el.getAttribute('data-en') || el.textContent.trim();
-                if (!el.getAttribute('data-en')) el.setAttribute('data-en', t);
-                if (m[t]) el.textContent = m[t];
-                else el.textContent = el.getAttribute('data-en');
+            // Expand labels (names/addresses from admin stay English/as typed)
+            Object.assign(MAP.id, {
+                'Shipment Details': 'Detail Pengiriman',
+                'International Information': 'Informasi Internasional',
+                'Billing Information': 'Informasi Penagihan',
+                'Shipment Date:': 'Tanggal Pengiriman:',
+                'Waybill Number:': 'Nomor Waybill:',
+                'Service Type:': 'Jenis Layanan:',
+                'Packaging Type:': 'Jenis Kemasan:',
+                'Number of Pieces:': 'Jumlah Pcs:',
+                'Total Weight:': 'Total Berat:',
+                'Dimensional:': 'Dimensi:',
+                'Chargeable:': 'Dikenakan Biaya:',
+                'Insured Amount:': 'Nilai Asuransi:',
+                'Terms of Trade:': 'Syarat Perdagangan:',
+                'Declared Value:': 'Nilai Deklarasi:',
+                'Duties/Taxes acct:': 'Bea/Pajak:',
+                'Estimated Del. date:': 'Perkiraan Tiba:',
+                'Mode:': 'Mode:',
+                'Carrier:': 'Kurir:',
+                'Payment Type:': 'Jenis Pembayaran:',
+                'Payment Status:': 'Status Pembayaran:',
+                'Amount:': 'Jumlah:',
+                'Billing Account:': 'Akun Penagihan:',
+                'Special Services:': 'Layanan Khusus:',
+                'Scan on Box page': 'Pindai di halaman Kotak'
             });
-        }
-        try {
-            var L = localStorage.getItem('dhl_lang') || 'en';
-            var s = document.getElementById('siteLangReceipt');
-            if (s) { s.value = L; setReceiptLang(L); }
-        } catch (e) { }
+            var SKIP_IDS = {
+                sName: 1, sAddr: 1, sPhone: 1, sEmail: 1, rName: 1, rAddr: 1, rPhone: 1, rEmail: 1, rCode: 1,
+                dDate: 1, dWaybill: 1, dService: 1, dPack: 1, dPieces: 1, dWeight: 1, dDim: 1, dCharge: 1, dInsure: 1, dTerms: 1,
+                dDecl: 1, dDuties: 1, dEtd: 1, dMode: 1, dCarrier: 1, dPayMethod: 1, dPayStatus: 1, dAmount: 1, dBillAcct: 1, dSpecial: 1, dRef: 1, dDesc: 1
+            };
+            function applyReceiptLang(lang) {
+                var m = MAP[lang] || MAP.en || {};
+                document.documentElement.lang = lang === 'mx' ? 'es' : (lang || 'en');
+                // Only structural labels — never overwrite admin-entered values
+                document.querySelectorAll('h1, h3').forEach(function (el) {
+                    if (SKIP_IDS[el.id]) return;
+                    var t = el.getAttribute('data-en') || el.textContent.trim();
+                    if (!el.getAttribute('data-en')) el.setAttribute('data-en', t);
+                    el.textContent = m[el.getAttribute('data-en')] || el.getAttribute('data-en');
+                });
+                document.querySelectorAll('.row > span:first-child').forEach(function (el) {
+                    if (SKIP_IDS[el.id]) return;
+                    var t = el.getAttribute('data-en') || el.textContent.trim();
+                    if (!el.getAttribute('data-en')) el.setAttribute('data-en', t);
+                    el.textContent = m[el.getAttribute('data-en')] || el.getAttribute('data-en');
+                });
+                document.querySelectorAll('.code-box').forEach(function (box) {
+                    box.childNodes.forEach(function (n) {
+                        if (n.nodeType === 3 && n.textContent.trim()) {
+                            if (!box.getAttribute('data-en-label')) box.setAttribute('data-en-label', n.textContent.trim());
+                            var k = box.getAttribute('data-en-label');
+                            n.textContent = '\n          ' + (m[k] || k) + '\n          ';
+                        }
+                    });
+                });
+                ['btnLoad', 'btnDl', 'btnJpg'].forEach(function (id) {
+                    var el = document.getElementById(id);
+                    if (!el) return;
+                    if (!el.getAttribute('data-en')) el.setAttribute('data-en', el.textContent.trim());
+                    el.textContent = m[el.getAttribute('data-en')] || el.getAttribute('data-en');
+                });
+                var msg = document.getElementById('msg');
+                if (msg) {
+                    if (!msg.getAttribute('data-en')) msg.setAttribute('data-en', msg.textContent.trim());
+                    var mk = msg.getAttribute('data-en');
+                    msg.textContent = m[mk] || mk;
+                }
+                document.querySelectorAll('.foot a').forEach(function (a) {
+                    a.href = 'https://trackmyshipmentorder.web.app';
+                    a.textContent = 'trackmyshipmentorder.web.app';
+                });
+            }
+            try {
+                var L = localStorage.getItem('dhl_lang') || 'en';
+                applyReceiptLang(L);
+            } catch (e) { }
+        })();
     </script>
 </body>
 

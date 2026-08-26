@@ -189,8 +189,14 @@ header.navbar .btn-outline:hover,
 /* legacy dark mobileMenu rules removed */
 
 main {
-    padding-top: 72px;
+    padding-top: 0;
     min-width: 0;
+}
+
+/* sticky video-header already in flow — no extra top gap / white band */
+body>main#siteView,
+main#siteView {
+    padding-top: 0 !important;
 }
 
 .hero {
@@ -1981,57 +1987,63 @@ header.navbar .btn-outline {
 }
 
 
-/* Language strip under header (NOT fixed like navbar) */
-.lang-strip {
+/* Old full-width black language bar removed */
+.lang-strip,
+.site-lang-bar {
     display: none !important;
-    /* no gap under navbar */
 }
 
-.lang-strip label {
-    font-size: 13px;
-    color: #555;
-    font-weight: 600;
-}
-
-.lang-strip select {
-    padding: 8px 12px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    font-size: 14px;
-    background: #fff;
-    color: #111;
-    max-width: 100%;
-}
-
-.hero-lang {
+/* Compact language pill on hero photo (matches your screenshot) */
+.hero-lang-pill {
     position: absolute;
-    top: 12px;
-    left: 12px;
-    z-index: 20;
-    display: flex;
+    top: 14px;
+    left: 14px;
+    z-index: 30;
+    display: inline-flex;
     align-items: center;
-    gap: 6px;
-    background: rgba(0, 0, 0, 0.55);
-    padding: 6px 10px;
-    border-radius: 6px;
 }
 
-.hero-lang label {
-    display: none;
-}
-
-.hero-lang select {
-    background: transparent;
+.hero-lang-pill select {
+    appearance: none;
+    -webkit-appearance: none;
+    background: rgba(15, 18, 28, 0.88);
     color: #fff;
-    border: 1px solid rgba(255, 255, 255, 0.35);
-    border-radius: 4px;
-    padding: 4px 8px;
-    font-size: 13px;
-    max-width: 160px;
+    border: 1.5px solid rgba(120, 160, 255, 0.65);
+    border-radius: 999px;
+    padding: 8px 36px 8px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.2;
+    cursor: pointer;
+    min-width: 132px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, .35);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23ffffff' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 12px 8px;
 }
 
-.hero-lang select option {
+.hero-lang-pill select:focus {
+    outline: 2px solid #FFCC00;
+    outline-offset: 2px;
+}
+
+.hero-lang-pill select option {
     color: #111;
+    background: #fff;
+}
+
+@media (min-width: 768px) {
+    .hero-lang-pill {
+        top: 18px;
+        left: 22px;
+    }
+
+    .hero-lang-pill select {
+        font-size: 15px;
+        padding: 9px 40px 9px 16px;
+        min-width: 148px;
+    }
 }
 
 /* ========== dhl.com home shell (my-delivery index) ========== */
@@ -4674,7 +4686,7 @@ body.menu-open #overlay {
     cursor: pointer;
 }
 
-/* Warehouse hero */
+/* Warehouse hero — photo visible, not solid black */
 .video-hero {
     position: relative;
     min-height: 72vh;
@@ -4683,7 +4695,7 @@ body.menu-open #overlay {
     justify-content: center;
     overflow: hidden;
     padding: 0 !important;
-    background: #111;
+    background: #2a2a2a;
 }
 
 .video-hero .hero-bg {
@@ -4696,13 +4708,17 @@ body.menu-open #overlay {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    opacity: 0.55;
+    object-position: center;
+    opacity: 1;
+    display: block;
 }
 
 .hero-bg-overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(180deg, rgba(0, 0, 0, .45), rgba(0, 0, 0, .65));
+    /* lighter so the warehouse photo stays visible */
+    background: linear-gradient(180deg, rgba(0, 0, 0, .28), rgba(0, 0, 0, .42));
+    pointer-events: none;
 }
 
 .hero-content-center {
@@ -4746,36 +4762,60 @@ body.menu-open #overlay {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    justify-content: center;
+    justify-content: stretch;
+    align-items: stretch;
     background: #fff;
-    border-radius: 8px;
-    padding: 6px;
-    max-width: 420px;
+    border-radius: 10px;
+    padding: 8px;
+    max-width: 100%;
+    width: min(920px, 100%);
     margin: 0 auto;
+    box-sizing: border-box;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, .25);
 }
 
 .hero-track-row input {
-    flex: 1 1 160px;
+    flex: 1 1 220px;
     border: none;
-    padding: 12px 14px;
-    font-size: 14px;
+    padding: 14px 16px;
+    font-size: 15px;
     min-width: 0;
     color: #1a1a1a;
+    border-radius: 6px;
 }
 
 .hero-track-row input:focus {
-    outline: none;
+    outline: 2px solid #FFCC00;
 }
 
 .btn-track-yellow {
     background: #FFCC00;
     border: none;
     border-radius: 6px;
-    padding: 12px 16px;
+    padding: 14px 22px;
     font-weight: 800;
     cursor: pointer;
     color: #1a1a1a;
     white-space: nowrap;
+    flex: 0 0 auto;
+}
+
+@media (min-width: 900px) {
+    .hero-track-row {
+        flex-wrap: nowrap;
+        width: min(960px, 92vw);
+        padding: 10px;
+    }
+
+    .hero-track-row input {
+        font-size: 16px;
+        padding: 16px 18px;
+    }
+
+    .btn-track-yellow {
+        padding: 16px 28px;
+        font-size: 15px;
+    }
 }
 
 .stats-strip {
@@ -4787,9 +4827,27 @@ body.menu-open #overlay {
     background: #1a1a1a;
     border-radius: 12px;
     padding: 28px 20px;
-    max-width: 420px;
+    max-width: min(960px, 100%);
+    width: 100%;
     margin: 0 auto;
     text-align: center;
+    box-sizing: border-box;
+}
+
+@media (min-width: 768px) {
+    .stats-card {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        padding: 32px 28px;
+        text-align: center;
+    }
+
+    .stats-card .stat {
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+        border-bottom: none !important;
+    }
 }
 
 .stats-card .stat {
@@ -4893,24 +4951,33 @@ a[href="/admin.html"] {
 }
 
 
-/* Brand row fix */
+/* Brand: stack DHL + subtitle, no middle white gap */
 .brand-text {
-    flex-direction: row !important;
-    align-items: baseline;
-    gap: 6px;
-    flex-wrap: wrap;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0 !important;
+    flex-wrap: nowrap !important;
+    background: transparent !important;
+}
+
+.brand-line {
+    flex-direction: column !important;
+    gap: 0 !important;
+    background: transparent !important;
 }
 
 .brand-dhl {
-    font-size: 22px !important;
+    font-size: clamp(22px, 2.6vw, 28px) !important;
+    line-height: 1 !important;
 }
 
 .brand-sub {
-    font-size: 10px !important;
-    margin-top: 0 !important;
+    font-size: 9px !important;
+    margin-top: 3px !important;
+    line-height: 1.2 !important;
 }
 
-/* Stats must stay on dark card */
+/* Stats must stay on dark card — full width on PC */
 .stats-strip {
     background: #f0f0f0 !important;
     padding: 24px 16px !important;
@@ -4921,12 +4988,28 @@ a[href="/admin.html"] {
     color: #fff !important;
     border-radius: 14px !important;
     padding: 28px 18px !important;
-    max-width: 440px !important;
+    max-width: min(1100px, 100%) !important;
+    width: 100% !important;
     margin: 0 auto !important;
+    box-sizing: border-box !important;
 }
 
 .stats-card .stat {
     margin-bottom: 20px !important;
+}
+
+@media (min-width: 768px) {
+    .stats-card {
+        display: grid !important;
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 12px !important;
+        padding: 32px 28px !important;
+    }
+
+    .stats-card .stat {
+        margin-bottom: 0 !important;
+        border-bottom: none !important;
+    }
 }
 
 .stats-card strong {
@@ -4961,38 +5044,118 @@ a[href="/admin.html"] {
 }
 
 
-/* ===== Public index: RED header / YELLOW accents (swapped) ===== */
-.video-header .header-bar,
+/* ===== Public index: RED header full-bleed (no white gap) / YELLOW accents ===== */
+header.dhl-header,
 header.dhl-header.video-header,
-header.dhl-header {
+.video-header {
     background: #D40511 !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    border-bottom: 3px solid #FFCC00 !important;
+    box-shadow: none !important;
+}
+
+.video-header .header-bar,
+header.dhl-header .header-bar,
+.dhl-header .header-bar {
+    background: #D40511 !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 12px !important;
+    padding: 12px 16px !important;
+    box-sizing: border-box !important;
+    min-height: 56px !important;
+}
+
+@media (min-width: 900px) {
+
+    .video-header .header-bar,
+    header.dhl-header .header-bar {
+        padding: 14px 28px !important;
+        min-height: 64px !important;
+    }
+}
+
+.brand-text,
+.dhl-logo.brand-text {
+    display: flex !important;
+    flex-direction: column !important;
+    text-decoration: none !important;
+    background: transparent !important;
+    flex: 0 1 auto !important;
+    min-width: 0 !important;
 }
 
 .brand-line {
-    display: flex;
-    flex-direction: column;
-    line-height: 1.05;
-    text-decoration: none;
+    display: flex !important;
+    flex-direction: column !important;
+    line-height: 1.05 !important;
+    text-decoration: none !important;
+    background: transparent !important;
+    gap: 0 !important;
 }
 
 .brand-dhl {
     color: #FFCC00 !important;
-    font-size: 26px !important;
+    font-size: clamp(22px, 3vw, 30px) !important;
     font-weight: 900 !important;
-    letter-spacing: -0.5px;
+    letter-spacing: -0.5px !important;
+    background: transparent !important;
+    display: block !important;
 }
 
 .brand-sub {
     color: #FFCC00 !important;
     font-size: 9px !important;
     font-weight: 700 !important;
-    letter-spacing: 0.6px;
+    letter-spacing: 0.6px !important;
     margin-top: 2px !important;
+    background: transparent !important;
+    display: block !important;
+    white-space: nowrap !important;
+}
+
+.header-right-actions {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    margin-left: auto !important;
+    flex-shrink: 0 !important;
+    gap: 8px !important;
+}
+
+.video-header .hamburger,
+.dhl-header .hamburger {
+    display: flex !important;
+    width: 44px !important;
+    height: 44px !important;
+    margin: 0 !important;
+    margin-left: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 5px !important;
+    flex-shrink: 0 !important;
+    cursor: pointer !important;
 }
 
 .video-header .hamburger span,
 .dhl-header .hamburger span {
     background: #FFCC00 !important;
+    display: block !important;
+    width: 22px !important;
+    height: 3px !important;
+    border-radius: 1px !important;
 }
 
 .hero-kicker {
@@ -5024,7 +5187,7 @@ a.sticky-cta,
     color: #D40511 !important;
 }
 
-/* Stats card polished + counters */
+/* Stats card polished + counters — expands on PC, not a small square */
 .stats-strip {
     background: #f4f4f4 !important;
     padding: 32px 16px !important;
@@ -5034,10 +5197,12 @@ a.sticky-cta,
     background: linear-gradient(160deg, #1a1a1a 0%, #2a2a2a 100%) !important;
     border-radius: 16px !important;
     padding: 32px 22px !important;
-    max-width: 440px !important;
+    max-width: min(1100px, 100%) !important;
+    width: 100% !important;
     margin: 0 auto !important;
     box-shadow: 0 12px 40px rgba(0, 0, 0, .18) !important;
     border: 1px solid #333 !important;
+    box-sizing: border-box !important;
 }
 
 .stats-card .stat {
@@ -5050,6 +5215,21 @@ a.sticky-cta,
     margin-bottom: 0 !important;
     padding-bottom: 0 !important;
     border-bottom: none !important;
+}
+
+@media (min-width: 768px) {
+    .stats-card {
+        display: grid !important;
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 8px 16px !important;
+        padding: 36px 32px !important;
+    }
+
+    .stats-card .stat {
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+        border-bottom: none !important;
+    }
 }
 
 .stats-card strong,

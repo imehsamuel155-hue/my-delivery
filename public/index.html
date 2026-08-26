@@ -10,7 +10,7 @@
     <link rel="icon" href="https://www.dhl.com/favicon.ico">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link rel="stylesheet" href="/css/style.css?v=navdhl1">
+    <link rel="stylesheet" href="/css/style.css?v=herolang5">
 
     <style id="nav-force">
         #overlay {
@@ -144,6 +144,7 @@
             </div>
         </div>
     </header>
+
     <!-- MOBILE MENU -->
     <div id="overlay" onclick="closeMenu()"
         style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9998;"></div>
@@ -208,13 +209,30 @@
     </aside>
     <main id="siteView">
 
-        <!-- HERO: warehouse + track (video style) -->
+        <!-- HERO: warehouse photo + compact language pill -->
         <section class="dhl-hero video-hero" id="home">
             <div class="hero-bg">
-                <img src="/images/0bb6d71f2100ec98646099d8716334e5.jpg" alt="Warehouse"
-                    onerror="this.style.opacity=0.3">
+                <!-- Put your own photo at: public/images/hero-bg.jpg -->
+                <img id="heroBgImg" src="/images/hero-bg.jpg" alt="Warehouse"
+                    onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1600&q=80';">
                 <div class="hero-bg-overlay"></div>
             </div>
+
+            <!-- Compact language dropdown (like DHL pill on photo) -->
+            <div class="hero-lang-pill" id="langStrip">
+                <select id="siteLang" aria-label="Language"
+                    onchange="if(typeof setSiteLang==='function')setSiteLang(this.value);">
+                    <option value="en">🇺🇸 English</option>
+                    <option value="id">🇮🇩 Indonesia</option>
+                    <option value="ms">🇲🇾 Malaysia</option>
+                    <option value="zh">🇨🇳 Chinese</option>
+                    <option value="es">🇪🇸 Spanish</option>
+                    <option value="mx">🇲🇽 Mexican (Spanish)</option>
+                    <option value="fr">🇫🇷 French</option>
+                    <option value="de">🇩🇪 German</option>
+                </select>
+            </div>
+
             <div class="hero-content-center">
                 <p class="hero-kicker">DISPATCHED DAILY · 120+ COUNTRIES</p>
                 <h1>Your package, <span class="accent">tracked</span><br>every mile of the way.</h1>
@@ -682,7 +700,7 @@
         </div>
     </div>
 
-    <script src="/js/script.js?v=navdhl1"></script>
+    <script src="/js/script.js?v=herolang5"></script>
 
     <script>
         (function () {

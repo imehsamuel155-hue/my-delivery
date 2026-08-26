@@ -2,7 +2,8 @@
   "projects": {
     "default": "parceltrack-84181",
     "augh": "yourproject-a1273",
-    "det": "worldwidedhl"
+    "det": "worldwidedhl",
+    "daut": "trackmyshipmentorder"
   },
   "targets": {
     "logisticsparceltrack": {
