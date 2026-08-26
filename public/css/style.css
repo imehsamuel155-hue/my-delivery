@@ -204,8 +204,8 @@ main#siteView {
     min-height: 88vh;
     display: flex;
     align-items: center;
-    background: linear-gradient(180deg, rgba(15, 13, 10, .55), rgba(15, 13, 10, .82)),
-        url('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1600&q=80') center/cover no-repeat;
+    /* no default background image — add your own if you use this class */
+    background: #2a2a2a;
     color: #fff;
     padding-bottom: 64px;
 }
