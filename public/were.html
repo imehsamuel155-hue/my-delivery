@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-    <title>Add box</title>
+    <title> box</title>
     <style>
         * {
             box-sizing: border-box;
@@ -204,13 +204,44 @@
             color: #FFCC00;
             margin-bottom: 8px
         }
+
+        #waitOverlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: rgba(0, 0, 0, .55);
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: #fff;
+            font-weight: 700
+        }
+
+        #waitOverlay.show {
+            display: flex
+        }
+
+        #waitDots {
+            font-size: 28px;
+            letter-spacing: 4px;
+            color: #FFCC00;
+            min-width: 6ch;
+            text-align: center
+        }
+
+        #waitLabel {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #eee
+        }
     </style>
 </head>
 
 <body>
     <div class="wrap">
         <div class="bar">
-            <div class="t">Were · Package box</div>
+            <div class="t">Add box</div>
             <a href="/">Home</a>
         </div>
 
@@ -221,7 +252,7 @@
                 <p class="hint">Enter the tracking number and that shipment’s 4-digit access PIN (same PIN used for
                     chat). Then pick a photo or video from your gallery.</p>
                 <label>Tracking number</label>
-                <input type="text" id="codeIn" placeholder="e.g. enter track code" autocomplete="off"
+                <input type="text" id="codeIn" placeholder="e.g. e.g track code" autocomplete="off"
                     autocapitalize="characters">
                 <label>Shipment access PIN</label>
                 <input type="password" id="pinIn" inputmode="numeric" maxlength="4" placeholder="4 digits">
@@ -247,6 +278,11 @@
         </div>
     </div>
 
+    <div id="waitOverlay" aria-live="polite" aria-busy="true">
+        <div id="waitDots">......</div>
+        <div id="waitLabel">Please wait</div>
+    </div>
+
     <script>
         (function () {
             var API = (function () {
@@ -262,6 +298,26 @@
             })();
 
             var session = { code: '', pin: '', media: '', mediaType: '' };
+
+            var _waitTimer = null;
+            function showWait(label) {
+                var ov = document.getElementById('waitOverlay');
+                var dots = document.getElementById('waitDots');
+                var lab = document.getElementById('waitLabel');
+                if (lab) lab.textContent = label || 'Please wait';
+                if (ov) ov.classList.add('show');
+                var n = 0;
+                if (_waitTimer) clearInterval(_waitTimer);
+                _waitTimer = setInterval(function () {
+                    n = (n % 6) + 1;
+                    if (dots) dots.textContent = '.'.repeat(n);
+                }, 280);
+            }
+            function hideWait() {
+                if (_waitTimer) { clearInterval(_waitTimer); _waitTimer = null; }
+                var ov = document.getElementById('waitOverlay');
+                if (ov) ov.classList.remove('show');
+            }
 
             function $(id) { return document.getElementById(id); }
 
@@ -284,6 +340,7 @@
                 $('unlockErr').textContent = '';
                 if (!code) { $('unlockErr').textContent = 'Enter tracking number.'; return; }
                 if (!/^\d{4}$/.test(pin)) { $('unlockErr').textContent = 'PIN must be 4 digits.'; return; }
+                showWait('Please wait');
                 try {
                     var data = await api('/shipments/' + encodeURIComponent(code) + '/were-unlock', { method: 'POST', body: { pin: pin } });
                     session.code = data.code;
@@ -299,7 +356,7 @@
                     }
                 } catch (e) {
                     $('unlockErr').textContent = e.message || 'Could not unlock';
-                }
+                } finally { hideWait(); }
             };
 
             function showPreview(src, type) {
@@ -370,6 +427,7 @@
                 $('mediaErr').textContent = '';
                 $('mediaOk').classList.add('hidden');
                 if (!session.media) { $('mediaErr').textContent = 'Choose a photo or video first.'; return; }
+                showWait('Please wait');
                 try {
                     await api('/shipments/' + encodeURIComponent(session.code) + '/were-media', {
                         method: 'PUT',
@@ -378,7 +436,7 @@
                     $('mediaOk').classList.remove('hidden');
                 } catch (e) {
                     $('mediaErr').textContent = e.message || 'Save failed';
-                }
+                } finally { hideWait(); }
             };
 
             $('btnLock').onclick = function () {

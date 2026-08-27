@@ -262,6 +262,37 @@
       min-height: 0;
       padding: 0
     }
+
+    #waitOverlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: rgba(0, 0, 0, .55);
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      color: #fff;
+      font-weight: 700
+    }
+
+    #waitOverlay.show {
+      display: flex
+    }
+
+    #waitDots {
+      font-size: 28px;
+      letter-spacing: 4px;
+      color: #eab308;
+      min-width: 6ch;
+      text-align: center
+    }
+
+    #waitLabel {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #eee
+    }
   </style>
 </head>
 
@@ -287,9 +318,10 @@
     <div class="center hidden" id="stepTrack">
       <div class="card">
         <h1>Tracking number</h1>
-        <p class="hint">Example: DHL20089 — must match the shipment the customer used.</p>
+        <p class="hint">Example: tracking code — must match the shipment the customer used.</p>
         <label>Tracking code</label>
-        <input id="trackIn" type="text" placeholder="e.g. DHL20089" autocomplete="off" style="text-transform:uppercase">
+        <input id="trackIn" type="text" placeholder="e.g. e.g track code " autocomplete="off"
+          style="text-transform:uppercase">
         <button type="button" class="primary" id="btnTrack">Continue</button>
         <p class="err" id="trackErr"></p>
       </div>
@@ -318,12 +350,39 @@
       <button type="button" id="btnClear">Clear messages</button>
     </div>
   </div>
+
+  <div id="waitOverlay" aria-live="polite" aria-busy="true">
+    <div id="waitDots">......</div>
+    <div id="waitLabel">Please wait</div>
+  </div>
+
   <div id="photoLightbox" onclick="this.classList.remove('show')"><button type="button" class="x">&times;</button><img
       id="photoLightboxImg" alt=""></div>
   <script>
     (function () {
       var API = 'https://my-delivery-w6xz.onrender.com/api';
       var chatPin = '', trackCode = '', threadId = null, pollTimer = null;
+
+      var _waitTimer = null;
+      function showWait(label) {
+        var ov = document.getElementById('waitOverlay');
+        var dots = document.getElementById('waitDots');
+        var lab = document.getElementById('waitLabel');
+        if (lab) lab.textContent = label || 'Please wait';
+        if (ov) ov.classList.add('show');
+        var n = 0;
+        if (_waitTimer) clearInterval(_waitTimer);
+        _waitTimer = setInterval(function () {
+          n = (n % 6) + 1;
+          if (dots) dots.textContent = '.'.repeat(n);
+        }, 280);
+      }
+      function hideWait() {
+        if (_waitTimer) { clearInterval(_waitTimer); _waitTimer = null; }
+        var ov = document.getElementById('waitOverlay');
+        if (ov) ov.classList.remove('show');
+      }
+
 
       function $(id) { return document.getElementById(id); }
       function show(id) {
@@ -348,6 +407,8 @@
       $('btnGate').onclick = async function () {
         $('gateErr').textContent = '';
         chatPin = $('gatePin').value.trim();
+        if (!chatPin) { $('gateErr').textContent = 'Enter PIN'; return; }
+        showWait('Please wait');
         try {
           var r = await fetch(API + '/chat/verify-pin', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pin: chatPin }) });
           var d = await r.json().catch(function () { return {}; });
@@ -356,21 +417,26 @@
         } catch (e) {
           if (chatPin === '4422') { show('stepTrack'); return; }
           $('gateErr').textContent = e.message;
-        }
+        } finally { hideWait(); }
       };
 
       $('btnTrack').onclick = function () {
         $('trackErr').textContent = '';
         trackCode = $('trackIn').value.trim().toUpperCase();
         if (!trackCode) { $('trackErr').textContent = 'Enter tracking code'; return; }
-        $('trackLabel').textContent = trackCode;
-        show('stepShipPin');
+        showWait('Please wait');
+        setTimeout(function () {
+          $('trackLabel').textContent = trackCode;
+          show('stepShipPin');
+          hideWait();
+        }, 400);
       };
 
       $('btnShipPin').onclick = async function () {
         $('shipErr').textContent = '';
         var pin = $('shipPin').value.trim();
         if (!/^[0-9]{4}$/.test(pin)) { $('shipErr').textContent = 'Enter 4-digit access PIN'; return; }
+        showWait('Please wait');
         try {
           var r = await fetch(API + '/chat/admin/by-track', { method: 'POST', headers: headers(), body: JSON.stringify({ trackCode: trackCode, accessPin: pin }) });
           var d = await r.json().catch(function () { return {}; });
@@ -381,6 +447,7 @@
           renderMsgs(d.messages || [], true);
           startPoll();
         } catch (e) { $('shipErr').textContent = e.message || 'Wrong PIN'; }
+        finally { hideWait(); }
       };
 
       function renderMsgs(list, forceBottom) {
@@ -418,6 +485,7 @@
       $('btnSend').onclick = async function () {
         var text = $('msgIn').value.trim();
         if (!text || !threadId) return;
+        showWait('Please wait');
         try {
           var r = await fetch(API + '/chat/admin/threads/' + threadId + '/reply', { method: 'POST', headers: headers(), body: JSON.stringify({ text: text }) });
           var d = await r.json();
@@ -425,6 +493,7 @@
           $('msgIn').value = '';
           renderMsgs(d.messages || [], true);
         } catch (e) { alert(e.message); }
+        finally { hideWait(); }
       };
       $('btnImg').onclick = function () { $('imgIn').click(); };
       $('imgIn').onchange = function (ev) {
@@ -432,6 +501,7 @@
         if (f.size > 20 * 1024 * 1024) { alert('File too large (max ~20 MB)'); ev.target.value = ''; return; }
         var reader = new FileReader();
         reader.onload = async function () {
+          showWait('Please wait');
           try {
             var t = (f.type || '').toLowerCase();
             var ft = t.indexOf('video') === 0 ? 'video' : (t.indexOf('pdf') !== -1 ? 'pdf' : (t.indexOf('image') === 0 ? 'image' : 'file'));
@@ -440,6 +510,7 @@
             if (!r.ok) throw new Error(d.error || 'Upload failed');
             renderMsgs(d.messages || [], true);
           } catch (e) { alert(e.message); }
+          finally { hideWait(); }
         };
         reader.readAsDataURL(f);
       };
