@@ -391,7 +391,7 @@
         <div class="mbox">
             <h3>Settings PIN</h3>
             <p class="hint">Enter <strong></strong></p>
-            <input id="pinVal" type="password" inputmode="numeric" maxlength="8">
+            <input id="pinVal" type="password" inputmode="numeric" maxlength="4">
             <div class="actions"><button type="button" class="save" id="pinOk">Open</button><button type="button"
                     class="sec" id="pinCancel">Cancel</button></div>
             <div id="pinErr" class="toast"></div>
@@ -430,10 +430,26 @@
             function headers() { return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }; }
             async function api(path, opts) {
                 opts = opts || {};
-                var res = await fetch(API + path, Object.assign({}, opts, { headers: Object.assign(headers(), opts.headers || {}) }));
-                var data = {}; try { data = await res.json(); } catch (e) { }
-                if (!res.ok) throw new Error(data.error || data.message || ('Error ' + res.status));
-                return data;
+                var attempt = 0;
+                while (attempt < 2) {
+                    attempt++;
+                    try {
+                        var res = await fetch(API + path, Object.assign({}, opts, { headers: Object.assign(headers(), opts.headers || {}) }));
+                        var data = {}; try { data = await res.json(); } catch (e) { }
+                        if (!res.ok) throw new Error(data.error || data.message || ('Error ' + res.status));
+                        return data;
+                    } catch (e) {
+                        var msg = (e && e.message) ? e.message : String(e);
+                        if (attempt < 2 && (/Failed to fetch|NetworkError|network/i.test(msg))) {
+                            await new Promise(function (r) { setTimeout(r, 1200); });
+                            continue;
+                        }
+                        if (/Failed to fetch|NetworkError/i.test(msg)) {
+                            throw new Error('Cannot reach server (Failed to fetch). Backend may be waking up — wait 30s and try again.');
+                        }
+                        throw e;
+                    }
+                }
             }
             function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;'); }
             function optsCountry(sel) {
@@ -546,7 +562,7 @@
 
                 $('ed').innerHTML =
                     '<label>Tracking code' + (isNew ? ' (required or leave blank if server allows auto)' : '') + '</label>' +
-                    '<input id="f_code" value="' + esc(codeEdit || '') + '" ' + (isNew ? '' : 'readonly') + '>' +
+                    '<input id="f_code" value="' + esc(codeEdit || '') + '" placeholder="Tracking code">' +
                     (isNew
                         ? ('<label>Shipment access PIN (4 digits) — <span style="color:#b91c1c">required</span> — permanent, cannot change later</label>' +
                             '<input id="f_pin" inputmode="numeric" maxlength="4" placeholder="e.g. 1111" required>' +
@@ -605,6 +621,12 @@
                     '<div id="mapMsg" class="toast" style="display:none"></div>' +
                     '<button type="button" class="go" id="mDone" style="width:100%;min-height:48px;margin-top:8px;border:0;border-radius:10px;background:#0f172a;color:#fff;font-weight:700">✓ Done — save map position &amp; direction</button>' +
                     '<p class="hint">Play starts auto-move for the duration (e.g. 1 week). Pause freezes. Restart → 0%. Turn / face apply immediately. Done saves how you set the vehicle. Shipment Save is separate below.</p>' +
+                    '<div style="margin-top:18px;padding:14px;border:1px solid #e2e8f0;border-radius:12px;background:#f8fafc">' +
+                    '<h3 style="font-size:14px;margin:0 0 8px">Unbox / package on track</h3>' +
+                    '<p class="hint" style="margin:0 0 10px">Upload media at <b>/were</b> (tracking code + this shipment PIN). Turn Box <b>ON</b> here so it shows under the map when customers track.</p>' +
+                    '<button type="button" id="btnShipBox" style="width:100%;min-height:46px;border-radius:10px;border:2px solid #64748b;font-weight:800;cursor:pointer">Box: OFF</button>' +
+                    '<p class="hint" id="shipBoxHint" style="margin:8px 0 0">OFF — hidden on track page</p>' +
+                    '</div>' +
                     '<div class="actions">' +
                     '<button type="button" class="save" id="btnSave">Save shipment</button>' +
                     '<button type="button" class="sec" id="btnClose">Close</button>' +
@@ -648,7 +670,7 @@
                     if (codeEdit) {
                         if (stMsg) { stMsg.className = 'toast wait'; stMsg.textContent = '......'; stMsg.style.display = 'block'; }
                         try {
-                            var updated = await api('/shipments/' + encodeURIComponent(codeEdit) + '/status/' + idx, { method: 'DELETE' });
+                            var updated = await api('/shipments/' + encodeURIComponent(codeEdit) + '/status/remove', { method: 'POST', body: JSON.stringify({ index: idx }) });
                             historyLocal = (updated.history || []).slice();
                             paintTimeline();
                             if (stMsg) { stMsg.className = 'toast ok'; stMsg.textContent = 'Saved'; }
@@ -691,6 +713,33 @@
                 });
                 $('btnClose').addEventListener('click', function () { stopAnim(); $('editor').style.display = 'none'; });
                 $('btnSave').addEventListener('click', function () { saveShipment(false); });
+                (function setupShipBox() {
+                    if (!codeEdit) {
+                        var b = $('btnShipBox'); if (b) { b.disabled = true; b.textContent = 'Box: save shipment first'; }
+                        return;
+                    }
+                    var on = !!(s && s.boxEnabled);
+                    function paint() {
+                        var b = $('btnShipBox'); var h = $('shipBoxHint');
+                        if (!b) return;
+                        b.textContent = on ? 'Box: ON' : 'Box: OFF';
+                        b.style.borderColor = on ? '#16a34a' : '#64748b';
+                        b.style.background = on ? '#dcfce7' : '#fff';
+                        b.style.color = on ? '#166534' : '#0f172a';
+                        if (h) h.textContent = on ? 'ON — package shows under map on track' : 'OFF — hidden on track page';
+                    }
+                    paint();
+                    $('btnShipBox').addEventListener('click', async function () {
+                        var b = $('btnShipBox');
+                        b.textContent = '......';
+                        try {
+                            var d = await api('/shipments/' + encodeURIComponent(codeEdit) + '/box-toggle', { method: 'PATCH', body: JSON.stringify({ enabled: !on }) });
+                            on = !!d.boxEnabled;
+                            paint();
+                            toast('ok', on ? 'Box ON' : 'Box OFF');
+                        } catch (e) { toast('err', e.message); paint(); }
+                    });
+                })();
                 var del = $('btnDel'); if (del) del.addEventListener('click', delShip);
                 $('mPlay').addEventListener('click', function () { playMove(); });
                 $('mPause').addEventListener('click', function () { pauseMove(); });
@@ -896,7 +945,9 @@
                         saved = await api('/shipments', { method: 'POST', body: JSON.stringify(body) });
                         codeEdit = saved.code;
                     } else {
+                        body.code = ($('f_code').value.trim() || codeEdit);
                         saved = await api('/shipments/' + encodeURIComponent(codeEdit), { method: 'PUT', body: JSON.stringify(body) });
+                        if (saved && saved.code) codeEdit = saved.code;
                     }
                     // Do NOT re-post status history here (that caused duplicates). Status only via Add/Remove.
                     try {

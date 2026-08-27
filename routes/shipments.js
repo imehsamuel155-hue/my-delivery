@@ -55,7 +55,10 @@ router.get("/track/:code", async (req, res) => {
         if (!shipment) {
             return res.status(404).json({ error: "No shipment found for that code." });
         }
-        res.json(shipment);
+        const o = shipment.toObject ? shipment.toObject() : shipment;
+        // never expose access PIN on public track
+        delete o.accessPin;
+        res.json(o);
     } catch (err) {
         res.status(500).json({ error: "Something went wrong looking up that shipment." });
     }
@@ -167,17 +170,26 @@ router.post("/", requireAdmin, async (req, res) => {
 router.put("/:code", requireAdmin, async (req, res) => {
     try {
         const body = { ...(req.body || {}) };
-        delete body.code;
         delete body._id;
         delete body.__v;
+        const oldCode = req.params.code.trim().toUpperCase();
+        let newCode = body.code ? String(body.code).trim().toUpperCase() : null;
+        const existing = await Shipment.findOne({ code: oldCode });
+        if (!existing) return res.status(404).json({ error: "Shipment not found." });
         // Access PIN is permanent once set — never overwrite from edit form
-        const existing = await Shipment.findOne({ code: req.params.code.trim().toUpperCase() });
-        if (existing && existing.accessPin) {
+        if (existing.accessPin) {
             delete body.accessPin;
         }
-        // Allow clearing string fields (e.g. terms DDP → DBP)
+        // Allow admin to edit tracking code
+        if (newCode && newCode !== oldCode) {
+            const clash = await Shipment.findOne({ code: newCode });
+            if (clash) return res.status(409).json({ error: "A shipment with that tracking code already exists." });
+            body.code = newCode;
+        } else {
+            delete body.code;
+        }
         const shipment = await Shipment.findOneAndUpdate(
-            { code: req.params.code.trim().toUpperCase() },
+            { code: oldCode },
             { $set: body },
             { new: true, runValidators: true }
         );
@@ -294,5 +306,83 @@ router.patch("/:code/route", requireAdmin, async (req, res) => {
     }
     res.json(shipment);
 });
+
+
+
+/* ---------- /were: per-shipment package box media (pin-protected) ---------- */
+// POST /api/shipments/:code/were-unlock
+router.post("/:code/were-unlock", async (req, res) => {
+    try {
+        const code = req.params.code.trim().toUpperCase();
+        const pin = String((req.body && req.body.pin) || "").trim();
+        const shipment = await Shipment.findOne({ code });
+        if (!shipment) return res.status(404).json({ error: "No shipment found for that code." });
+        if (!shipment.accessPin) return res.status(400).json({ error: "This shipment has no access PIN set in admin." });
+        if (pin !== String(shipment.accessPin)) return res.status(403).json({ error: "Incorrect access PIN." });
+        res.json({
+            ok: true,
+            code: shipment.code,
+            boxEnabled: !!shipment.boxEnabled,
+            boxMedia: shipment.boxMedia || "",
+            boxMediaType: shipment.boxMediaType || "",
+            receiver: shipment.receiver ? shipment.receiver.name : "",
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// PUT /api/shipments/:code/were-media  { pin, media, mediaType }
+router.put("/:code/were-media", async (req, res) => {
+    try {
+        const code = req.params.code.trim().toUpperCase();
+        const pin = String((req.body && req.body.pin) || "").trim();
+        const media = (req.body && req.body.media) || "";
+        const mediaType = (req.body && req.body.mediaType) || "";
+        const shipment = await Shipment.findOne({ code });
+        if (!shipment) return res.status(404).json({ error: "No shipment found for that code." });
+        if (!shipment.accessPin) return res.status(400).json({ error: "This shipment has no access PIN set in admin." });
+        if (pin !== String(shipment.accessPin)) return res.status(403).json({ error: "Incorrect access PIN." });
+        if (!media) return res.status(400).json({ error: "Add a photo or video from your gallery." });
+        if (mediaType !== "image" && mediaType !== "video") {
+            return res.status(400).json({ error: "mediaType must be image or video." });
+        }
+        // rough size guard (~6MB base64)
+        if (String(media).length > 8_000_000) {
+            return res.status(400).json({ error: "File too large. Use a smaller photo or short video." });
+        }
+        shipment.boxMedia = media;
+        shipment.boxMediaType = mediaType;
+        shipment.boxImage = mediaType === "image" ? media : (shipment.boxImage || "");
+        await shipment.save();
+        res.json({
+            ok: true,
+            code: shipment.code,
+            boxEnabled: !!shipment.boxEnabled,
+            boxMediaType: shipment.boxMediaType,
+            hasMedia: true,
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// PATCH /api/shipments/:code/box-toggle  (admin) { enabled: true|false }
+router.patch("/:code/box-toggle", requireAdmin, async (req, res) => {
+    try {
+        const code = req.params.code.trim().toUpperCase();
+        const enabled = !!(req.body && req.body.enabled);
+        const shipment = await Shipment.findOneAndUpdate(
+            { code },
+            { $set: { boxEnabled: enabled } },
+            { new: true }
+        );
+        if (!shipment) return res.status(404).json({ error: "Shipment not found." });
+        res.json({ ok: true, code: shipment.code, boxEnabled: !!shipment.boxEnabled });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 
 module.exports = router;
