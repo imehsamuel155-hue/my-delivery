@@ -106,7 +106,10 @@ const ShipmentSchema = new mongoose.Schema(
         // Optional 4-digit code an admin can set per shipment. If set, any admin
         // user must enter it correctly before they can open/edit this specific
         // shipment - even though they're already logged into the dashboard.
-        boxImage: { type: String, default: '' }, // base64 or url for /box page
+        boxImage: { type: String, default: '' }, // legacy /box page
+        boxEnabled: { type: Boolean, default: false }, // show package media under track map
+        boxMedia: { type: String, default: '' }, // data URL or url from /were gallery
+        boxMediaType: { type: String, enum: ['', 'image', 'video'], default: '' },
         accessPin: {
             type: String,
             validate: {

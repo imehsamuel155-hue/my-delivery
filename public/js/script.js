@@ -1,47 +1,47 @@
 /* CACHE_BUST_TIMELINE_V2 no-qr chronological */
 
 function dhlParseHistoryDate(h) {
-  const raw = String((h && (h.date || h.createdAt)) || '').trim();
-  let d = raw ? new Date(raw) : new Date();
-  if (isNaN(d.getTime())) d = new Date();
-  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  const months = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
-  const hh = String(d.getHours()).padStart(2,'0');
-  const mm = String(d.getMinutes()).padStart(2,'0');
-  return {
-    day: days[d.getDay()],
-    dateLine: String(d.getDate()).padStart(2,'0') + ' ' + months[d.getMonth()] + ' ' + d.getFullYear(),
-    timeLine: hh + ':' + mm + ' Local time',
-  };
+    const raw = String((h && (h.date || h.createdAt)) || '').trim();
+    let d = raw ? new Date(raw) : new Date();
+    if (isNaN(d.getTime())) d = new Date();
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const months = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mm = String(d.getMinutes()).padStart(2, '0');
+    return {
+        day: days[d.getDay()],
+        dateLine: String(d.getDate()).padStart(2, '0') + ' ' + months[d.getMonth()] + ' ' + d.getFullYear(),
+        timeLine: hh + ':' + mm + ' Local time',
+    };
 }
 function dhlTimelineHtml(history) {
-  // Same order as admin: first status at TOP, each new status BELOW (never reverse)
-  let ordered = Array.isArray(history) ? history.slice() : [];
-  ordered.sort((a, b) => {
-    const da = String((a && a.date) || '');
-    const db = String((b && b.date) || '');
-    if (da && db && da !== db) return da.localeCompare(db);
-    return 0; // keep original array order when same date (push order)
-  });
-  if (!ordered.length) {
-    return '<div class="dhl-timeline"><div class="dhl-tl-item pending"><div class="dhl-tl-dot">△</div><div><div class="dhl-tl-status">Awaiting first scan</div></div></div></div>';
-  }
-  const last = ordered.length - 1;
-  return '<div class="dhl-timeline">' + ordered.map((h, i) => {
-    const label = String(h.label || h.status || 'Update');
-    const loc = String(h.location || '');
-    const isDelivered = /deliver/i.test(label);
-    const isLatest = i === last;
-    // All past steps = done (green); latest = current (green ring); none pending in between
-    let cls = 'done';
-    if (isLatest && !isDelivered) cls = 'current';
-    if (isDelivered) cls = 'done';
-    const dot = (cls === 'done') ? '✓' : '△';
-    const t = dhlParseHistoryDate(h);
-    const statusClass = isDelivered ? 'delivered' : '';
-    // Line segment below this item is green if this step is done/current (connects to next)
-    const lineCls = (i < last) ? (cls === 'done' || cls === 'current' ? 'line-green' : 'line-gray') : '';
-    return `<div class="dhl-tl-item ${cls} ${lineCls}">
+    // Same order as admin: first status at TOP, each new status BELOW (never reverse)
+    let ordered = Array.isArray(history) ? history.slice() : [];
+    ordered.sort((a, b) => {
+        const da = String((a && a.date) || '');
+        const db = String((b && b.date) || '');
+        if (da && db && da !== db) return da.localeCompare(db);
+        return 0; // keep original array order when same date (push order)
+    });
+    if (!ordered.length) {
+        return '<div class="dhl-timeline"><div class="dhl-tl-item pending"><div class="dhl-tl-dot">△</div><div><div class="dhl-tl-status">Awaiting first scan</div></div></div></div>';
+    }
+    const last = ordered.length - 1;
+    return '<div class="dhl-timeline">' + ordered.map((h, i) => {
+        const label = String(h.label || h.status || 'Update');
+        const loc = String(h.location || '');
+        const isDelivered = /deliver/i.test(label);
+        const isLatest = i === last;
+        // All past steps = done (green); latest = current (green ring); none pending in between
+        let cls = 'done';
+        if (isLatest && !isDelivered) cls = 'current';
+        if (isDelivered) cls = 'done';
+        const dot = (cls === 'done') ? '✓' : '△';
+        const t = dhlParseHistoryDate(h);
+        const statusClass = isDelivered ? 'delivered' : '';
+        // Line segment below this item is green if this step is done/current (connects to next)
+        const lineCls = (i < last) ? (cls === 'done' || cls === 'current' ? 'line-green' : 'line-gray') : '';
+        return `<div class="dhl-tl-item ${cls} ${lineCls}">
       <div class="dhl-tl-dot">${dot}</div>
       <div>
         <div class="dhl-tl-day">${esc(t.day)}</div>
@@ -49,45 +49,45 @@ function dhlTimelineHtml(history) {
         <div class="dhl-tl-time">${esc(t.timeLine)}</div>
         <div class="dhl-tl-status ${statusClass}">${esc(label)}</div>
         ${loc ? `<div class="dhl-tl-loc">${esc(loc)}</div>` : ''}
-        <div class="dhl-tl-piece">1 Piece ID: ${esc((h.pieceId || '') )}</div>
+        <div class="dhl-tl-piece">1 Piece ID: ${esc((h.pieceId || ''))}</div>
       </div>
     </div>`;
-  }).join('') + '</div>';
+    }).join('') + '</div>';
 }
 
 
 
 function generateTrackCode() {
-  const n = Math.floor(100000 + Math.random() * 900000);
-  return 'DHL' + n;
+    const n = Math.floor(100000 + Math.random() * 900000);
+    return 'DHL' + n;
 }
 
 /* ---------- PLEASE WAIT LOADER ---------- */
 let _mdDotTimer = null;
 function mdShowWait(sub) {
-  let el = document.getElementById('mdPleaseWait');
-  if (!el) {
-    el = document.createElement('div');
-    el.id = 'mdPleaseWait';
-    el.className = 'md-please-wait';
-    el.innerHTML = '<div class="dots" id="mdDots">......</div><div class="txt">Please wait</div><div class="sub" id="mdWaitSub">Loading…</div>';
-    document.body.appendChild(el);
-  }
-  const subEl = el.querySelector('.sub') || document.getElementById('mdWaitSub');
-  if (subEl) subEl.textContent = sub || 'Loading…';
-  el.classList.add('show');
-  let n = 0;
-  const dots = el.querySelector('.dots') || document.getElementById('mdDots');
-  if (_mdDotTimer) clearInterval(_mdDotTimer);
-  _mdDotTimer = setInterval(() => {
-    n = (n % 6) + 1;
-    if (dots) dots.textContent = '.'.repeat(n);
-  }, 280);
+    let el = document.getElementById('mdPleaseWait');
+    if (!el) {
+        el = document.createElement('div');
+        el.id = 'mdPleaseWait';
+        el.className = 'md-please-wait';
+        el.innerHTML = '<div class="dots" id="mdDots">......</div><div class="txt">Please wait</div><div class="sub" id="mdWaitSub">Loading…</div>';
+        document.body.appendChild(el);
+    }
+    const subEl = el.querySelector('.sub') || document.getElementById('mdWaitSub');
+    if (subEl) subEl.textContent = sub || 'Loading…';
+    el.classList.add('show');
+    let n = 0;
+    const dots = el.querySelector('.dots') || document.getElementById('mdDots');
+    if (_mdDotTimer) clearInterval(_mdDotTimer);
+    _mdDotTimer = setInterval(() => {
+        n = (n % 6) + 1;
+        if (dots) dots.textContent = '.'.repeat(n);
+    }, 280);
 }
 function mdHideWait() {
-  const el = document.getElementById('mdPleaseWait');
-  if (el) el.classList.remove('show');
-  if (_mdDotTimer) { clearInterval(_mdDotTimer); _mdDotTimer = null; }
+    const el = document.getElementById('mdPleaseWait');
+    if (el) el.classList.remove('show');
+    if (_mdDotTimer) { clearInterval(_mdDotTimer); _mdDotTimer = null; }
 }
 
 
@@ -100,23 +100,23 @@ function mdHideWait() {
 
 // Localhost → same origin /api. Online → Render backend.
 const API_BASE = (function () {
-  try {
-    const h = location.hostname;
-    if (h === "localhost" || h === "127.0.0.1" || h === "") return "/api";
-  } catch (e) {}
-  return "https://my-delivery-w6xz.onrender.com/api";
+    try {
+        const h = location.hostname;
+        if (h === "localhost" || h === "127.0.0.1" || h === "") return "/api";
+    } catch (e) { }
+    return "https://my-delivery-w6xz.onrender.com/api";
 })();
 
 // Admin login token — sessionStorage so /board works after /admin login
 let adminToken = null;
 try {
-  var _tok = sessionStorage.getItem('dhlAdminToken');
-  if (_tok) adminToken = _tok;
-} catch (e) {}
+    var _tok = sessionStorage.getItem('dhlAdminToken');
+    if (_tok) adminToken = _tok;
+} catch (e) { }
 
 let _dhlSwReg = null;
 if (typeof navigator !== 'undefined' && navigator.serviceWorker) {
-  navigator.serviceWorker.register('/sw.js').then(reg => { _dhlSwReg = reg; }).catch(() => {});
+    navigator.serviceWorker.register('/sw.js').then(reg => { _dhlSwReg = reg; }).catch(() => { });
 }
 
 
@@ -143,18 +143,18 @@ function toggleMobileMenu(e) {
     var menu = document.getElementById('mobileMenu');
     var overlay = document.getElementById('overlay');
     if (!menu) {
-      console.warn('mobileMenu not found');
-      return false;
+        console.warn('mobileMenu not found');
+        return false;
     }
     var open = !menu.classList.contains('open');
     if (open) {
-      menu.classList.add('open');
-      document.body.classList.add('menu-open');
-      if (overlay) overlay.classList.add('show');
+        menu.classList.add('open');
+        document.body.classList.add('menu-open');
+        if (overlay) overlay.classList.add('show');
     } else {
-      menu.classList.remove('open');
-      document.body.classList.remove('menu-open');
-      if (overlay) overlay.classList.remove('show');
+        menu.classList.remove('open');
+        document.body.classList.remove('menu-open');
+        if (overlay) overlay.classList.remove('show');
     }
     return false;
 }
@@ -175,8 +175,8 @@ function goTrack() {
     setTimeout(mdHideWait, 350);
 }
 function openModal(id) {
-  mdShowWait('Please wait……');
-  setTimeout(() => { mdHideWait(); document.getElementById(id).classList.add('show'); }, 280);
+    mdShowWait('Please wait……');
+    setTimeout(() => { mdHideWait(); document.getElementById(id).classList.add('show'); }, 280);
 }
 function closeModal(id) { document.getElementById(id).classList.remove('show'); document.getElementById(id).querySelectorAll('.error-box').forEach(e => e.style.display = 'none'); }
 
@@ -187,9 +187,9 @@ async function trackFromHero() {
     if (!code) { msg.textContent = "Enter a tracking code first."; return; }
     mdShowWait('Tracking your package……');
     try {
-      goTrack();
-      document.getElementById('pageTrackInput').value = code;
-      await renderTrackResult(code);
+        goTrack();
+        document.getElementById('pageTrackInput').value = code;
+        await renderTrackResult(code);
     } finally { mdHideWait(); }
 }
 async function trackFromPage() {
@@ -222,12 +222,12 @@ async function renderTrackResult(code) {
         <div class="party"><h4>Receiver</h4><p><strong>${esc(shipment.receiver.name)}</strong><br>${esc(shipment.receiver.address)}<br>${esc(shipment.receiver.phone || '')}${shipment.receiver.email ? '<br>' + esc(shipment.receiver.email) : ''}</p></div>
       </div>
       <div class="pkg-meta">
-        <div class="meta-chip">Shipment Date<b>${esc(shipment.shipmentDate || (shipment.history && shipment.history[0] && shipment.history[0].date) || (shipment.createdAt ? new Date(shipment.createdAt).toISOString().slice(0,10) : '—'))}</b></div>
+        <div class="meta-chip">Shipment Date<b>${esc(shipment.shipmentDate || (shipment.history && shipment.history[0] && shipment.history[0].date) || (shipment.createdAt ? new Date(shipment.createdAt).toISOString().slice(0, 10) : '—'))}</b></div>
         
         <div class="meta-chip">Service<b>${esc(shipment.serviceType || '—')}</b></div>
         
         <div class="meta-chip">Weight<b>${esc((shipment.package && shipment.package.weightKg) != null ? shipment.package.weightKg : '—')} kg</b></div>
-        <div class="meta-chip">Dimensions<b>${esc(shipment.package ? [shipment.package.length,shipment.package.width,shipment.package.height].filter(v=>v!=null&&v!=='').join('×') : '—')} cm</b></div>
+        <div class="meta-chip">Dimensions<b>${esc(shipment.package ? [shipment.package.length, shipment.package.width, shipment.package.height].filter(v => v != null && v !== '').join('×') : '—')} cm</b></div>
         
         <div class="meta-chip">Mode<b>${esc(shipment.mode || '—')}</b></div>
         <div class="meta-chip">Carrier<b>${esc(shipment.carrier || '—')}</b></div>
@@ -260,14 +260,52 @@ ${dhlTimelineHtml(shipment.history)}
         <span style="color:#D40511;">To: ${esc((shipment.route && shipment.route.destCountry) || 'Destination')}</span>
       </div>
       <div id="publicMapBox"></div>
-    </div>`;
+    </div>
+    ${shipment.boxEnabled && shipment.boxMedia ? `
+    <div class="track-package-box" style="margin:18px 12px 8px;padding:14px;border:1px solid #e5e5e5;border-radius:12px;background:#fff;">
+      <h4 style="margin:0 0 10px;font-size:14px;color:#D40511;text-transform:uppercase;letter-spacing:.5px;">Package box</h4>
+      <p style="margin:0 0 10px;font-size:12px;color:#666;">Tap to view full size</p>
+      <div class="pkg-box-preview" id="pkgBoxPreview" style="cursor:pointer;border-radius:10px;overflow:hidden;background:#f5f5f5;max-height:220px;display:flex;align-items:center;justify-content:center;">
+        ${shipment.boxMediaType === 'video'
+                ? `<video src="${esc(shipment.boxMedia)}" muted playsinline style="max-width:100%;max-height:220px;display:block;"></video>`
+                : `<img src="${esc(shipment.boxMedia)}" alt="Package" style="max-width:100%;max-height:220px;object-fit:contain;display:block;">`}
+      </div>
+    </div>` : ''}`;
 
     initPublicMap(shipment);
+    (function bindPkgBox() {
+        var prev = document.getElementById('pkgBoxPreview');
+        if (!prev || !shipment.boxMedia) return;
+        prev.addEventListener('click', function () {
+            var ov = document.createElement('div');
+            ov.id = 'pkgBoxLightbox';
+            ov.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;padding:16px;';
+            var close = document.createElement('button');
+            close.textContent = '×';
+            close.setAttribute('aria-label', 'Close');
+            close.style.cssText = 'position:absolute;top:12px;right:14px;font-size:32px;background:none;border:0;color:#fff;cursor:pointer;line-height:1;';
+            close.onclick = function () { ov.remove(); };
+            ov.onclick = function (e) { if (e.target === ov) ov.remove(); };
+            if (shipment.boxMediaType === 'video') {
+                var v = document.createElement('video');
+                v.src = shipment.boxMedia; v.controls = true; v.playsInline = true; v.autoplay = true;
+                v.style.cssText = 'max-width:100%;max-height:90vh;border-radius:8px;';
+                ov.appendChild(v);
+            } else {
+                var img = document.createElement('img');
+                img.src = shipment.boxMedia; img.alt = 'Package';
+                img.style.cssText = 'max-width:100%;max-height:90vh;object-fit:contain;border-radius:8px;';
+                ov.appendChild(img);
+            }
+            ov.appendChild(close);
+            document.body.appendChild(ov);
+        });
+    })();
     nsStartTrackWatch(shipment.code);
     const rl = document.getElementById('receiptLink');
     if (rl) {
-      rl.href = '/receipt?code=' + encodeURIComponent(shipment.code);
-      rl.textContent = 'Open receipt for ' + shipment.code + ' (print / PDF)';
+        rl.href = '/receipt?code=' + encodeURIComponent(shipment.code);
+        rl.textContent = 'Open receipt for ' + shipment.code + ' (print / PDF)';
     }
 }
 function esc(s) { return String(s ?? "").replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])); }
@@ -351,7 +389,7 @@ async function handlePinSubmit(e) {
     } finally { mdHideWait(); }
     return false;
 }
-function logoutAdmin() { destroyAdminMap(); adminToken = null; unlockedShipments = {}; showSite(); window.scrollTo(0, 0); const ls=document.getElementById('langStrip'); if(ls) ls.style.display=''; }
+function logoutAdmin() { destroyAdminMap(); adminToken = null; unlockedShipments = {}; showSite(); window.scrollTo(0, 0); const ls = document.getElementById('langStrip'); if (ls) ls.style.display = ''; }
 
 /* ---------- ACCOUNT SETTINGS: change admin username/password/PIN ---------- */
 window.handleCredentialsSubmit = async function handleCredentialsSubmit(e) {
@@ -361,8 +399,8 @@ window.handleCredentialsSubmit = async function handleCredentialsSubmit(e) {
     if (err) err.style.display = 'none';
     if (ok) ok.style.display = 'none';
     function val(id) {
-      const el = document.getElementById(id);
-      return el ? String(el.value || '').trim() : '';
+        const el = document.getElementById(id);
+        return el ? String(el.value || '').trim() : '';
     }
     try {
         const body = {
@@ -376,11 +414,11 @@ window.handleCredentialsSubmit = async function handleCredentialsSubmit(e) {
             method: 'PUT', body: JSON.stringify(body)
         });
         if (ok) {
-          ok.textContent = 'Saved. Username is now: ' + (data.username || '');
-          ok.style.display = 'block';
+            ok.textContent = 'Saved. Username is now: ' + (data.username || '');
+            ok.style.display = 'block';
         }
-        ['settingsCurrentPass','settingsNewUser','settingsNewPass','settingsNewPin','settingsChatPin','credCurrent','credUser','credPass','credPin','credChatPin'].forEach(function(id){
-          const el = document.getElementById(id); if (el) el.value = '';
+        ['settingsCurrentPass', 'settingsNewUser', 'settingsNewPass', 'settingsNewPin', 'settingsChatPin', 'credCurrent', 'credUser', 'credPass', 'credPin', 'credChatPin'].forEach(function (id) {
+            const el = document.getElementById(id); if (el) el.value = '';
         });
     } catch (err2) {
         if (err) { err.textContent = err2.message; err.style.display = 'block'; }
@@ -482,9 +520,9 @@ window.startNewShipment = function startNewShipment() {
     activeCode = null;
     renderShipListRows();
     renderShipDetail(null);
-    setTimeout(function(){
-      var p = document.getElementById('shipDetailPanel');
-      if (p) p.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setTimeout(function () {
+        var p = document.getElementById('shipDetailPanel');
+        if (p) p.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 100);
 }
 
@@ -695,16 +733,16 @@ function collectFormShipment(existingCode) {
         mode: document.getElementById('f_mode').value,
         estimatedDelivery: document.getElementById('f_eta').value,
         carrier: document.getElementById('f_carrier').value,
-            waybillNumber: (document.getElementById('f_waybill')||{}).value || '',
-            serviceType: (document.getElementById('f_service')||{}).value || '',
-            packagingType: (document.getElementById('f_pack')||{}).value || '',
-            pieces: Number((document.getElementById('f_pieces')||{}).value || 1),
-            termsOfTrade: (document.getElementById('f_terms')||{}).value || '',
-            billingAccount: (document.getElementById('f_billAcct')||{}).value || '',
-            declaredValue: (document.getElementById('f_decl')||{}).value || '',
-            specialServices: (document.getElementById('f_special')||{}).value || '',
-            reference: (document.getElementById('f_ref')||{}).value || '',
-            shipmentDate: (document.getElementById('f_shipDate')||{}).value || '',
+        waybillNumber: (document.getElementById('f_waybill') || {}).value || '',
+        serviceType: (document.getElementById('f_service') || {}).value || '',
+        packagingType: (document.getElementById('f_pack') || {}).value || '',
+        pieces: Number((document.getElementById('f_pieces') || {}).value || 1),
+        termsOfTrade: (document.getElementById('f_terms') || {}).value || '',
+        billingAccount: (document.getElementById('f_billAcct') || {}).value || '',
+        declaredValue: (document.getElementById('f_decl') || {}).value || '',
+        specialServices: (document.getElementById('f_special') || {}).value || '',
+        reference: (document.getElementById('f_ref') || {}).value || '',
+        shipmentDate: (document.getElementById('f_shipDate') || {}).value || '',
 
     };
     // Only include the access PIN if something was typed - leaving it blank
@@ -719,9 +757,9 @@ function collectFormShipment(existingCode) {
 window.saveShipment = async function saveShipment(isNew) {
     let code = document.getElementById('f_code').value.trim();
     if (!code) {
-      code = generateTrackCode();
-      const el = document.getElementById('f_code');
-      if (el) el.value = code;
+        code = generateTrackCode();
+        const el = document.getElementById('f_code');
+        if (el) el.value = code;
     }
     const pinVal = document.getElementById('f_accessPin').value.trim();
     if (pinVal && !/^\d{4}$/.test(pinVal)) { alert('Shipment access code must be exactly 4 digits.'); return; }
@@ -789,143 +827,143 @@ window.removeStatus = async function removeStatus(code, idx) {
 /* ---------- LIVE MAP: moving truck/plane/ship along a route ---------- */
 const ICONS = { truck: '🚚', plane: '✈️', ship: '🚢', warehouse: '🏭' };
 const DEFAULT_VEHICLE_IMGS = {
-  plane: 'https://commons.wikimedia.org/wiki/Special:FilePath/Dhl.a300b4.oo-dlz.arp.jpg',
-  truck: 'https://commons.wikimedia.org/wiki/Special:FilePath/Fiat_Ducato_DHL_Van.jpg',
-  ship: 'https://commons.wikimedia.org/wiki/Special:FilePath/DHL_cargo_loaders_Orio_al_Serio.jpg'
+    plane: 'https://commons.wikimedia.org/wiki/Special:FilePath/Dhl.a300b4.oo-dlz.arp.jpg',
+    truck: 'https://commons.wikimedia.org/wiki/Special:FilePath/Fiat_Ducato_DHL_Van.jpg',
+    ship: 'https://commons.wikimedia.org/wiki/Special:FilePath/DHL_cargo_loaders_Orio_al_Serio.jpg'
 };
 function vehicleImgSrc(iconType, customUrl) {
-  const custom = String(customUrl || '').trim();
-  if (custom && /^https?:\/\//i.test(custom)) return custom;
-  return DEFAULT_VEHICLE_IMGS[iconType || 'truck'] || DEFAULT_VEHICLE_IMGS.truck;
+    const custom = String(customUrl || '').trim();
+    if (custom && /^https?:\/\//i.test(custom)) return custom;
+    return DEFAULT_VEHICLE_IMGS[iconType || 'truck'] || DEFAULT_VEHICLE_IMGS.truck;
 }
 function vehicleIconHtml(iconType, customUrl, size) {
-  const s = size || 28;
-  const src = vehicleImgSrc(iconType, customUrl);
-  return '<img src="' + src + '" alt="' + (iconType || 'vehicle') + '" width="' + s + '" height="' + s + '" style="width:' + s + 'px;height:' + s + 'px;object-fit:cover;border-radius:50%;border:2px solid #FFCC00;background:#fff;display:block;" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'inline\');"><span style="display:none;font-size:' + s + 'px;">' + (ICONS[iconType || 'truck'] || '🚚') + '</span>';
+    const s = size || 28;
+    const src = vehicleImgSrc(iconType, customUrl);
+    return '<img src="' + src + '" alt="' + (iconType || 'vehicle') + '" width="' + s + '" height="' + s + '" style="width:' + s + 'px;height:' + s + 'px;object-fit:cover;border-radius:50%;border:2px solid #FFCC00;background:#fff;display:block;" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'inline\');"><span style="display:none;font-size:' + s + 'px;">' + (ICONS[iconType || 'truck'] || '🚚') + '</span>';
 }
 
 
 function onFaceModeChange() {
-  const face = document.getElementById('f_face');
-  if (face && face.value === 'manual') {
-    const sl = document.getElementById('f_rotSlider');
-    if (sl) onRotSliderInput(sl.value);
-  } else if (face && face.value === 'auto') {
-    setVehicleRotAuto();
-  }
+    const face = document.getElementById('f_face');
+    if (face && face.value === 'manual') {
+        const sl = document.getElementById('f_rotSlider');
+        if (sl) onRotSliderInput(sl.value);
+    } else if (face && face.value === 'auto') {
+        setVehicleRotAuto();
+    }
 }
 function onRotSliderInput(val) {
-  const deg = Math.round(Number(val) || 0);
-  const lab = document.getElementById('rotDegLabel');
-  if (lab) lab.textContent = deg + '°';
-  const face = document.getElementById('f_face');
-  if (face) {
-    face.value = 'manual';
-  }
-  // live update map marker
-  try {
-    if (adminMarker && adminMap) {
-      const o = COUNTRY_COORDS[document.getElementById('f_oCountry').value];
-      const d = COUNTRY_COORDS[document.getElementById('f_dCountry').value];
-      if (!o || !d) return;
-      const iconType = (document.getElementById('f_icon') || {}).value || 'truck';
-      adminMarker.setIcon(makeVehicleIcon(iconType, o.lat, o.lng, d.lat, d.lng, false, deg, ''));
+    const deg = Math.round(Number(val) || 0);
+    const lab = document.getElementById('rotDegLabel');
+    if (lab) lab.textContent = deg + '°';
+    const face = document.getElementById('f_face');
+    if (face) {
+        face.value = 'manual';
     }
-  } catch (e) {}
-  window._lastAdminRotation = deg;
-  const hint = document.getElementById('rotHint');
-  if (hint) hint.textContent = 'Facing ' + deg + '° — Pause or Done to lock direction.';
+    // live update map marker
+    try {
+        if (adminMarker && adminMap) {
+            const o = COUNTRY_COORDS[document.getElementById('f_oCountry').value];
+            const d = COUNTRY_COORDS[document.getElementById('f_dCountry').value];
+            if (!o || !d) return;
+            const iconType = (document.getElementById('f_icon') || {}).value || 'truck';
+            adminMarker.setIcon(makeVehicleIcon(iconType, o.lat, o.lng, d.lat, d.lng, false, deg, ''));
+        }
+    } catch (e) { }
+    window._lastAdminRotation = deg;
+    const hint = document.getElementById('rotHint');
+    if (hint) hint.textContent = 'Facing ' + deg + '° — Pause or Done to lock direction.';
 }
 
 function nudgeVehicleRot(delta) {
-  const face = document.getElementById('f_face');
-  const slider = document.getElementById('f_rotSlider');
-  let deg = slider ? Number(slider.value) || 0 : 0;
-  if (face && (face.value === 'auto' || face.value === 'flip')) {
-    try {
-      const o = COUNTRY_COORDS[document.getElementById('f_oCountry').value];
-      const d = COUNTRY_COORDS[document.getElementById('f_dCountry').value];
-      if (o && d) deg = bearingDeg(o.lat, o.lng, d.lat, d.lng);
-    } catch(e) {}
-  }
-  deg = (deg + delta + 360) % 360;
-  if (slider) slider.value = String(Math.round(deg));
-  if (face) face.value = 'manual';
-  onRotSliderInput(deg);
-  updateVehicleIconDisplay();
-  // live update marker
-  try {
-    if (adminMarker && adminMap) {
-      const o = COUNTRY_COORDS[document.getElementById('f_oCountry').value];
-      const d = COUNTRY_COORDS[document.getElementById('f_dCountry').value];
-      const iconType = (document.getElementById('f_icon') || {}).value || 'truck';
-      const ic = makeVehicleIcon(iconType, o.lat, o.lng, d.lat, d.lng, false, deg, '');
-      adminMarker.setIcon(ic);
+    const face = document.getElementById('f_face');
+    const slider = document.getElementById('f_rotSlider');
+    let deg = slider ? Number(slider.value) || 0 : 0;
+    if (face && (face.value === 'auto' || face.value === 'flip')) {
+        try {
+            const o = COUNTRY_COORDS[document.getElementById('f_oCountry').value];
+            const d = COUNTRY_COORDS[document.getElementById('f_dCountry').value];
+            if (o && d) deg = bearingDeg(o.lat, o.lng, d.lat, d.lng);
+        } catch (e) { }
     }
-  } catch(e) {}
+    deg = (deg + delta + 360) % 360;
+    if (slider) slider.value = String(Math.round(deg));
+    if (face) face.value = 'manual';
+    onRotSliderInput(deg);
+    updateVehicleIconDisplay();
+    // live update marker
+    try {
+        if (adminMarker && adminMap) {
+            const o = COUNTRY_COORDS[document.getElementById('f_oCountry').value];
+            const d = COUNTRY_COORDS[document.getElementById('f_dCountry').value];
+            const iconType = (document.getElementById('f_icon') || {}).value || 'truck';
+            const ic = makeVehicleIcon(iconType, o.lat, o.lng, d.lat, d.lng, false, deg, '');
+            adminMarker.setIcon(ic);
+        }
+    } catch (e) { }
 }
 function setVehicleRotAuto() {
-  const face = document.getElementById('f_face');
-  if (face) face.value = 'auto';
-  const sl = document.getElementById('f_rotSlider');
-  if (sl) sl.value = '';
-  window._lastAdminRotation = null;
-  const hint = document.getElementById('rotHint');
-  if (hint) hint.textContent = 'Auto: nose points to DESTINATION (not origin). Save to apply on track.';
-  updateVehicleIconDisplay();
-  try {
-    if (adminMarker && adminMap) {
-      const o = COUNTRY_COORDS[document.getElementById('f_oCountry').value];
-      const d = COUNTRY_COORDS[document.getElementById('f_dCountry').value];
-      if (!o || !d) return;
-      const iconType = (document.getElementById('f_icon') || {}).value || 'truck';
-      // null = auto face DESTINATION
-      const ic = makeVehicleIcon(iconType, o.lat, o.lng, d.lat, d.lng, false, null, '');
-      adminMarker.setIcon(ic);
-    }
-  } catch(e) {}
+    const face = document.getElementById('f_face');
+    if (face) face.value = 'auto';
+    const sl = document.getElementById('f_rotSlider');
+    if (sl) sl.value = '';
+    window._lastAdminRotation = null;
+    const hint = document.getElementById('rotHint');
+    if (hint) hint.textContent = 'Auto: nose points to DESTINATION (not origin). Save to apply on track.';
+    updateVehicleIconDisplay();
+    try {
+        if (adminMarker && adminMap) {
+            const o = COUNTRY_COORDS[document.getElementById('f_oCountry').value];
+            const d = COUNTRY_COORDS[document.getElementById('f_dCountry').value];
+            if (!o || !d) return;
+            const iconType = (document.getElementById('f_icon') || {}).value || 'truck';
+            // null = auto face DESTINATION
+            const ic = makeVehicleIcon(iconType, o.lat, o.lng, d.lat, d.lng, false, null, '');
+            adminMarker.setIcon(ic);
+        }
+    } catch (e) { }
 }
 
 function updateVehicleIconDisplay() {
-  const sel = document.getElementById('f_icon');
-  const urlEl = document.getElementById('f_vehicleImg');
-  const iconType = (sel && sel.value) ? sel.value : 'truck';
-  const custom = urlEl ? urlEl.value.trim() : '';
-  const emoji = ICONS[iconType] || ICONS.truck;
-  // Progress bar: always show matching emoji so plane/truck/ship is obvious
-  const el = document.getElementById('mapVehicleIcon');
-  if (el) {
-    el.innerHTML = '<span style="font-size:28px;line-height:1;">' + emoji + '</span>';
-    el.setAttribute('data-icon', iconType);
-  }
-  const pub = document.getElementById('publicVehicleIcon');
-  if (pub) {
-    pub.innerHTML = '<span style="font-size:28px;line-height:1;">' + emoji + '</span>';
-    pub.setAttribute('data-icon', iconType);
-  }
-  // Refresh map marker if map is open
-  try {
-    if (typeof adminMarker !== 'undefined' && adminMarker && adminMap) {
-      const oLat = parseFloat((document.getElementById('f_oCountry') && COUNTRY_COORDS[document.getElementById('f_oCountry').value] || {}).lat);
-      const oLng = parseFloat((document.getElementById('f_oCountry') && COUNTRY_COORDS[document.getElementById('f_oCountry').value] || {}).lng);
-      const dLat = parseFloat((document.getElementById('f_dCountry') && COUNTRY_COORDS[document.getElementById('f_dCountry').value] || {}).lat);
-      const dLng = parseFloat((document.getElementById('f_dCountry') && COUNTRY_COORDS[document.getElementById('f_dCountry').value] || {}).lng);
-      if (![oLat,oLng,dLat,dLng].some(isNaN)) {
-        const face = document.getElementById('f_face');
-        const faceVal = face ? face.value : 'auto';
-        const flip = faceVal === 'flip';
-        let rot = null; // auto → face destination
-        if (faceVal === 'manual') {
-          rot = getAdminRotationFromUI();
-        } else if (faceVal && faceVal !== 'auto' && faceVal !== 'flip') {
-          rot = Number(faceVal);
-          if (isNaN(rot)) rot = null;
-        }
-        const ic = makeVehicleIcon(iconType, oLat, oLng, dLat, dLng, flip, rot, custom);
-        adminMarker.setIcon(ic);
-      }
+    const sel = document.getElementById('f_icon');
+    const urlEl = document.getElementById('f_vehicleImg');
+    const iconType = (sel && sel.value) ? sel.value : 'truck';
+    const custom = urlEl ? urlEl.value.trim() : '';
+    const emoji = ICONS[iconType] || ICONS.truck;
+    // Progress bar: always show matching emoji so plane/truck/ship is obvious
+    const el = document.getElementById('mapVehicleIcon');
+    if (el) {
+        el.innerHTML = '<span style="font-size:28px;line-height:1;">' + emoji + '</span>';
+        el.setAttribute('data-icon', iconType);
     }
-  } catch (e) {}
+    const pub = document.getElementById('publicVehicleIcon');
+    if (pub) {
+        pub.innerHTML = '<span style="font-size:28px;line-height:1;">' + emoji + '</span>';
+        pub.setAttribute('data-icon', iconType);
+    }
+    // Refresh map marker if map is open
+    try {
+        if (typeof adminMarker !== 'undefined' && adminMarker && adminMap) {
+            const oLat = parseFloat((document.getElementById('f_oCountry') && COUNTRY_COORDS[document.getElementById('f_oCountry').value] || {}).lat);
+            const oLng = parseFloat((document.getElementById('f_oCountry') && COUNTRY_COORDS[document.getElementById('f_oCountry').value] || {}).lng);
+            const dLat = parseFloat((document.getElementById('f_dCountry') && COUNTRY_COORDS[document.getElementById('f_dCountry').value] || {}).lat);
+            const dLng = parseFloat((document.getElementById('f_dCountry') && COUNTRY_COORDS[document.getElementById('f_dCountry').value] || {}).lng);
+            if (![oLat, oLng, dLat, dLng].some(isNaN)) {
+                const face = document.getElementById('f_face');
+                const faceVal = face ? face.value : 'auto';
+                const flip = faceVal === 'flip';
+                let rot = null; // auto → face destination
+                if (faceVal === 'manual') {
+                    rot = getAdminRotationFromUI();
+                } else if (faceVal && faceVal !== 'auto' && faceVal !== 'flip') {
+                    rot = Number(faceVal);
+                    if (isNaN(rot)) rot = null;
+                }
+                const ic = makeVehicleIcon(iconType, oLat, oLng, dLat, dLng, flip, rot, custom);
+                adminMarker.setIcon(ic);
+            }
+        }
+    } catch (e) { }
 }
 
 let adminMap = null, adminMarker = null, adminAnimTimer = null;
@@ -936,21 +974,21 @@ let publicMap = null, publicMarker = null, publicAnimTimer = null, publicPollTim
 // to nudge its exact position if the capital isn't quite where you want it.
 
 function countrySelectHtml(id, selected) {
-  const names = Object.keys(COUNTRY_COORDS).sort();
-  const sel = selected && COUNTRY_COORDS[selected] ? selected : (names[0] || '');
-  const opts = names.map(c => `<option value="${c}" ${c === sel ? 'selected' : ''}>${c}</option>`).join('');
-  return `<div class="country-pick">
+    const names = Object.keys(COUNTRY_COORDS).sort();
+    const sel = selected && COUNTRY_COORDS[selected] ? selected : (names[0] || '');
+    const opts = names.map(c => `<option value="${c}" ${c === sel ? 'selected' : ''}>${c}</option>`).join('');
+    return `<div class="country-pick">
     <input type="search" class="country-search" placeholder="Search country…" oninput="filterCountrySelect('${id}', this.value)" autocomplete="off">
     <select id="${id}" size="6" class="country-select">${opts}</select>
   </div>`;
 }
 function filterCountrySelect(selectId, q) {
-  const sel = document.getElementById(selectId);
-  if (!sel) return;
-  const query = (q || '').toLowerCase().trim();
-  Array.from(sel.options).forEach(o => {
-    o.hidden = query ? !o.value.toLowerCase().includes(query) : false;
-  });
+    const sel = document.getElementById(selectId);
+    if (!sel) return;
+    const query = (q || '').toLowerCase().trim();
+    Array.from(sel.options).forEach(o => {
+        o.hidden = query ? !o.value.toLowerCase().includes(query) : false;
+    });
 }
 
 const COUNTRY_COORDS = {
@@ -1140,7 +1178,7 @@ function bearingDeg(oLat, oLng, dLat, dLng) {
     const toRad = Math.PI / 180;
     const y = Math.sin((dLng - oLng) * toRad) * Math.cos(dLat * toRad);
     const x = Math.cos(oLat * toRad) * Math.sin(dLat * toRad) -
-              Math.sin(oLat * toRad) * Math.cos(dLat * toRad) * Math.cos((dLng - oLng) * toRad);
+        Math.sin(oLat * toRad) * Math.cos(dLat * toRad) * Math.cos((dLng - oLng) * toRad);
     return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
 }
 function emojiNoseOffset(iconType) {
@@ -1158,87 +1196,87 @@ function makeVehicleIcon(iconType, oLat, oLng, dLat, dLng, flipOverride, rotatio
     const manual = rotationDeg !== null && rotationDeg !== undefined && rotationDeg !== '' && !isNaN(Number(rotationDeg));
     let deg;
     if (manual) {
-      deg = Number(rotationDeg);
+        deg = Number(rotationDeg);
     } else {
-      // Bearing from origin → destination, adjusted for emoji default face
-      deg = bearingDeg(oLat, oLng, dLat, dLng) + emojiNoseOffset(iconType);
-      if (flipOverride) deg += 180;
-      deg = (deg % 360 + 360) % 360;
+        // Bearing from origin → destination, adjusted for emoji default face
+        deg = bearingDeg(oLat, oLng, dLat, dLng) + emojiNoseOffset(iconType);
+        if (flipOverride) deg += 180;
+        deg = (deg % 360 + 360) % 360;
     }
     const emoji = ICONS[iconType || 'truck'] || '🚚';
     const transform = 'rotate(' + deg + 'deg)';
     return L.divIcon({
-      html: '<div style="font-size:34px;line-height:34px;transform:' + transform + ';transform-origin:center center;text-align:center;cursor:grab;">' + emoji + '</div>',
-      className: 'vehicle-dir-icon', iconSize: [34, 34], iconAnchor: [17, 17]
+        html: '<div style="font-size:34px;line-height:34px;transform:' + transform + ';transform-origin:center center;text-align:center;cursor:grab;">' + emoji + '</div>',
+        className: 'vehicle-dir-icon', iconSize: [34, 34], iconAnchor: [17, 17]
     });
 }
 
 
 /* ---- Hand push: progress bar + map vehicle (keep auto when moving) ---- */
 function ensureProgressKnob(bar) {
-  if (!bar) return null;
-  let knob = bar.querySelector('.progress-knob');
-  if (!knob) {
-    knob = document.createElement('div');
-    knob.className = 'progress-knob';
-    bar.appendChild(knob);
-  }
-  return knob;
+    if (!bar) return null;
+    let knob = bar.querySelector('.progress-knob');
+    if (!knob) {
+        knob = document.createElement('div');
+        knob.className = 'progress-knob';
+        bar.appendChild(knob);
+    }
+    return knob;
 }
 function setProgressBarUI(fillId, percent) {
-  const p = Math.max(0, Math.min(100, Number(percent) || 0));
-  const fill = document.getElementById(fillId);
-  if (fill) {
-    fill.style.width = p + '%';
-    const bar = fill.parentElement;
-    const knob = ensureProgressKnob(bar);
-    if (knob) knob.style.left = p + '%';
-  }
-  return p;
+    const p = Math.max(0, Math.min(100, Number(percent) || 0));
+    const fill = document.getElementById(fillId);
+    if (fill) {
+        fill.style.width = p + '%';
+        const bar = fill.parentElement;
+        const knob = ensureProgressKnob(bar);
+        if (knob) knob.style.left = p + '%';
+    }
+    return p;
 }
 function bindProgressBarDrag(fillId, opts) {
-  const fill = document.getElementById(fillId);
-  if (!fill) return;
-  const bar = fill.parentElement;
-  if (!bar || bar.dataset.handBound === '1') return;
-  bar.dataset.handBound = '1';
-  ensureProgressKnob(bar);
+    const fill = document.getElementById(fillId);
+    if (!fill) return;
+    const bar = fill.parentElement;
+    if (!bar || bar.dataset.handBound === '1') return;
+    bar.dataset.handBound = '1';
+    ensureProgressKnob(bar);
 
-  function pctFromEvent(e) {
-    const rect = bar.getBoundingClientRect();
-    const clientX = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
-    const x = clientX - rect.left;
-    return Math.max(0, Math.min(100, (x / rect.width) * 100));
-  }
-  let dragging = false;
-  function onStart(e) {
-    dragging = true;
-    if (opts && opts.onStart) opts.onStart();
-    const p = pctFromEvent(e);
-    setProgressBarUI(fillId, p);
-    if (opts && opts.onMove) opts.onMove(p);
-    e.preventDefault();
-  }
-  function onMove(e) {
-    if (!dragging) return;
-    const p = pctFromEvent(e);
-    setProgressBarUI(fillId, p);
-    if (opts && opts.onMove) opts.onMove(p);
-    e.preventDefault();
-  }
-  function onEnd(e) {
-    if (!dragging) return;
-    dragging = false;
-    const p = pctFromEvent(e.changedTouches ? e.changedTouches[0] : e);
-    setProgressBarUI(fillId, p);
-    if (opts && opts.onEnd) opts.onEnd(p);
-  }
-  bar.addEventListener('mousedown', onStart);
-  window.addEventListener('mousemove', onMove);
-  window.addEventListener('mouseup', onEnd);
-  bar.addEventListener('touchstart', onStart, { passive: false });
-  window.addEventListener('touchmove', onMove, { passive: false });
-  window.addEventListener('touchend', onEnd);
+    function pctFromEvent(e) {
+        const rect = bar.getBoundingClientRect();
+        const clientX = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
+        const x = clientX - rect.left;
+        return Math.max(0, Math.min(100, (x / rect.width) * 100));
+    }
+    let dragging = false;
+    function onStart(e) {
+        dragging = true;
+        if (opts && opts.onStart) opts.onStart();
+        const p = pctFromEvent(e);
+        setProgressBarUI(fillId, p);
+        if (opts && opts.onMove) opts.onMove(p);
+        e.preventDefault();
+    }
+    function onMove(e) {
+        if (!dragging) return;
+        const p = pctFromEvent(e);
+        setProgressBarUI(fillId, p);
+        if (opts && opts.onMove) opts.onMove(p);
+        e.preventDefault();
+    }
+    function onEnd(e) {
+        if (!dragging) return;
+        dragging = false;
+        const p = pctFromEvent(e.changedTouches ? e.changedTouches[0] : e);
+        setProgressBarUI(fillId, p);
+        if (opts && opts.onEnd) opts.onEnd(p);
+    }
+    bar.addEventListener('mousedown', onStart);
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onEnd);
+    bar.addEventListener('touchstart', onStart, { passive: false });
+    window.addEventListener('touchmove', onMove, { passive: false });
+    window.addEventListener('touchend', onEnd);
 }
 
 /* ----- ADMIN MAP ----- */
@@ -1264,9 +1302,9 @@ window.initAdminMap = function initAdminMap(shipment) {
     L.marker([dLat, dLng]).addTo(adminMap).bindPopup('Destination' + (r.destCountry ? ': ' + r.destCountry : ''));
     const line = L.polyline([[oLat, oLng], [dLat, dLng]], { color: '#FFCC00', weight: 3, dashArray: '6,8' }).addTo(adminMap);
     adminMap.fitBounds(line.getBounds(), { padding: [30, 30] });
-    setTimeout(function(){ try { adminMap.invalidateSize(); } catch(e){} }, 100);
-    setTimeout(function(){ try { adminMap.invalidateSize(); } catch(e){} }, 400);
-    setTimeout(function(){ try { adminMap.invalidateSize(); } catch(e){} }, 800);
+    setTimeout(function () { try { adminMap.invalidateSize(); } catch (e) { } }, 100);
+    setTimeout(function () { try { adminMap.invalidateSize(); } catch (e) { } }, 400);
+    setTimeout(function () { try { adminMap.invalidateSize(); } catch (e) { } }, 800);
     const icon = makeVehicleIcon(r.icon, oLat, oLng, dLat, dLng, r.flipOverride, r.rotationDeg, r.vehicleImg);
     const startProgress = computeLiveProgress(r);
     const pos = pointAlong(oLat, oLng, dLat, dLng, startProgress / 100);
@@ -1288,7 +1326,7 @@ window.initAdminMap = function initAdminMap(shipment) {
         const dlat = Math.abs(ll.lat - snapped[0]);
         const dlng = Math.abs(ll.lng - snapped[1]);
         if (dlat > 0.00001 || dlng > 0.00001) {
-          e.target.setLatLng(snapped);
+            e.target.setLatLng(snapped);
         }
     });
     adminMarker.on('dragend', async e => {
@@ -1304,49 +1342,49 @@ window.initAdminMap = function initAdminMap(shipment) {
         try {
             await apiRequest('/shipments/' + encodeURIComponent(shipment.code) + '/route', {
                 method: 'PATCH', body: JSON.stringify({
-                  isMoving: false, movingSince: null, progress: t * 100,
-                  rotationDeg: rot, flipOverride: false
+                    isMoving: false, movingSince: null, progress: t * 100,
+                    rotationDeg: rot, flipOverride: false
                 })
             });
-        } catch (err) {}
+        } catch (err) { }
     });
 
     // Hand-turn: drag LEFT/RIGHT on the plane icon (map marker) to set direction
-    setTimeout(function() {
-      try {
-        const el = adminMarker.getElement();
-        if (!el || el.dataset.turnBound === '1') return;
-        el.dataset.turnBound = '1';
-        let sx = null, base = Number((document.getElementById('f_rotSlider') || {}).value);
-        if (isNaN(base)) base = bearingDeg(oLat, oLng, dLat, dLng);
-        function turnTo(deg) {
-          deg = (deg % 360 + 360) % 360;
-          const iconType = (document.getElementById('f_icon') || {}).value || r.icon || 'truck';
-          adminMarker.setIcon(makeVehicleIcon(iconType, oLat, oLng, dLat, dLng, false, deg, ''));
-          const face = document.getElementById('f_face');
-          if (face) face.value = 'manual';
-          const sl = document.getElementById('f_rotSlider');
-          if (sl) sl.value = String(Math.round(deg));
-          window._lastAdminRotation = Math.round(deg);
-          const hint = document.getElementById('rotHint');
-          if (hint) hint.textContent = 'Facing ' + Math.round(deg) + '° — Pause or Done to lock it.';
-        }
-        el.addEventListener('touchstart', function(ev) {
-          if (ev.touches.length !== 1) return;
-          sx = ev.touches[0].clientX;
-          base = Number((document.getElementById('f_rotSlider') || {}).value);
-          if (isNaN(base) || (document.getElementById('f_rotSlider') || {}).value === '') base = bearingDeg(oLat, oLng, dLat, dLng);
-        }, { passive: true });
-        el.addEventListener('touchmove', function(ev) {
-          if (sx == null || !ev.touches[0]) return;
-          // Horizontal swipe turns; don't prevent drag-move unless mostly horizontal
-          const dx = ev.touches[0].clientX - sx;
-          if (Math.abs(dx) > 8) {
-            turnTo(base + dx * 0.6);
-          }
-        }, { passive: true });
-        el.addEventListener('touchend', function() { sx = null; });
-      } catch (e) {}
+    setTimeout(function () {
+        try {
+            const el = adminMarker.getElement();
+            if (!el || el.dataset.turnBound === '1') return;
+            el.dataset.turnBound = '1';
+            let sx = null, base = Number((document.getElementById('f_rotSlider') || {}).value);
+            if (isNaN(base)) base = bearingDeg(oLat, oLng, dLat, dLng);
+            function turnTo(deg) {
+                deg = (deg % 360 + 360) % 360;
+                const iconType = (document.getElementById('f_icon') || {}).value || r.icon || 'truck';
+                adminMarker.setIcon(makeVehicleIcon(iconType, oLat, oLng, dLat, dLng, false, deg, ''));
+                const face = document.getElementById('f_face');
+                if (face) face.value = 'manual';
+                const sl = document.getElementById('f_rotSlider');
+                if (sl) sl.value = String(Math.round(deg));
+                window._lastAdminRotation = Math.round(deg);
+                const hint = document.getElementById('rotHint');
+                if (hint) hint.textContent = 'Facing ' + Math.round(deg) + '° — Pause or Done to lock it.';
+            }
+            el.addEventListener('touchstart', function (ev) {
+                if (ev.touches.length !== 1) return;
+                sx = ev.touches[0].clientX;
+                base = Number((document.getElementById('f_rotSlider') || {}).value);
+                if (isNaN(base) || (document.getElementById('f_rotSlider') || {}).value === '') base = bearingDeg(oLat, oLng, dLat, dLng);
+            }, { passive: true });
+            el.addEventListener('touchmove', function (ev) {
+                if (sx == null || !ev.touches[0]) return;
+                // Horizontal swipe turns; don't prevent drag-move unless mostly horizontal
+                const dx = ev.touches[0].clientX - sx;
+                if (Math.abs(dx) > 8) {
+                    turnTo(base + dx * 0.6);
+                }
+            }, { passive: true });
+            el.addEventListener('touchend', function () { sx = null; });
+        } catch (e) { }
     }, 200);
 
     if (r.isMoving) { startAdminAnimation(shipment); }
@@ -1354,70 +1392,70 @@ window.initAdminMap = function initAdminMap(shipment) {
 
     // Hand-push progress bar (same as dragging plane on map)
     bindProgressBarDrag('mapProgressFill', {
-      onStart: function () { stopAdminAnimation(); },
-      onMove: function (p) {
-        reflectAdminProgress(p);
-        if (adminMarker) adminMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, p / 100));
-      },
-      onEnd: async function (p) {
-        reflectAdminProgress(p);
-        if (adminMarker) adminMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, p / 100));
-        const sl = document.getElementById('f_rotSlider');
-        let rot = sl && sl.value !== '' && !isNaN(Number(sl.value)) ? Number(sl.value) : null;
-        const face = document.getElementById('f_face');
-        if (face && rot != null) face.value = 'manual';
-        try {
-          await apiRequest('/shipments/' + encodeURIComponent(shipment.code) + '/route', {
-            method: 'PATCH',
-            body: JSON.stringify({ isMoving: false, movingSince: null, progress: p, rotationDeg: rot, flipOverride: false })
-          });
-        } catch (err) {}
-      }
+        onStart: function () { stopAdminAnimation(); },
+        onMove: function (p) {
+            reflectAdminProgress(p);
+            if (adminMarker) adminMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, p / 100));
+        },
+        onEnd: async function (p) {
+            reflectAdminProgress(p);
+            if (adminMarker) adminMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, p / 100));
+            const sl = document.getElementById('f_rotSlider');
+            let rot = sl && sl.value !== '' && !isNaN(Number(sl.value)) ? Number(sl.value) : null;
+            const face = document.getElementById('f_face');
+            if (face && rot != null) face.value = 'manual';
+            try {
+                await apiRequest('/shipments/' + encodeURIComponent(shipment.code) + '/route', {
+                    method: 'PATCH',
+                    body: JSON.stringify({ isMoving: false, movingSince: null, progress: p, rotationDeg: rot, flipOverride: false })
+                });
+            } catch (err) { }
+        }
     });
 
     // Hand-rotate direction: drag left/right on the vehicle emoji above the bar
     const vIcon = document.getElementById('mapVehicleIcon');
     if (vIcon && vIcon.dataset.rotBound !== '1') {
-      vIcon.dataset.rotBound = '1';
-      let rot0 = Number(r.rotationDeg) || bearingDeg(oLat, oLng, dLat, dLng);
-      let startX = 0, startRot = rot0;
-      function applyRot(deg) {
-        deg = (deg % 360 + 360) % 360;
-        const iconType = (document.getElementById('f_icon') || {}).value || r.icon || 'truck';
-        if (adminMarker) {
-          adminMarker.setIcon(makeVehicleIcon(iconType, oLat, oLng, dLat, dLng, false, deg, ''));
+        vIcon.dataset.rotBound = '1';
+        let rot0 = Number(r.rotationDeg) || bearingDeg(oLat, oLng, dLat, dLng);
+        let startX = 0, startRot = rot0;
+        function applyRot(deg) {
+            deg = (deg % 360 + 360) % 360;
+            const iconType = (document.getElementById('f_icon') || {}).value || r.icon || 'truck';
+            if (adminMarker) {
+                adminMarker.setIcon(makeVehicleIcon(iconType, oLat, oLng, dLat, dLng, false, deg, ''));
+            }
+            const face = document.getElementById('f_face');
+            if (face) face.value = 'manual';
+            const slider = document.getElementById('f_rotSlider');
+            if (slider) slider.value = String(Math.round(deg));
+            const lab = document.getElementById('rotDegLabel');
+            if (lab) lab.textContent = Math.round(deg) + '°';
+            const hint = document.getElementById('rotHint');
+            if (hint) hint.textContent = 'Facing ' + Math.round(deg) + '° — tap Done — Save so tracking shows this direction.';
         }
-        const face = document.getElementById('f_face');
-        if (face) face.value = 'manual';
-        const slider = document.getElementById('f_rotSlider');
-        if (slider) slider.value = String(Math.round(deg));
-        const lab = document.getElementById('rotDegLabel');
-        if (lab) lab.textContent = Math.round(deg) + '°';
-        const hint = document.getElementById('rotHint');
-        if (hint) hint.textContent = 'Facing ' + Math.round(deg) + '° — tap Done — Save so tracking shows this direction.';
-      }
-      function down(e) {
-        startX = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
-        startRot = Number((document.getElementById('f_face') || {}).value) || rot0;
-        if (isNaN(startRot)) startRot = bearingDeg(oLat, oLng, dLat, dLng);
-        e.preventDefault();
-        e.stopPropagation();
-      }
-      function move(e) {
-        if (startX == null) return;
-        const x = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
-        if (x == null) return;
-        const deg = startRot + (x - startX) * 0.5;
-        applyRot(deg);
-        e.preventDefault();
-      }
-      function up() { startX = null; }
-      vIcon.addEventListener('mousedown', down);
-      window.addEventListener('mousemove', move);
-      window.addEventListener('mouseup', up);
-      vIcon.addEventListener('touchstart', down, { passive: false });
-      window.addEventListener('touchmove', move, { passive: false });
-      window.addEventListener('touchend', up);
+        function down(e) {
+            startX = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
+            startRot = Number((document.getElementById('f_face') || {}).value) || rot0;
+            if (isNaN(startRot)) startRot = bearingDeg(oLat, oLng, dLat, dLng);
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        function move(e) {
+            if (startX == null) return;
+            const x = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
+            if (x == null) return;
+            const deg = startRot + (x - startX) * 0.5;
+            applyRot(deg);
+            e.preventDefault();
+        }
+        function up() { startX = null; }
+        vIcon.addEventListener('mousedown', down);
+        window.addEventListener('mousemove', move);
+        window.addEventListener('mouseup', up);
+        vIcon.addEventListener('touchstart', down, { passive: false });
+        window.addEventListener('touchmove', move, { passive: false });
+        window.addEventListener('touchend', up);
     }
 }
 function reflectAdminProgress(progress) {
@@ -1426,9 +1464,9 @@ function reflectAdminProgress(progress) {
     if (label) label.textContent = Math.round(p) + '%';
     const icon = document.getElementById('mapVehicleIcon');
     if (icon) {
-      icon.style.position = 'absolute';
-      icon.style.left = 'calc(' + p + '% - 14px)';
-      icon.style.top = '0';
+        icon.style.position = 'absolute';
+        icon.style.left = 'calc(' + p + '% - 14px)';
+        icon.style.top = '0';
     }
 }
 function startAdminAnimation(shipment) {
@@ -1458,16 +1496,16 @@ window.saveRoute = async function saveRoute(code) {
     let rotationDeg = null;
     let flipOverride = false;
     if (faceVal === 'flip') {
-      flipOverride = true;
-      rotationDeg = null;
+        flipOverride = true;
+        rotationDeg = null;
     } else if (faceVal === 'auto') {
-      rotationDeg = null;
+        rotationDeg = null;
     } else if (faceVal === 'manual' || (slider && faceVal === 'slider')) {
-      rotationDeg = Number(slider && slider.value != null ? slider.value : faceVal);
-      if (isNaN(rotationDeg)) rotationDeg = null;
+        rotationDeg = Number(slider && slider.value != null ? slider.value : faceVal);
+        if (isNaN(rotationDeg)) rotationDeg = null;
     } else {
-      rotationDeg = Number(faceVal);
-      if (isNaN(rotationDeg)) rotationDeg = null;
+        rotationDeg = Number(faceVal);
+        if (isNaN(rotationDeg)) rotationDeg = null;
     }
     // Current progress from bar (hand-pushed position)
     let progress = 0;
@@ -1475,8 +1513,8 @@ window.saveRoute = async function saveRoute(code) {
     if (fill && fill.style.width) progress = parseFloat(fill.style.width) || 0;
     const label = document.getElementById('mapProgressLabel');
     if (label) {
-      const n = parseFloat(String(label.textContent).replace('%',''));
-      if (!isNaN(n)) progress = n;
+        const n = parseFloat(String(label.textContent).replace('%', ''));
+        if (!isNaN(n)) progress = n;
     }
     const payload = {
         originCountry, destCountry,
@@ -1497,21 +1535,21 @@ window.saveRoute = async function saveRoute(code) {
         if (msg) { msg.style.display = 'block'; msg.style.color = 'var(--green)'; msg.textContent = 'Saved — position & direction locked.'; }
         // Keep marker exactly where you placed it (no jump)
         if (adminMarker && updated.route) {
-          const r = updated.route;
-          const oLat = parseFloat(r.originLat), oLng = parseFloat(r.originLng);
-          const dLat = parseFloat(r.destLat), dLng = parseFloat(r.destLng);
-          const p = Number(r.progress) || 0;
-          if (![oLat,oLng,dLat,dLng].some(isNaN)) {
-            adminMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, p / 100));
-            adminMarker.setIcon(makeVehicleIcon(r.icon, oLat, oLng, dLat, dLng, r.flipOverride, r.rotationDeg, r.vehicleImg));
-            reflectAdminProgress(p);
-          }
+            const r = updated.route;
+            const oLat = parseFloat(r.originLat), oLng = parseFloat(r.originLng);
+            const dLat = parseFloat(r.destLat), dLng = parseFloat(r.destLng);
+            const p = Number(r.progress) || 0;
+            if (![oLat, oLng, dLat, dLng].some(isNaN)) {
+                adminMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, p / 100));
+                adminMarker.setIcon(makeVehicleIcon(r.icon, oLat, oLng, dLat, dLng, r.flipOverride, r.rotationDeg, r.vehicleImg));
+                reflectAdminProgress(p);
+            }
         }
         const iconEl = document.getElementById('mapVehicleIcon');
         if (iconEl && updated.route) {
-          const t = updated.route.icon || 'truck';
-          iconEl.innerHTML = '<span style="font-size:28px;line-height:1;">' + (ICONS[t] || '🚚') + '</span>';
-          iconEl.setAttribute('data-icon', t);
+            const t = updated.route.icon || 'truck';
+            iconEl.innerHTML = '<span style="font-size:28px;line-height:1;">' + (ICONS[t] || '🚚') + '</span>';
+            iconEl.setAttribute('data-icon', t);
         }
     } catch (err) {
         if (msg) { msg.style.display = 'block'; msg.style.color = 'var(--red)'; msg.textContent = err.message; }
@@ -1519,46 +1557,46 @@ window.saveRoute = async function saveRoute(code) {
 }
 
 function getAdminProgressFromUI() {
-  const label = document.getElementById('mapProgressLabel');
-  if (label) {
-    const n = parseFloat(String(label.textContent).replace('%', ''));
-    if (!isNaN(n)) return Math.max(0, Math.min(100, n));
-  }
-  const fill = document.getElementById('mapProgressFill');
-  if (fill && fill.style.width) {
-    const n = parseFloat(fill.style.width);
-    if (!isNaN(n)) return Math.max(0, Math.min(100, n));
-  }
-  return 0;
+    const label = document.getElementById('mapProgressLabel');
+    if (label) {
+        const n = parseFloat(String(label.textContent).replace('%', ''));
+        if (!isNaN(n)) return Math.max(0, Math.min(100, n));
+    }
+    const fill = document.getElementById('mapProgressFill');
+    if (fill && fill.style.width) {
+        const n = parseFloat(fill.style.width);
+        if (!isNaN(n)) return Math.max(0, Math.min(100, n));
+    }
+    return 0;
 }
 function getAdminRotationFromUI() {
-  const sl = document.getElementById('f_rotSlider');
-  if (sl && sl.value !== '' && !isNaN(Number(sl.value))) return Number(sl.value);
-  if (typeof window._lastAdminRotation === 'number' && !isNaN(window._lastAdminRotation)) {
-    return window._lastAdminRotation;
-  }
-  return null; // auto
+    const sl = document.getElementById('f_rotSlider');
+    if (sl && sl.value !== '' && !isNaN(Number(sl.value))) return Number(sl.value);
+    if (typeof window._lastAdminRotation === 'number' && !isNaN(window._lastAdminRotation)) {
+        return window._lastAdminRotation;
+    }
+    return null; // auto
 }
 function setRouteActionLoading(on) {
-  const ids = ['btnPlayRoute', 'btnPauseRoute', 'btnResetRoute'];
-  ids.forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    if (on) {
-      if (!el.dataset.label) el.dataset.label = el.textContent;
-      el.disabled = true;
-      el.textContent = '......';
-    } else {
-      el.disabled = false;
-      if (el.dataset.label) el.textContent = el.dataset.label;
+    const ids = ['btnPlayRoute', 'btnPauseRoute', 'btnResetRoute'];
+    ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (on) {
+            if (!el.dataset.label) el.dataset.label = el.textContent;
+            el.disabled = true;
+            el.textContent = '......';
+        } else {
+            el.disabled = false;
+            if (el.dataset.label) el.textContent = el.dataset.label;
+        }
+    });
+    const msg = document.getElementById('routeSaveMsg');
+    if (msg && on) {
+        msg.style.display = 'block';
+        msg.style.color = 'var(--gray)';
+        msg.textContent = 'Please wait……';
     }
-  });
-  const msg = document.getElementById('routeSaveMsg');
-  if (msg && on) {
-    msg.style.display = 'block';
-    msg.style.color = 'var(--gray)';
-    msg.textContent = 'Please wait……';
-  }
 }
 
 window.playRoute = async function playRoute(code) {
@@ -1573,9 +1611,9 @@ window.playRoute = async function playRoute(code) {
         const progress = getAdminProgressFromUI();
         const rotationDeg = getAdminRotationFromUI();
         const body = {
-          isMoving: true,
-          movingSince: new Date().toISOString(),
-          progress
+            isMoving: true,
+            movingSince: new Date().toISOString(),
+            progress
         };
         if (rotationDeg != null) { body.rotationDeg = rotationDeg; body.flipOverride = false; }
         const updated = await apiRequest('/shipments/' + encodeURIComponent(code) + '/route', {
@@ -1584,9 +1622,9 @@ window.playRoute = async function playRoute(code) {
         unlockedShipments[updated.code] = updated;
         // Soft update: don't wipe hand-set direction
         if (updated.route) {
-          s.route = updated.route;
-          startAdminAnimation(updated);
-          reflectAdminProgress(computeLiveProgress(updated.route));
+            s.route = updated.route;
+            startAdminAnimation(updated);
+            reflectAdminProgress(computeLiveProgress(updated.route));
         }
         const msg = document.getElementById('routeSaveMsg');
         if (msg) { msg.style.display = 'block'; msg.style.color = 'var(--green)'; msg.textContent = 'Moving — saved.'; }
@@ -1609,13 +1647,13 @@ window.pauseRoute = async function pauseRoute(code) {
         });
         unlockedShipments[updated.code] = updated;
         if (adminMarker && updated.route) {
-          const r = updated.route;
-          const oLat = parseFloat(r.originLat), oLng = parseFloat(r.originLng);
-          const dLat = parseFloat(r.destLat), dLng = parseFloat(r.destLng);
-          const p = Number(r.progress) || 0;
-          adminMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, p / 100));
-          adminMarker.setIcon(makeVehicleIcon(r.icon, oLat, oLng, dLat, dLng, r.flipOverride, r.rotationDeg, r.vehicleImg));
-          reflectAdminProgress(p);
+            const r = updated.route;
+            const oLat = parseFloat(r.originLat), oLng = parseFloat(r.originLng);
+            const dLat = parseFloat(r.destLat), dLng = parseFloat(r.destLng);
+            const p = Number(r.progress) || 0;
+            adminMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, p / 100));
+            adminMarker.setIcon(makeVehicleIcon(r.icon, oLat, oLng, dLat, dLng, r.flipOverride, r.rotationDeg, r.vehicleImg));
+            reflectAdminProgress(p);
         }
         const msg = document.getElementById('routeSaveMsg');
         if (msg) { msg.style.display = 'block'; msg.style.color = 'var(--green)'; msg.textContent = 'Paused — position & direction saved.'; }
@@ -1637,12 +1675,12 @@ window.resetRoute = async function resetRoute(code) {
         });
         unlockedShipments[updated.code] = updated;
         if (adminMarker && updated.route) {
-          const r = updated.route;
-          const oLat = parseFloat(r.originLat), oLng = parseFloat(r.originLng);
-          const dLat = parseFloat(r.destLat), dLng = parseFloat(r.destLng);
-          adminMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, 0));
-          adminMarker.setIcon(makeVehicleIcon(r.icon, oLat, oLng, dLat, dLng, r.flipOverride, r.rotationDeg, r.vehicleImg));
-          reflectAdminProgress(0);
+            const r = updated.route;
+            const oLat = parseFloat(r.originLat), oLng = parseFloat(r.originLng);
+            const dLat = parseFloat(r.destLat), dLng = parseFloat(r.destLng);
+            adminMarker.setLatLng(pointAlong(oLat, oLng, dLat, dLng, 0));
+            adminMarker.setIcon(makeVehicleIcon(r.icon, oLat, oLng, dLat, dLng, r.flipOverride, r.rotationDeg, r.vehicleImg));
+            reflectAdminProgress(0);
         }
         const msg = document.getElementById('routeSaveMsg');
         if (msg) { msg.style.display = 'block'; msg.style.color = 'var(--green)'; msg.textContent = 'Reset to start — direction kept.'; }
@@ -1673,12 +1711,12 @@ function initPublicMap(shipment) {
     box.innerHTML = '';
     publicMap = L.map(box, { scrollWheelZoom: true });
     try {
-      publicMap.fitBounds([[oLat, oLng], [dLat, dLng]], { padding: [40, 40], maxZoom: 5 });
+        publicMap.fitBounds([[oLat, oLng], [dLat, dLng]], { padding: [40, 40], maxZoom: 5 });
     } catch (e) {
-      publicMap.setView([(oLat + dLat) / 2, (oLng + dLng) / 2], 3);
+        publicMap.setView([(oLat + dLat) / 2, (oLng + dLng) / 2], 3);
     }
-    setTimeout(function () { try { publicMap.invalidateSize(); } catch (e) {} }, 200);
-    setTimeout(function () { try { publicMap.invalidateSize(); } catch (e) {} }, 600);
+    setTimeout(function () { try { publicMap.invalidateSize(); } catch (e) { } }, 200);
+    setTimeout(function () { try { publicMap.invalidateSize(); } catch (e) { } }, 600);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors' }).addTo(publicMap);
     const oName = r.originCountry || 'Origin';
     const dName = r.destCountry || 'Destination';
@@ -1691,9 +1729,9 @@ function initPublicMap(shipment) {
     const pos = pointAlong(oLat, oLng, dLat, dLng, startProgress / 100);
     publicMarker = L.marker(pos, { icon, draggable: false, interactive: false }).addTo(publicMap).bindPopup('Current location');
     setTimeout(function () {
-      try { publicMap.invalidateSize(true); publicMap.fitBounds(line.getBounds(), { padding: [48, 48], maxZoom: 6 }); } catch (e) {}
+        try { publicMap.invalidateSize(true); publicMap.fitBounds(line.getBounds(), { padding: [48, 48], maxZoom: 6 }); } catch (e) { }
     }, 200);
-    setTimeout(function () { try { publicMap.invalidateSize(true); } catch (e) {} }, 600);
+    setTimeout(function () { try { publicMap.invalidateSize(true); } catch (e) { } }, 600);
 
     reflectPublicProgress(startProgress, r.isMoving);
     if (r.isMoving) startPublicAnimation(oLat, oLng, dLat, dLng, r);
@@ -1738,25 +1776,25 @@ function startPublicAnimation(oLat, oLng, dLat, dLng, route) {
         const now = Date.now();
         const due = (step > _lastProgNotif && step >= 5) || (now - _lastProgNotifAt > 20000 && p > 0);
         if (nsBrowserPerm && due) {
-          _lastProgNotif = Math.max(_lastProgNotif, step);
-          _lastProgNotifAt = now;
-          const o = (route && route.originCountry) || 'Origin';
-          const d = (route && route.destCountry) || 'Destination';
-          const ic = (route && route.icon === 'plane') ? '✈️' : (route && route.icon === 'ship') ? '🚢' : (route && route.icon === 'warehouse') ? '🏭' : '🚚';
-          const pct = Math.round(p);
-          nsPhoneNotify(
-            o + ' → ' + d,
-            ic + ' ' + pct + '% complete · live location',
-            'dhl-live-progress'
-          );
-        }
-        if (p >= 100) {
-          if (nsBrowserPerm) {
+            _lastProgNotif = Math.max(_lastProgNotif, step);
+            _lastProgNotifAt = now;
             const o = (route && route.originCountry) || 'Origin';
             const d = (route && route.destCountry) || 'Destination';
-            nsPhoneNotify(o + ' → ' + d, '100% · arrived / complete', 'dhl-live-progress');
-          }
-          clearInterval(publicAnimTimer); publicAnimTimer = null;
+            const ic = (route && route.icon === 'plane') ? '✈️' : (route && route.icon === 'ship') ? '🚢' : (route && route.icon === 'warehouse') ? '🏭' : '🚚';
+            const pct = Math.round(p);
+            nsPhoneNotify(
+                o + ' → ' + d,
+                ic + ' ' + pct + '% complete · live location',
+                'dhl-live-progress'
+            );
+        }
+        if (p >= 100) {
+            if (nsBrowserPerm) {
+                const o = (route && route.originCountry) || 'Origin';
+                const d = (route && route.destCountry) || 'Destination';
+                nsPhoneNotify(o + ' → ' + d, '100% · arrived / complete', 'dhl-live-progress');
+            }
+            clearInterval(publicAnimTimer); publicAnimTimer = null;
         }
     }, 200);
 }
@@ -1768,285 +1806,285 @@ let nsLastNotifAt = null;
 let nsNotifTimer = null;
 let nsSeenIds = new Set();
 let nsBrowserPerm = false;
-try { nsBrowserPerm = localStorage.getItem('dhl_live_notify') === '1' && typeof Notification !== 'undefined' && Notification.permission === 'granted'; } catch (e) {}
+try { nsBrowserPerm = localStorage.getItem('dhl_live_notify') === '1' && typeof Notification !== 'undefined' && Notification.permission === 'granted'; } catch (e) { }
 
 
 function nsEnsureToastHost() {
-  let host = document.getElementById('nsToastWrap');
-  if (!host) {
-    host = document.createElement('div');
-    host.id = 'nsToastWrap';
-    host.className = 'ns-toast-wrap';
-    document.body.appendChild(host);
-  }
-  return host;
+    let host = document.getElementById('nsToastWrap');
+    if (!host) {
+        host = document.createElement('div');
+        host.id = 'nsToastWrap';
+        host.className = 'ns-toast-wrap';
+        document.body.appendChild(host);
+    }
+    return host;
 }
 
 function nsShowToast(n) {
-  const host = nsEnsureToastHost();
-  const el = document.createElement('div');
-  el.className = 'ns-toast ' + (n.type || '');
-  const icon = n.icon === 'plane' ? '✈️' : n.icon === 'ship' ? '🚢' : n.icon === 'truck' ? '🚚' : '📦';
-  const routeLine = (n.origin || n.destination)
-    ? ('<div class="ns-t-route">' + icon + ' ' + esc(n.origin || 'Origin') + ' → ' + esc(n.destination || 'Destination') + '</div>')
-    : '';
-  el.innerHTML = '<button type="button" class="ns-t-close" aria-label="Close">&times;</button>' +
-    '<div class="ns-t-title">' + esc(n.title || 'Update') + '</div>' +
-    routeLine +
-    '<div class="ns-t-msg">' + esc(n.message || '') + '</div>' +
-    (n.code ? '<div class="ns-t-code">' + esc(n.code) + '</div>' : '');
-  el.querySelector('.ns-t-close').onclick = () => el.remove();
-  host.appendChild(el);
-  setTimeout(() => { try { el.remove(); } catch (e) {} }, 8000);
+    const host = nsEnsureToastHost();
+    const el = document.createElement('div');
+    el.className = 'ns-toast ' + (n.type || '');
+    const icon = n.icon === 'plane' ? '✈️' : n.icon === 'ship' ? '🚢' : n.icon === 'truck' ? '🚚' : '📦';
+    const routeLine = (n.origin || n.destination)
+        ? ('<div class="ns-t-route">' + icon + ' ' + esc(n.origin || 'Origin') + ' → ' + esc(n.destination || 'Destination') + '</div>')
+        : '';
+    el.innerHTML = '<button type="button" class="ns-t-close" aria-label="Close">&times;</button>' +
+        '<div class="ns-t-title">' + esc(n.title || 'Update') + '</div>' +
+        routeLine +
+        '<div class="ns-t-msg">' + esc(n.message || '') + '</div>' +
+        (n.code ? '<div class="ns-t-code">' + esc(n.code) + '</div>' : '');
+    el.querySelector('.ns-t-close').onclick = () => el.remove();
+    host.appendChild(el);
+    setTimeout(() => { try { el.remove(); } catch (e) { } }, 8000);
 }
 
 async function nsRequestBrowserNotify() {
-  if (typeof Notification === 'undefined') {
-    alert('This browser does not support phone notifications.');
-    return false;
-  }
-  if (Notification.permission === 'granted') { nsBrowserPerm = true; return true; }
-  if (Notification.permission === 'denied') {
-    alert('Notifications are blocked. Allow notifications for this site in your phone browser settings.');
-    return false;
-  }
-  const p = await Notification.requestPermission();
-  nsBrowserPerm = p === 'granted';
-  return nsBrowserPerm;
+    if (typeof Notification === 'undefined') {
+        alert('This browser does not support phone notifications.');
+        return false;
+    }
+    if (Notification.permission === 'granted') { nsBrowserPerm = true; return true; }
+    if (Notification.permission === 'denied') {
+        alert('Notifications are blocked. Allow notifications for this site in your phone browser settings.');
+        return false;
+    }
+    const p = await Notification.requestPermission();
+    nsBrowserPerm = p === 'granted';
+    return nsBrowserPerm;
 }
 
 
 
 /* ---- Background push (counts on notification bar even when site is closed) ---- */
 function urlBase64ToUint8Array(base64String) {
-  const padding = '='.repeat((4 - base64String.length % 4) % 4);
-  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-  const raw = atob(base64);
-  const out = new Uint8Array(raw.length);
-  for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
-  return out;
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const raw = atob(base64);
+    const out = new Uint8Array(raw.length);
+    for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+    return out;
 }
 async function nsSubscribePush(trackCode) {
-  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return false;
-  try {
-    const reg = _dhlSwReg || await navigator.serviceWorker.register('/sw.js');
-    _dhlSwReg = reg;
-    const keyRes = await fetch(API_BASE + '/push/vapid-public-key');
-    const { publicKey } = await keyRes.json();
-    if (!publicKey) return false;
-    let sub = await reg.pushManager.getSubscription();
-    if (!sub) {
-      sub = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(publicKey)
-      });
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return false;
+    try {
+        const reg = _dhlSwReg || await navigator.serviceWorker.register('/sw.js');
+        _dhlSwReg = reg;
+        const keyRes = await fetch(API_BASE + '/push/vapid-public-key');
+        const { publicKey } = await keyRes.json();
+        if (!publicKey) return false;
+        let sub = await reg.pushManager.getSubscription();
+        if (!sub) {
+            sub = await reg.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array(publicKey)
+            });
+        }
+        await fetch(API_BASE + '/push/subscribe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ subscription: sub.toJSON(), trackCode: trackCode || nsTrackCode || '' })
+        });
+        return true;
+    } catch (e) {
+        console.warn('push subscribe', e);
+        return false;
     }
-    await fetch(API_BASE + '/push/subscribe', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ subscription: sub.toJSON(), trackCode: trackCode || nsTrackCode || '' })
-    });
-    return true;
-  } catch (e) {
-    console.warn('push subscribe', e);
-    return false;
-  }
 }
 async function nsUnsubscribePush() {
-  try {
-    const reg = _dhlSwReg || await navigator.serviceWorker.getRegistration();
-    if (!reg) return;
-    const sub = await reg.pushManager.getSubscription();
-    if (sub) {
-      await fetch(API_BASE + '/push/unsubscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ endpoint: sub.endpoint })
-      });
-      // keep browser permission; just disable server pushes
-    }
-  } catch (e) {}
+    try {
+        const reg = _dhlSwReg || await navigator.serviceWorker.getRegistration();
+        if (!reg) return;
+        const sub = await reg.pushManager.getSubscription();
+        if (sub) {
+            await fetch(API_BASE + '/push/unsubscribe', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ endpoint: sub.endpoint })
+            });
+            // keep browser permission; just disable server pushes
+        }
+    } catch (e) { }
 }
 
 async function nsToggleLivePhoneNotify() {
-  // Turn OFF
-  if (nsBrowserPerm) {
-    nsBrowserPerm = false;
-    try { localStorage.setItem('dhl_live_notify', '0'); } catch (e) {}
-    const btn = document.getElementById('nsLiveToggleBtn');
-    if (btn) btn.textContent = 'Turn ON notifications';
-    await nsUnsubscribePush();
-    return;
-  }
-  // Turn ON
-  if (!('Notification' in window)) {
-    alert('This browser does not support phone notifications.');
-    return;
-  }
-  let perm = Notification.permission;
-  if (perm === 'default') {
-    try { perm = await Notification.requestPermission(); } catch (e) { perm = 'denied'; }
-  }
-  if (perm !== 'granted') {
-    alert('Allow notifications for this site in your browser settings, then tap again.');
-    return;
-  }
-  nsBrowserPerm = true;
-  try { localStorage.setItem('dhl_live_notify', '1'); } catch (e) {}
-  const btn = document.getElementById('nsLiveToggleBtn');
-  if (btn) btn.textContent = 'Turn OFF notifications';
-  // Register for BACKGROUND pushes (counts even when you leave the site)
-  await nsSubscribePush(nsTrackCode);
-  try {
-    if (nsTrackCode) {
-      const fresh = await apiRequest('/shipments/track/' + encodeURIComponent(nsTrackCode));
-      const r = fresh.route || {};
-      const p = Math.round(computeLiveProgress(r) || 0);
-      const o = r.originCountry || 'Origin';
-      const d = r.destCountry || 'Destination';
-      const ic = ICONS[r.icon || 'truck'] || '🚚';
-      nsPhoneNotify(
-        o + ' → ' + d,
-        ic + ' ' + p + '% complete · tracking ' + nsTrackCode,
-        'dhl-live-on'
-      );
-    } else {
-      nsPhoneNotify('DHL tracking', 'Track a package first, then turn ON to get live % on the notification bar.', 'dhl-live-on');
+    // Turn OFF
+    if (nsBrowserPerm) {
+        nsBrowserPerm = false;
+        try { localStorage.setItem('dhl_live_notify', '0'); } catch (e) { }
+        const btn = document.getElementById('nsLiveToggleBtn');
+        if (btn) btn.textContent = 'Turn ON notifications';
+        await nsUnsubscribePush();
+        return;
     }
-  } catch (e) {
-    nsPhoneNotify('DHL tracking', 'Live notifications ON.', 'dhl-live-on');
-  }
+    // Turn ON
+    if (!('Notification' in window)) {
+        alert('This browser does not support phone notifications.');
+        return;
+    }
+    let perm = Notification.permission;
+    if (perm === 'default') {
+        try { perm = await Notification.requestPermission(); } catch (e) { perm = 'denied'; }
+    }
+    if (perm !== 'granted') {
+        alert('Allow notifications for this site in your browser settings, then tap again.');
+        return;
+    }
+    nsBrowserPerm = true;
+    try { localStorage.setItem('dhl_live_notify', '1'); } catch (e) { }
+    const btn = document.getElementById('nsLiveToggleBtn');
+    if (btn) btn.textContent = 'Turn OFF notifications';
+    // Register for BACKGROUND pushes (counts even when you leave the site)
+    await nsSubscribePush(nsTrackCode);
+    try {
+        if (nsTrackCode) {
+            const fresh = await apiRequest('/shipments/track/' + encodeURIComponent(nsTrackCode));
+            const r = fresh.route || {};
+            const p = Math.round(computeLiveProgress(r) || 0);
+            const o = r.originCountry || 'Origin';
+            const d = r.destCountry || 'Destination';
+            const ic = ICONS[r.icon || 'truck'] || '🚚';
+            nsPhoneNotify(
+                o + ' → ' + d,
+                ic + ' ' + p + '% complete · tracking ' + nsTrackCode,
+                'dhl-live-on'
+            );
+        } else {
+            nsPhoneNotify('DHL tracking', 'Track a package first, then turn ON to get live % on the notification bar.', 'dhl-live-on');
+        }
+    } catch (e) {
+        nsPhoneNotify('DHL tracking', 'Live notifications ON.', 'dhl-live-on');
+    }
 }
 
 function nsPhoneNotify(title, body, tag) {
-  if (!nsBrowserPerm) return; // turned OFF — do not show on notification bar
+    if (!nsBrowserPerm) return; // turned OFF — do not show on notification bar
 
-  const payload = {
-    title: title || 'DHL update',
-    body: body || '',
-    tag: tag || ('dhl-' + Date.now()),
-    url: (typeof location !== 'undefined' ? location.href : '/')
-  };
-  // Prefer service worker (works better on phone notification bar)
-  if (_dhlSwReg && Notification.permission === 'granted') {
+    const payload = {
+        title: title || 'DHL update',
+        body: body || '',
+        tag: tag || ('dhl-' + Date.now()),
+        url: (typeof location !== 'undefined' ? location.href : '/')
+    };
+    // Prefer service worker (works better on phone notification bar)
+    if (_dhlSwReg && Notification.permission === 'granted') {
+        try {
+            if (_dhlSwReg.active) {
+                _dhlSwReg.active.postMessage({ type: 'notify', ...payload });
+                return;
+            }
+            _dhlSwReg.showNotification(payload.title, {
+                body: payload.body,
+                tag: payload.tag,
+                data: { url: payload.url },
+                vibrate: [120, 60, 120]
+            });
+            return;
+        } catch (e) { }
+    }
+    if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
     try {
-      if (_dhlSwReg.active) {
-        _dhlSwReg.active.postMessage({ type: 'notify', ...payload });
-        return;
-      }
-      _dhlSwReg.showNotification(payload.title, {
-        body: payload.body,
-        tag: payload.tag,
-        data: { url: payload.url },
-        vibrate: [120, 60, 120]
-      });
-      return;
-    } catch (e) {}
-  }
-  if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
-  try {
-    new Notification(payload.title, { body: payload.body, tag: payload.tag });
-  } catch (e) {}
+        new Notification(payload.title, { body: payload.body, tag: payload.tag });
+    } catch (e) { }
 }
 
 async function nsPollTrackNotifications() {
-  if (!nsTrackCode) return;
-  try {
-    let url = API_BASE + '/shipments/track/' + encodeURIComponent(nsTrackCode) + '/notifications';
-    if (nsLastNotifAt) url += '?since=' + encodeURIComponent(nsLastNotifAt);
-    const res = await fetch(url);
-    if (!res.ok) return;
-    const items = await res.json();
-    if (!Array.isArray(items) || !items.length) return;
-    // API returns newest first
-    const chronological = items.slice().reverse();
-    chronological.forEach(n => {
-      const id = String(n._id || n.createdAt + n.title);
-      if (nsSeenIds.has(id)) return;
-      nsSeenIds.add(id);
-      // Enrich toast with route text for user notification bar
-      if (n.location && n.location.includes('→')) {
-        const parts = n.location.split('→').map(s => s.trim());
-        n.origin = parts[0]; n.destination = parts[1];
-        if ((n.title || '').toLowerCase().includes('plane')) n.icon = 'plane';
-        else if ((n.title || '').toLowerCase().includes('ship')) n.icon = 'ship';
-        else n.icon = 'truck';
-      }
-      nsShowToast(n);
-      nsPhoneNotify(
-        n.title || 'Shipment update',
-        (n.origin && n.destination)
-          ? ((n.icon === 'plane' ? '✈️ ' : n.icon === 'ship' ? '🚢 ' : '🚚 ') + n.origin + ' → ' + n.destination + (n.message ? ' · ' + n.message : ''))
-          : (n.message || n.location || ''),
-        'dhl-n-' + (n._id || n.createdAt || Date.now())
-      );
-      // refresh track view so timeline matches
-      if (document.getElementById('trackResultBox')) {
-        renderTrackResult(nsTrackCode).catch(() => {});
-      }
-    });
-    if (items[0] && items[0].createdAt) nsLastNotifAt = items[0].createdAt;
-  } catch (e) {}
+    if (!nsTrackCode) return;
+    try {
+        let url = API_BASE + '/shipments/track/' + encodeURIComponent(nsTrackCode) + '/notifications';
+        if (nsLastNotifAt) url += '?since=' + encodeURIComponent(nsLastNotifAt);
+        const res = await fetch(url);
+        if (!res.ok) return;
+        const items = await res.json();
+        if (!Array.isArray(items) || !items.length) return;
+        // API returns newest first
+        const chronological = items.slice().reverse();
+        chronological.forEach(n => {
+            const id = String(n._id || n.createdAt + n.title);
+            if (nsSeenIds.has(id)) return;
+            nsSeenIds.add(id);
+            // Enrich toast with route text for user notification bar
+            if (n.location && n.location.includes('→')) {
+                const parts = n.location.split('→').map(s => s.trim());
+                n.origin = parts[0]; n.destination = parts[1];
+                if ((n.title || '').toLowerCase().includes('plane')) n.icon = 'plane';
+                else if ((n.title || '').toLowerCase().includes('ship')) n.icon = 'ship';
+                else n.icon = 'truck';
+            }
+            nsShowToast(n);
+            nsPhoneNotify(
+                n.title || 'Shipment update',
+                (n.origin && n.destination)
+                    ? ((n.icon === 'plane' ? '✈️ ' : n.icon === 'ship' ? '🚢 ' : '🚚 ') + n.origin + ' → ' + n.destination + (n.message ? ' · ' + n.message : ''))
+                    : (n.message || n.location || ''),
+                'dhl-n-' + (n._id || n.createdAt || Date.now())
+            );
+            // refresh track view so timeline matches
+            if (document.getElementById('trackResultBox')) {
+                renderTrackResult(nsTrackCode).catch(() => { });
+            }
+        });
+        if (items[0] && items[0].createdAt) nsLastNotifAt = items[0].createdAt;
+    } catch (e) { }
 }
 
 function nsStartTrackWatch(code) {
-  // Keep background push linked to this tracking code
-  if (nsBrowserPerm) { try { nsSubscribePush(arguments[0]); } catch (e) {} }
+    // Keep background push linked to this tracking code
+    if (nsBrowserPerm) { try { nsSubscribePush(arguments[0]); } catch (e) { } }
 
-  nsTrackCode = String(code || '').toUpperCase();
-  nsLastNotifAt = new Date().toISOString(); // only new events after open
-  nsSeenIds = new Set();
-  if (nsNotifTimer) clearInterval(nsNotifTimer);
-  nsNotifTimer = setInterval(nsPollTrackNotifications, 4000);
-  const banner = document.getElementById('nsLiveBanner');
-  if (banner) {
-    banner.classList.add('show');
-    banner.innerHTML = '<span class="ns-live-dot"></span><span>Live tracking on for <b class="mono">' +
-      esc(nsTrackCode) + '</b> — notifications show origin → destination and %.</span>' +
-      '<button type="button" class="btn btn-red small-btn" style="margin-left:auto;" id="nsLiveToggleBtn" onclick="nsToggleLivePhoneNotify()">' +
-      (nsBrowserPerm ? 'Live notifications ON' : 'Turn on live notifications') + '</button>';
-  }
+    nsTrackCode = String(code || '').toUpperCase();
+    nsLastNotifAt = new Date().toISOString(); // only new events after open
+    nsSeenIds = new Set();
+    if (nsNotifTimer) clearInterval(nsNotifTimer);
+    nsNotifTimer = setInterval(nsPollTrackNotifications, 4000);
+    const banner = document.getElementById('nsLiveBanner');
+    if (banner) {
+        banner.classList.add('show');
+        banner.innerHTML = '<span class="ns-live-dot"></span><span>Live tracking on for <b class="mono">' +
+            esc(nsTrackCode) + '</b> — notifications show origin → destination and %.</span>' +
+            '<button type="button" class="btn btn-red small-btn" style="margin-left:auto;" id="nsLiveToggleBtn" onclick="nsToggleLivePhoneNotify()">' +
+            (nsBrowserPerm ? 'Live notifications ON' : 'Turn on live notifications') + '</button>';
+    }
 }
 
 function nsStopTrackWatch() {
-  nsTrackCode = null;
-  if (nsNotifTimer) { clearInterval(nsNotifTimer); nsNotifTimer = null; }
-  const banner = document.getElementById('nsLiveBanner');
-  if (banner) banner.classList.remove('show');
+    nsTrackCode = null;
+    if (nsNotifTimer) { clearInterval(nsNotifTimer); nsNotifTimer = null; }
+    const banner = document.getElementById('nsLiveBanner');
+    if (banner) banner.classList.remove('show');
 }
 
 /* Admin notification panel */
 async function nsLoadAdminNotifs() { return; /* alerts removed */ }
 async function _nsLoadAdminNotifs_unused() {
-  const panel = document.getElementById('nsNotifPanel');
-  const badge = document.getElementById('nsNotifBadge');
-  if (!panel || !adminToken) return;
-  try {
-    const items = await apiRequest('/shipments/notifications/admin');
-    const unread = (items || []).filter(n => !n.read).length;
-    if (badge) {
-      if (unread) { badge.textContent = unread > 99 ? '99+' : String(unread); badge.classList.add('show'); }
-      else badge.classList.remove('show');
-    }
-    panel.innerHTML = (items || []).slice(0, 30).map(n => `
+    const panel = document.getElementById('nsNotifPanel');
+    const badge = document.getElementById('nsNotifBadge');
+    if (!panel || !adminToken) return;
+    try {
+        const items = await apiRequest('/shipments/notifications/admin');
+        const unread = (items || []).filter(n => !n.read).length;
+        if (badge) {
+            if (unread) { badge.textContent = unread > 99 ? '99+' : String(unread); badge.classList.add('show'); }
+            else badge.classList.remove('show');
+        }
+        panel.innerHTML = (items || []).slice(0, 30).map(n => `
       <div class="ns-notif-item">
         <div class="t">${esc(n.title)}</div>
         <div class="m">${esc(n.message)}</div>
         <div class="c">${esc(n.code)} · ${n.createdAt ? new Date(n.createdAt).toLocaleString() : ''}</div>
       </div>`).join('') || '<div class="ns-notif-item">No notifications yet.</div>';
-  } catch (e) {
-    panel.innerHTML = '<div class="ns-notif-item" style="color:#a00;">' + esc(e.message) + '</div>';
-  }
+    } catch (e) {
+        panel.innerHTML = '<div class="ns-notif-item" style="color:#a00;">' + esc(e.message) + '</div>';
+    }
 }
 
 function nsToggleAdminNotifs() {
-  const panel = document.getElementById('nsNotifPanel');
-  if (!panel) return;
-  panel.classList.toggle('open');
-  if (panel.classList.contains('open')) {
-    nsLoadAdminNotifs();
-    apiRequest('/shipments/notifications/read', { method: 'POST', body: JSON.stringify({ all: true }) }).catch(() => {});
-  }
+    const panel = document.getElementById('nsNotifPanel');
+    if (!panel) return;
+    panel.classList.toggle('open');
+    if (panel.classList.contains('open')) {
+        nsLoadAdminNotifs();
+        apiRequest('/shipments/notifications/read', { method: 'POST', body: JSON.stringify({ all: true }) }).catch(() => { });
+    }
 }
 
 
@@ -2081,27 +2119,27 @@ const cardIo = new IntersectionObserver(entries => {
 }, { threshold: 0.2 });
 document.querySelectorAll('.service-card').forEach(el => cardIo.observe(el));
 window.openSettingsProtected = function openSettingsProtected() {
-  const el = document.getElementById('settingsPinInput');
-  if (el) el.value = '';
-  const err = document.getElementById('settingsPinError');
-  if (err) err.style.display = 'none';
-  openModal('settingsPinModal');
+    const el = document.getElementById('settingsPinInput');
+    if (el) el.value = '';
+    const err = document.getElementById('settingsPinError');
+    if (err) err.style.display = 'none';
+    openModal('settingsPinModal');
 }
 window.submitSettingsPin = function submitSettingsPin() {
-  const pin = (document.getElementById('settingsPinInput') || {}).value || '';
-  const err = document.getElementById('settingsPinError');
-  if (String(pin).trim() !== '7799') {
-    if (err) { err.style.display = 'block'; err.textContent = 'Incorrect PIN.'; }
-    return;
-  }
-  closeModal('settingsPinModal');
-  var m = document.getElementById('settingsModal') || document.getElementById('credentialsModal');
-  if (m) {
-    m.classList.add('show');
-    if (!m.classList.contains('modal-overlay')) m.style.display = 'flex';
-  } else {
-    alert('Settings form missing on this page.');
-  }
+    const pin = (document.getElementById('settingsPinInput') || {}).value || '';
+    const err = document.getElementById('settingsPinError');
+    if (String(pin).trim() !== '7799') {
+        if (err) { err.style.display = 'block'; err.textContent = 'Incorrect PIN.'; }
+        return;
+    }
+    closeModal('settingsPinModal');
+    var m = document.getElementById('settingsModal') || document.getElementById('credentialsModal');
+    if (m) {
+        m.classList.add('show');
+        if (!m.classList.contains('modal-overlay')) m.style.display = 'flex';
+    } else {
+        alert('Settings form missing on this page.');
+    }
 }
 window.verifySettingsPin = submitSettingsPin;
 
@@ -2109,584 +2147,584 @@ window.verifySettingsPin = submitSettingsPin;
 
 /* ---- Site language (index controls whole public site: index + receipt + box) ---- */
 const SITE_I18N = {
-  en: {
-    'Track Now': 'Track Now', 'Service': 'Service', 'About Us': 'About Us', 'Contact Us': 'Contact Us',
-    'Receipt': 'Receipt', 'Box': 'Box', 'Log In': 'Log In', 'Track Package': 'Track Package',
-    'Live Location': 'Live Location', 'Sender': 'Sender', 'Receiver': 'Receiver',
-    'Shipment Date': 'Shipment Date', 'Est. Delivery': 'Est. Delivery', 'Language': 'Language',
-    'Your package, tracked': 'Your package, tracked', 'Home': 'Home', 'Testimonials': 'Testimonials',
-    'Customer Service': 'Customer Service', 'Our Services': 'Our Services', 'Track': 'Track',
-    'Ship ▾': 'Ship ▾', 'Find a Service Point': 'Find a Service Point',
-    'What clients say': 'What clients say', 'TRUSTED BY SHIPPERS': 'TRUSTED BY SHIPPERS',
-    'Please wait': 'Please wait', 'Loading…': 'Loading…',
-    'Enter tracking code': 'Enter tracking code',
-    'DISPATCHED DAILY · 120+ COUNTRIES': 'DISPATCHED DAILY · 120+ COUNTRIES'
-  },
-  id: {
-    'Track Now': 'Lacak Sekarang', 'Service': 'Layanan', 'About Us': 'Tentang Kami', 'Contact Us': 'Hubungi Kami',
-    'Receipt': 'Tanda Terima', 'Box': 'Kotak', 'Log In': 'Masuk', 'Track Package': 'Lacak Paket',
-    'Live Location': 'Lokasi Langsung', 'Sender': 'Pengirim', 'Receiver': 'Penerima',
-    'Shipment Date': 'Tanggal Pengiriman', 'Est. Delivery': 'Perkiraan Tiba', 'Language': 'Bahasa',
-    'Home': 'Beranda', 'Testimonials': 'Testimoni',
-    'Customer Service': 'Layanan Pelanggan', 'Our Services': 'Layanan Kami', 'Track': 'Lacak',
-    'Ship ▾': 'Kirim ▾', 'Find a Service Point': 'Temukan Titik Layanan',
-    'What clients say': 'Kata klien', 'TRUSTED BY SHIPPERS': 'DIPERCAYA PENGIRIM',
-    'Please wait': 'Mohon tunggu', 'Loading…': 'Memuat…',
-    'Enter tracking code': 'Masukkan kode pelacakan',
-    'DISPATCHED DAILY · 120+ COUNTRIES': 'DIKIRIM SETIAP HARI · 120+ NEGARA'
-  },
-  ms: {
-    'Track Now': 'Jejak Sekarang', 'Service': 'Perkhidmatan', 'About Us': 'Tentang Kami', 'Contact Us': 'Hubungi Kami',
-    'Receipt': 'Resit', 'Box': 'Kotak', 'Log In': 'Log Masuk', 'Track Package': 'Jejak Pakej',
-    'Live Location': 'Lokasi Langsung', 'Sender': 'Pengirim', 'Receiver': 'Penerima',
-    'Shipment Date': 'Tarikh Penghantaran', 'Est. Delivery': 'Anggaran Sampai', 'Language': 'Bahasa',
-    'Home': 'Laman Utama', 'Testimonials': 'Testimoni',
-    'Customer Service': 'Khidmat Pelanggan', 'Our Services': 'Perkhidmatan Kami', 'Track': 'Jejak',
-    'Ship ▾': 'Hantar ▾', 'Find a Service Point': 'Cari Titik Perkhidmatan',
-    'What clients say': 'Kata pelanggan', 'TRUSTED BY SHIPPERS': 'DIPERCAYAI PENGIRIM',
-    'Please wait': 'Sila tunggu', 'Loading…': 'Memuatkan…',
-    'Enter tracking code': 'Masukkan kod penjejakan',
-    'DISPATCHED DAILY · 120+ COUNTRIES': 'DIHANTAR SETIAP HARI · 120+ NEGARA'
-  },
-  es: {
-    'Track Now': 'Rastrear', 'Service': 'Servicio', 'About Us': 'Sobre nosotros', 'Contact Us': 'Contacto',
-    'Receipt': 'Recibo', 'Box': 'Caja', 'Log In': 'Iniciar sesión', 'Track Package': 'Rastrear paquete',
-    'Live Location': 'Ubicación en vivo', 'Sender': 'Remitente', 'Receiver': 'Destinatario',
-    'Shipment Date': 'Fecha de envío', 'Est. Delivery': 'Entrega est.', 'Language': 'Idioma',
-    'Home': 'Inicio', 'Testimonials': 'Testimonios',
-    'Customer Service': 'Atención al cliente', 'Our Services': 'Nuestros servicios', 'Track': 'Rastrear',
-    'Ship ▾': 'Enviar ▾', 'Find a Service Point': 'Buscar punto de servicio',
-    'What clients say': 'Lo que dicen los clientes', 'TRUSTED BY SHIPPERS': 'CONFIANZA DE REMITENTES',
-    'Please wait': 'Por favor espere', 'Loading…': 'Cargando…',
-    'Enter tracking code': 'Ingrese el código de seguimiento',
-    'DISPATCHED DAILY · 120+ COUNTRIES': 'ENVÍOS DIARIOS · 120+ PAÍSES'
-  },
-  mx: {
-    'Track Now': 'Rastrear', 'Service': 'Servicio', 'About Us': 'Sobre nosotros', 'Contact Us': 'Contacto',
-    'Receipt': 'Recibo', 'Box': 'Caja', 'Log In': 'Iniciar sesión', 'Track Package': 'Rastrear paquete',
-    'Live Location': 'Ubicación en vivo', 'Sender': 'Remitente', 'Receiver': 'Destinatario',
-    'Shipment Date': 'Fecha de envío', 'Est. Delivery': 'Entrega est.', 'Language': 'Idioma',
-    'Home': 'Inicio', 'Testimonials': 'Testimonios',
-    'Customer Service': 'Atención al cliente', 'Our Services': 'Nuestros servicios', 'Track': 'Rastrear',
-    'Ship ▾': 'Enviar ▾', 'Find a Service Point': 'Buscar punto de servicio',
-    'What clients say': 'Lo que dicen los clientes', 'TRUSTED BY SHIPPERS': 'CONFIANZA DE REMITENTES',
-    'Please wait': 'Por favor espere', 'Loading…': 'Cargando…',
-    'Enter tracking code': 'Ingrese el código de seguimiento',
-    'DISPATCHED DAILY · 120+ COUNTRIES': 'ENVÍOS DIARIOS · 120+ PAÍSES'
-  },
-  fr: {
-    'Track Now': 'Suivre', 'Service': 'Service', 'About Us': 'À propos', 'Contact Us': 'Contact',
-    'Receipt': 'Reçu', 'Box': 'Colis', 'Log In': 'Connexion', 'Track Package': 'Suivre le colis',
-    'Live Location': 'Localisation', 'Sender': 'Expéditeur', 'Receiver': 'Destinataire',
-    'Shipment Date': "Date d'envoi", 'Est. Delivery': 'Livraison est.', 'Language': 'Langue',
-    'Home': 'Accueil', 'Testimonials': 'Témoignages',
-    'Customer Service': 'Service client', 'Our Services': 'Nos services', 'Track': 'Suivre',
-    'Ship ▾': 'Expédier ▾', 'Find a Service Point': 'Trouver un point de service',
-    'What clients say': 'Ce que disent les clients', 'TRUSTED BY SHIPPERS': 'LA CONFIANCE DES EXPÉDITEURS',
-    'Please wait': 'Veuillez patienter', 'Loading…': 'Chargement…',
-    'Enter tracking code': 'Entrez le code de suivi',
-    'DISPATCHED DAILY · 120+ COUNTRIES': 'EXPÉDIÉ CHAQUE JOUR · 120+ PAYS'
-  },
-  de: {
-    'Track Now': 'Sendung verfolgen', 'Service': 'Service', 'About Us': 'Über uns', 'Contact Us': 'Kontakt',
-    'Receipt': 'Beleg', 'Box': 'Paket', 'Log In': 'Anmelden', 'Track Package': 'Paket verfolgen',
-    'Live Location': 'Live-Standort', 'Sender': 'Absender', 'Receiver': 'Empfänger',
-    'Shipment Date': 'Versanddatum', 'Est. Delivery': 'Vorauss. Lieferung', 'Language': 'Sprache',
-    'Home': 'Start', 'Testimonials': 'Meinungen',
-    'Customer Service': 'Kundenservice', 'Our Services': 'Unsere Dienste', 'Track': 'Verfolgen',
-    'Ship ▾': 'Versenden ▾', 'Find a Service Point': 'Servicepunkt finden',
-    'What clients say': 'Kundenstimmen', 'TRUSTED BY SHIPPERS': 'VERTRAUEN VON VERSENDERN',
-    'Please wait': 'Bitte warten', 'Loading…': 'Wird geladen…',
-    'Enter tracking code': 'Sendungsnummer eingeben',
-    'DISPATCHED DAILY · 120+ COUNTRIES': 'TÄGLICH VERSANDT · 120+ LÄNDER'
-  },
-  zh: {
-    'Track Now': '追踪', 'Service': '服务', 'About Us': '关于我们', 'Contact Us': '联系我们',
-    'Receipt': '收据', 'Box': '包裹', 'Log In': '登录', 'Track Package': '追踪包裹',
-    'Live Location': '实时位置', 'Sender': '寄件人', 'Receiver': '收件人',
-    'Shipment Date': '发货日期', 'Est. Delivery': '预计送达', 'Language': '语言',
-    'Home': '首页', 'Testimonials': '评价',
-    'Customer Service': '客户服务', 'Our Services': '我们的服务', 'Track': '追踪',
-    'Ship ▾': '寄件 ▾', 'Find a Service Point': '查找服务点',
-    'What clients say': '客户评价', 'TRUSTED BY SHIPPERS': '深受发件人信赖',
-    'Please wait': '请稍候', 'Loading…': '加载中…',
-    'Enter tracking code': '输入运单号',
-    'DISPATCHED DAILY · 120+ COUNTRIES': '每日发运 · 120+ 国家/地区'
-  }
+    en: {
+        'Track Now': 'Track Now', 'Service': 'Service', 'About Us': 'About Us', 'Contact Us': 'Contact Us',
+        'Receipt': 'Receipt', 'Box': 'Box', 'Log In': 'Log In', 'Track Package': 'Track Package',
+        'Live Location': 'Live Location', 'Sender': 'Sender', 'Receiver': 'Receiver',
+        'Shipment Date': 'Shipment Date', 'Est. Delivery': 'Est. Delivery', 'Language': 'Language',
+        'Your package, tracked': 'Your package, tracked', 'Home': 'Home', 'Testimonials': 'Testimonials',
+        'Customer Service': 'Customer Service', 'Our Services': 'Our Services', 'Track': 'Track',
+        'Ship ▾': 'Ship ▾', 'Find a Service Point': 'Find a Service Point',
+        'What clients say': 'What clients say', 'TRUSTED BY SHIPPERS': 'TRUSTED BY SHIPPERS',
+        'Please wait': 'Please wait', 'Loading…': 'Loading…',
+        'Enter tracking code': 'Enter tracking code',
+        'DISPATCHED DAILY · 120+ COUNTRIES': 'DISPATCHED DAILY · 120+ COUNTRIES'
+    },
+    id: {
+        'Track Now': 'Lacak Sekarang', 'Service': 'Layanan', 'About Us': 'Tentang Kami', 'Contact Us': 'Hubungi Kami',
+        'Receipt': 'Tanda Terima', 'Box': 'Kotak', 'Log In': 'Masuk', 'Track Package': 'Lacak Paket',
+        'Live Location': 'Lokasi Langsung', 'Sender': 'Pengirim', 'Receiver': 'Penerima',
+        'Shipment Date': 'Tanggal Pengiriman', 'Est. Delivery': 'Perkiraan Tiba', 'Language': 'Bahasa',
+        'Home': 'Beranda', 'Testimonials': 'Testimoni',
+        'Customer Service': 'Layanan Pelanggan', 'Our Services': 'Layanan Kami', 'Track': 'Lacak',
+        'Ship ▾': 'Kirim ▾', 'Find a Service Point': 'Temukan Titik Layanan',
+        'What clients say': 'Kata klien', 'TRUSTED BY SHIPPERS': 'DIPERCAYA PENGIRIM',
+        'Please wait': 'Mohon tunggu', 'Loading…': 'Memuat…',
+        'Enter tracking code': 'Masukkan kode pelacakan',
+        'DISPATCHED DAILY · 120+ COUNTRIES': 'DIKIRIM SETIAP HARI · 120+ NEGARA'
+    },
+    ms: {
+        'Track Now': 'Jejak Sekarang', 'Service': 'Perkhidmatan', 'About Us': 'Tentang Kami', 'Contact Us': 'Hubungi Kami',
+        'Receipt': 'Resit', 'Box': 'Kotak', 'Log In': 'Log Masuk', 'Track Package': 'Jejak Pakej',
+        'Live Location': 'Lokasi Langsung', 'Sender': 'Pengirim', 'Receiver': 'Penerima',
+        'Shipment Date': 'Tarikh Penghantaran', 'Est. Delivery': 'Anggaran Sampai', 'Language': 'Bahasa',
+        'Home': 'Laman Utama', 'Testimonials': 'Testimoni',
+        'Customer Service': 'Khidmat Pelanggan', 'Our Services': 'Perkhidmatan Kami', 'Track': 'Jejak',
+        'Ship ▾': 'Hantar ▾', 'Find a Service Point': 'Cari Titik Perkhidmatan',
+        'What clients say': 'Kata pelanggan', 'TRUSTED BY SHIPPERS': 'DIPERCAYAI PENGIRIM',
+        'Please wait': 'Sila tunggu', 'Loading…': 'Memuatkan…',
+        'Enter tracking code': 'Masukkan kod penjejakan',
+        'DISPATCHED DAILY · 120+ COUNTRIES': 'DIHANTAR SETIAP HARI · 120+ NEGARA'
+    },
+    es: {
+        'Track Now': 'Rastrear', 'Service': 'Servicio', 'About Us': 'Sobre nosotros', 'Contact Us': 'Contacto',
+        'Receipt': 'Recibo', 'Box': 'Caja', 'Log In': 'Iniciar sesión', 'Track Package': 'Rastrear paquete',
+        'Live Location': 'Ubicación en vivo', 'Sender': 'Remitente', 'Receiver': 'Destinatario',
+        'Shipment Date': 'Fecha de envío', 'Est. Delivery': 'Entrega est.', 'Language': 'Idioma',
+        'Home': 'Inicio', 'Testimonials': 'Testimonios',
+        'Customer Service': 'Atención al cliente', 'Our Services': 'Nuestros servicios', 'Track': 'Rastrear',
+        'Ship ▾': 'Enviar ▾', 'Find a Service Point': 'Buscar punto de servicio',
+        'What clients say': 'Lo que dicen los clientes', 'TRUSTED BY SHIPPERS': 'CONFIANZA DE REMITENTES',
+        'Please wait': 'Por favor espere', 'Loading…': 'Cargando…',
+        'Enter tracking code': 'Ingrese el código de seguimiento',
+        'DISPATCHED DAILY · 120+ COUNTRIES': 'ENVÍOS DIARIOS · 120+ PAÍSES'
+    },
+    mx: {
+        'Track Now': 'Rastrear', 'Service': 'Servicio', 'About Us': 'Sobre nosotros', 'Contact Us': 'Contacto',
+        'Receipt': 'Recibo', 'Box': 'Caja', 'Log In': 'Iniciar sesión', 'Track Package': 'Rastrear paquete',
+        'Live Location': 'Ubicación en vivo', 'Sender': 'Remitente', 'Receiver': 'Destinatario',
+        'Shipment Date': 'Fecha de envío', 'Est. Delivery': 'Entrega est.', 'Language': 'Idioma',
+        'Home': 'Inicio', 'Testimonials': 'Testimonios',
+        'Customer Service': 'Atención al cliente', 'Our Services': 'Nuestros servicios', 'Track': 'Rastrear',
+        'Ship ▾': 'Enviar ▾', 'Find a Service Point': 'Buscar punto de servicio',
+        'What clients say': 'Lo que dicen los clientes', 'TRUSTED BY SHIPPERS': 'CONFIANZA DE REMITENTES',
+        'Please wait': 'Por favor espere', 'Loading…': 'Cargando…',
+        'Enter tracking code': 'Ingrese el código de seguimiento',
+        'DISPATCHED DAILY · 120+ COUNTRIES': 'ENVÍOS DIARIOS · 120+ PAÍSES'
+    },
+    fr: {
+        'Track Now': 'Suivre', 'Service': 'Service', 'About Us': 'À propos', 'Contact Us': 'Contact',
+        'Receipt': 'Reçu', 'Box': 'Colis', 'Log In': 'Connexion', 'Track Package': 'Suivre le colis',
+        'Live Location': 'Localisation', 'Sender': 'Expéditeur', 'Receiver': 'Destinataire',
+        'Shipment Date': "Date d'envoi", 'Est. Delivery': 'Livraison est.', 'Language': 'Langue',
+        'Home': 'Accueil', 'Testimonials': 'Témoignages',
+        'Customer Service': 'Service client', 'Our Services': 'Nos services', 'Track': 'Suivre',
+        'Ship ▾': 'Expédier ▾', 'Find a Service Point': 'Trouver un point de service',
+        'What clients say': 'Ce que disent les clients', 'TRUSTED BY SHIPPERS': 'LA CONFIANCE DES EXPÉDITEURS',
+        'Please wait': 'Veuillez patienter', 'Loading…': 'Chargement…',
+        'Enter tracking code': 'Entrez le code de suivi',
+        'DISPATCHED DAILY · 120+ COUNTRIES': 'EXPÉDIÉ CHAQUE JOUR · 120+ PAYS'
+    },
+    de: {
+        'Track Now': 'Sendung verfolgen', 'Service': 'Service', 'About Us': 'Über uns', 'Contact Us': 'Kontakt',
+        'Receipt': 'Beleg', 'Box': 'Paket', 'Log In': 'Anmelden', 'Track Package': 'Paket verfolgen',
+        'Live Location': 'Live-Standort', 'Sender': 'Absender', 'Receiver': 'Empfänger',
+        'Shipment Date': 'Versanddatum', 'Est. Delivery': 'Vorauss. Lieferung', 'Language': 'Sprache',
+        'Home': 'Start', 'Testimonials': 'Meinungen',
+        'Customer Service': 'Kundenservice', 'Our Services': 'Unsere Dienste', 'Track': 'Verfolgen',
+        'Ship ▾': 'Versenden ▾', 'Find a Service Point': 'Servicepunkt finden',
+        'What clients say': 'Kundenstimmen', 'TRUSTED BY SHIPPERS': 'VERTRAUEN VON VERSENDERN',
+        'Please wait': 'Bitte warten', 'Loading…': 'Wird geladen…',
+        'Enter tracking code': 'Sendungsnummer eingeben',
+        'DISPATCHED DAILY · 120+ COUNTRIES': 'TÄGLICH VERSANDT · 120+ LÄNDER'
+    },
+    zh: {
+        'Track Now': '追踪', 'Service': '服务', 'About Us': '关于我们', 'Contact Us': '联系我们',
+        'Receipt': '收据', 'Box': '包裹', 'Log In': '登录', 'Track Package': '追踪包裹',
+        'Live Location': '实时位置', 'Sender': '寄件人', 'Receiver': '收件人',
+        'Shipment Date': '发货日期', 'Est. Delivery': '预计送达', 'Language': '语言',
+        'Home': '首页', 'Testimonials': '评价',
+        'Customer Service': '客户服务', 'Our Services': '我们的服务', 'Track': '追踪',
+        'Ship ▾': '寄件 ▾', 'Find a Service Point': '查找服务点',
+        'What clients say': '客户评价', 'TRUSTED BY SHIPPERS': '深受发件人信赖',
+        'Please wait': '请稍候', 'Loading…': '加载中…',
+        'Enter tracking code': '输入运单号',
+        'DISPATCHED DAILY · 120+ COUNTRIES': '每日发运 · 120+ 国家/地区'
+    }
 };
 /* Extra long-form strings for full public UI (index + nav + chat) */
 const SITE_I18N_EXTRA = {
-  id: {
-    'Your package, tracked every mile of the way.': 'Paket Anda, dilacak di setiap mil perjalanan.',
-    'Your package, tracked': 'Paket Anda, dilacak',
-    'every mile of the way.': 'di setiap mil perjalanan.',
-    'Moves freight by air, sea and land with live status updates from pickup to your door.': 'Mengangkut kargo lewat udara, laut, dan darat dengan status langsung dari penjemputan hingga ke pintu Anda.',
-    'What clients say': 'Kata klien',
-    'Our containers arrived two days early and the tracking page told us exactly which port they were at. Made our own customer updates painless.': 'Kontainer kami tiba dua hari lebih awal dan halaman pelacakan memberi tahu pelabuhan yang tepat. Pembaruan ke pelanggan jadi mudah.',
-    'Switched from a competitor after one bad delivery window. Air freight team kept us posted at every leg of a rush order.': 'Beralih dari kompetitor setelah satu pengiriman buruk. Tim kargo udara selalu memberi kabar di setiap tahap pesanan mendesak.',
-    'Navigating Latest Tariff Developments': 'Menavigasi Perkembangan Tarif Terbaru',
-    'Document and Parcel Shipping': 'Pengiriman Dokumen dan Paket',
-    'For All Shippers': 'Untuk Semua Pengirim',
-    'Learn about DHL Express – the undisputed global leader in international express shipping.': 'Pelajari DHL Express – pemimpin global pengiriman ekspres internasional.',
-    'Services Available': 'Layanan Tersedia',
-    'Next Possible Business Day': 'Hari Kerja Berikutnya yang Memungkinkan',
-    'Flexible Import/Export Options': 'Opsi Impor/Ekspor Fleksibel',
-    'DHL for Business': 'DHL untuk Bisnis',
-    'Get connected to the right experts in a few easy steps': 'Terhubung dengan ahli yang tepat dalam beberapa langkah mudah',
-    'Cargo Shipping': 'Pengiriman Kargo',
-    'Business Only': 'Khusus Bisnis',
-    'Discover shipping and logistics service options from DHL Global Forwarding.': 'Temukan opsi pengiriman dan logistik dari DHL Global Forwarding.',
-    'Air Freight': 'Kargo Udara',
-    'Road Freight': 'Kargo Darat',
-    'Ocean Freight': 'Kargo Laut',
-    'Rail Freight': 'Kargo Kereta',
-    'Important Service Updates': 'Pembaruan Layanan Penting',
-    'Service bulletins keep you up to date with news and alerts': 'Buletin layanan menjaga Anda tetap mendapat berita dan peringatan',
-    'What We Offer': 'Apa yang Kami Tawarkan',
-    'Our core logistics services': 'Layanan logistik inti kami',
-    'Air Express': 'Ekspres Udara',
-    'Road & Land': 'Darat & Jalan',
-    'Ocean & Freight': 'Laut & Kargo',
-    'Warehousing': 'Pergudangan',
-    'Time-critical international document and parcel delivery by air — next possible business day options worldwide.': 'Pengiriman dokumen dan paket internasional mendesak lewat udara — opsi hari kerja berikutnya di seluruh dunia.',
-    'Reliable ground transport for domestic and regional shipments with flexible pickup and delivery windows.': 'Transportasi darat andal untuk pengiriman domestik dan regional dengan jendela penjemputan dan pengantaran fleksibel.',
-    'Cost-effective ocean and multimodal freight for pallets, containers and larger cargo volumes.': 'Kargo laut dan multimodal hemat biaya untuk palet, kontainer, dan volume kargo lebih besar.',
-    'Fulfilment, storage and distribution solutions so your goods move smoothly from origin to last mile.': 'Solusi fulfillment, penyimpanan, dan distribusi agar barang bergerak lancar dari asal hingga last mile.',
-    'Frequently Asked Questions': 'Pertanyaan yang Sering Diajukan',
-    'How do you use my contact information?': 'Bagaimana Anda menggunakan informasi kontak saya?',
-    'We use your contact details only to respond to your shipping and support requests.': 'Kami menggunakan detail kontak Anda hanya untuk menanggapi permintaan pengiriman dan dukungan.',
-    'Customer Service': 'Layanan Pelanggan',
-    'Tracking online is the fastest way to check the status of your shipment(s). No account, no password and no phone calls required. All you need is the waybill number(s).': 'Pelacakan online adalah cara tercepat memeriksa status pengiriman. Tanpa akun, tanpa kata sandi, tanpa telepon. Cukup nomor waybill.',
-    'Track Your Shipment': 'Lacak Pengiriman Anda',
-    'Shipment Receipt': 'Tanda Terima Pengiriman',
-    'Package / Box': 'Paket / Kotak',
-    '24/7 Support': 'Dukungan 24/7',
-    'DHL Live Chat': 'Obrolan Langsung DHL',
-    '● Online': '● Online',
-    'Enter your tracking code to open a private chat. Labeled as shipment Sender / Receiver. Only you and support can see this conversation.': 'Masukkan kode pelacakan untuk membuka chat pribadi. Ditandai sebagai Pengirim / Penerima. Hanya Anda dan dukungan yang dapat melihat percakapan ini.',
-    'Enter your tracking code to open a private chat. Labeled as shipment Sender / Receiver.\n                Only you and support can see this conversation.': 'Masukkan kode pelacakan untuk membuka chat pribadi. Ditandai sebagai Pengirim / Penerima. Hanya Anda dan dukungan yang dapat melihat percakapan ini.',
-    'Tracking code': 'Kode pelacakan',
-    'Start chat': 'Mulai chat',
-    'Type a message…': 'Ketik pesan…',
-    'Send': 'Kirim',
-    'Please enter a tracking code.': 'Silakan masukkan kode pelacakan.',
-    'Please wait': 'Mohon tunggu',
-    'Loading…': 'Memuat…',
-    'SHIPMENTS HANDLED (K)': 'PENGIRIMAN DITANGANI (K)',
-    'ON-TIME DELIVERY RATE': 'TINGKAT TEPAT WAKTU',
-    'CUSTOMER SUPPORT': 'DUKUNGAN PELANGGAN',
-    'COUNTRIES SERVED': 'NEGARA DILAYANI',
-    'Get a Quote': 'Dapatkan Penawaran',
-    'Ship Now': 'Kirim Sekarang',
-    'Customer Portal Logins': 'Login Portal Pelanggan',
-    'Find a Service Point': 'Temukan Titik Layanan',
-    'Testimonials': 'Testimoni',
-    'Home': 'Beranda',
-    'Back': 'Kembali',
-    'Sustainability': 'Keberlanjutan',
-    'Explore DHL Global Forwarding': 'Jelajahi DHL Global Forwarding',
-    'Explore Our U.S. Tariff Solutions': 'Jelajahi Solusi Tarif AS Kami'
-  },
-  ms: {
-    'Your package, tracked every mile of the way.': 'Pakej anda, dijejak pada setiap batu perjalanan.',
-    'Moves freight by air, sea and land with live status updates from pickup to your door.': 'Menghantar kargo melalui udara, laut dan darat dengan status langsung dari pengambilan hingga ke pintu anda.',
-    'What clients say': 'Kata pelanggan',
-    'Our containers arrived two days early and the tracking page told us exactly which port they were at. Made our own customer updates painless.': 'Kontena kami tiba dua hari lebih awal dan halaman penjejakan memberitahu pelabuhan yang tepat. Kemaskini kepada pelanggan menjadi mudah.',
-    'Switched from a competitor after one bad delivery window. Air freight team kept us posted at every leg of a rush order.': 'Beralih dari pesaing selepas satu penghantaran buruk. Pasukan kargo udara sentiasa memberi maklum di setiap peringkat pesanan mendesak.',
-    'Navigating Latest Tariff Developments': 'Menavigasi Perkembangan Tarif Terkini',
-    'Document and Parcel Shipping': 'Penghantaran Dokumen dan Bungkusan',
-    'For All Shippers': 'Untuk Semua Pengirim',
-    'Learn about DHL Express – the undisputed global leader in international express shipping.': 'Ketahui tentang DHL Express – peneraju global penghantaran ekspres antarabangsa.',
-    'Services Available': 'Perkhidmatan Tersedia',
-    'Next Possible Business Day': 'Hari Perniagaan Seterusnya yang Mungkin',
-    'Flexible Import/Export Options': 'Pilihan Import/Eksport Fleksibel',
-    'DHL for Business': 'DHL untuk Perniagaan',
-    'Get connected to the right experts in a few easy steps': 'Berhubung dengan pakar yang betul dalam beberapa langkah mudah',
-    'Cargo Shipping': 'Penghantaran Kargo',
-    'Business Only': 'Perniagaan Sahaja',
-    'Discover shipping and logistics service options from DHL Global Forwarding.': 'Temui pilihan penghantaran dan logistik daripada DHL Global Forwarding.',
-    'Air Freight': 'Kargo Udara', 'Road Freight': 'Kargo Jalan', 'Ocean Freight': 'Kargo Laut', 'Rail Freight': 'Kargo Kereta Api',
-    'Important Service Updates': 'Kemaskini Perkhidmatan Penting',
-    'Service bulletins keep you up to date with news and alerts': 'Buletin perkhidmatan memastikan anda mendapat berita dan amaran',
-    'What We Offer': 'Apa Yang Kami Tawarkan',
-    'Our core logistics services': 'Perkhidmatan logistik teras kami',
-    'Air Express': 'Ekspres Udara', 'Road & Land': 'Jalan & Darat', 'Ocean & Freight': 'Laut & Kargo', 'Warehousing': 'Pergudangan',
-    'Time-critical international document and parcel delivery by air — next possible business day options worldwide.': 'Penghantaran dokumen dan bungkusan antarabangsa mendesak melalui udara — pilihan hari perniagaan seterusnya di seluruh dunia.',
-    'Reliable ground transport for domestic and regional shipments with flexible pickup and delivery windows.': 'Pengangkutan darat yang boleh dipercayai untuk penghantaran domestik dan serantau dengan tingkap pengambilan dan penghantaran fleksibel.',
-    'Cost-effective ocean and multimodal freight for pallets, containers and larger cargo volumes.': 'Kargo laut dan multimodal yang menjimatkan untuk palet, kontena dan volum kargo lebih besar.',
-    'Fulfilment, storage and distribution solutions so your goods move smoothly from origin to last mile.': 'Penyelesaian pemenuhan, penyimpanan dan pengedaran supaya barangan bergerak lancar dari asal ke last mile.',
-    'Frequently Asked Questions': 'Soalan Lazim',
-    'How do you use my contact information?': 'Bagaimana anda menggunakan maklumat hubungan saya?',
-    'We use your contact details only to respond to your shipping and support requests.': 'Kami menggunakan butiran hubungan anda hanya untuk membalas permintaan penghantaran dan sokongan.',
-    'Customer Service': 'Khidmat Pelanggan',
-    'Tracking online is the fastest way to check the status of your shipment(s). No account, no password and no phone calls required. All you need is the waybill number(s).': 'Penjejakan dalam talian adalah cara terpantas untuk semak status penghantaran. Tiada akaun, tiada kata laluan, tiada panggilan. Cukup nombor waybill.',
-    'Track Your Shipment': 'Jejak Penghantaran Anda', 'Shipment Receipt': 'Resit Penghantaran', 'Package / Box': 'Pakej / Kotak',
-    '24/7 Support': 'Sokongan 24/7', 'DHL Live Chat': 'Sembang Langsung DHL', '● Online': '● Dalam talian',
-    'Enter your tracking code to open a private chat. Labeled as shipment Sender / Receiver. Only you and support can see this conversation.': 'Masukkan kod penjejakan untuk buka sembang peribadi. Dilabel sebagai Pengirim / Penerima. Hanya anda dan sokongan dapat melihat perbualan ini.',
-    'Tracking code': 'Kod penjejakan', 'Start chat': 'Mula sembang', 'Type a message…': 'Taip mesej…', 'Send': 'Hantar',
-    'Please enter a tracking code.': 'Sila masukkan kod penjejakan.', 'Please wait': 'Sila tunggu', 'Loading…': 'Memuatkan…',
-    'SHIPMENTS HANDLED (K)': 'PENGHANTARAN DIKENDALIKAN (K)', 'ON-TIME DELIVERY RATE': 'KADAR TEPAT MASA',
-    'CUSTOMER SUPPORT': 'SOKONGAN PELANGGAN', 'COUNTRIES SERVED': 'NEGARA DILAYANI',
-    'Get a Quote': 'Dapatkan Sebut Harga', 'Ship Now': 'Hantar Sekarang', 'Customer Portal Logins': 'Log Masuk Portal Pelanggan',
-    'Find a Service Point': 'Cari Titik Perkhidmatan', 'Testimonials': 'Testimoni', 'Home': 'Laman Utama', 'Back': 'Kembali',
-    'Sustainability': 'Kelestarian', 'Explore DHL Global Forwarding': 'Terokai DHL Global Forwarding',
-    'Explore Our U.S. Tariff Solutions': 'Terokai Penyelesaian Tarif AS Kami', 'Track Package': 'Jejak Pakej', 'Language': 'Bahasa'
-  },
-  es: {
-    'Your package, tracked every mile of the way.': 'Su paquete, rastreado en cada kilómetro del camino.',
-    'Moves freight by air, sea and land with live status updates from pickup to your door.': 'Mueve carga por aire, mar y tierra con actualizaciones en vivo desde la recogida hasta su puerta.',
-    'What clients say': 'Lo que dicen los clientes',
-    'Our containers arrived two days early and the tracking page told us exactly which port they were at. Made our own customer updates painless.': 'Nuestros contenedores llegaron dos días antes y la página de seguimiento nos dijo exactamente en qué puerto estaban. Actualizar a nuestros clientes fue fácil.',
-    'Switched from a competitor after one bad delivery window. Air freight team kept us posted at every leg of a rush order.': 'Cambiamos de competidor tras una mala ventana de entrega. El equipo de carga aérea nos informó en cada tramo de un pedido urgente.',
-    'Navigating Latest Tariff Developments': 'Navegar los últimos desarrollos arancelarios',
-    'Document and Parcel Shipping': 'Envío de documentos y paquetes',
-    'For All Shippers': 'Para todos los remitentes',
-    'Learn about DHL Express – the undisputed global leader in international express shipping.': 'Conozca DHL Express, el líder mundial indiscutible del envío exprés internacional.',
-    'Services Available': 'Servicios disponibles',
-    'Next Possible Business Day': 'Siguiente día hábil posible',
-    'Flexible Import/Export Options': 'Opciones flexibles de importación/exportación',
-    'DHL for Business': 'DHL para empresas',
-    'Get connected to the right experts in a few easy steps': 'Conéctese con los expertos adecuados en unos pocos pasos',
-    'Cargo Shipping': 'Envío de carga', 'Business Only': 'Solo empresas',
-    'Discover shipping and logistics service options from DHL Global Forwarding.': 'Descubra las opciones de envío y logística de DHL Global Forwarding.',
-    'Air Freight': 'Carga aérea', 'Road Freight': 'Carga por carretera', 'Ocean Freight': 'Carga marítima', 'Rail Freight': 'Carga ferroviaria',
-    'Important Service Updates': 'Actualizaciones importantes del servicio',
-    'Service bulletins keep you up to date with news and alerts': 'Los boletines de servicio le mantienen al día con noticias y alertas',
-    'What We Offer': 'Lo que ofrecemos', 'Our core logistics services': 'Nuestros servicios logísticos principales',
-    'Air Express': 'Exprés aéreo', 'Road & Land': 'Carretera y tierra', 'Ocean & Freight': 'Mar y carga', 'Warehousing': 'Almacenamiento',
-    'Time-critical international document and parcel delivery by air — next possible business day options worldwide.': 'Entrega internacional urgente de documentos y paquetes por aire — opciones del siguiente día hábil en todo el mundo.',
-    'Reliable ground transport for domestic and regional shipments with flexible pickup and delivery windows.': 'Transporte terrestre fiable para envíos nacionales y regionales con ventanas de recogida y entrega flexibles.',
-    'Cost-effective ocean and multimodal freight for pallets, containers and larger cargo volumes.': 'Carga marítima y multimodal rentable para palés, contenedores y mayores volúmenes.',
-    'Fulfilment, storage and distribution solutions so your goods move smoothly from origin to last mile.': 'Soluciones de fulfillment, almacenamiento y distribución para que sus mercancías se muevan sin problemas del origen a la última milla.',
-    'Frequently Asked Questions': 'Preguntas frecuentes',
-    'How do you use my contact information?': '¿Cómo usan mi información de contacto?',
-    'We use your contact details only to respond to your shipping and support requests.': 'Usamos sus datos de contacto solo para responder a sus solicitudes de envío y soporte.',
-    'Customer Service': 'Atención al cliente',
-    'Tracking online is the fastest way to check the status of your shipment(s). No account, no password and no phone calls required. All you need is the waybill number(s).': 'El seguimiento en línea es la forma más rápida de consultar el estado de su envío. Sin cuenta, sin contraseña y sin llamadas. Solo necesita el número de guía.',
-    'Track Your Shipment': 'Rastrear su envío', 'Shipment Receipt': 'Recibo de envío', 'Package / Box': 'Paquete / Caja',
-    '24/7 Support': 'Soporte 24/7', 'DHL Live Chat': 'Chat en vivo DHL', '● Online': '● En línea',
-    'Enter your tracking code to open a private chat. Labeled as shipment Sender / Receiver. Only you and support can see this conversation.': 'Ingrese su código de seguimiento para abrir un chat privado. Etiquetado como Remitente / Destinatario. Solo usted y el soporte pueden ver esta conversación.',
-    'Tracking code': 'Código de seguimiento', 'Start chat': 'Iniciar chat', 'Type a message…': 'Escriba un mensaje…', 'Send': 'Enviar',
-    'Please enter a tracking code.': 'Ingrese un código de seguimiento.', 'Please wait': 'Por favor espere', 'Loading…': 'Cargando…',
-    'SHIPMENTS HANDLED (K)': 'ENVÍOS GESTIONADOS (K)', 'ON-TIME DELIVERY RATE': 'TASA DE ENTREGA A TIEMPO',
-    'CUSTOMER SUPPORT': 'ATENCIÓN AL CLIENTE', 'COUNTRIES SERVED': 'PAÍSES ATENDIDOS',
-    'Get a Quote': 'Obtener cotización', 'Ship Now': 'Enviar ahora', 'Customer Portal Logins': 'Accesos al portal del cliente',
-    'Find a Service Point': 'Buscar punto de servicio', 'Testimonials': 'Testimonios', 'Home': 'Inicio', 'Back': 'Volver',
-    'Sustainability': 'Sostenibilidad', 'Explore DHL Global Forwarding': 'Explorar DHL Global Forwarding',
-    'Explore Our U.S. Tariff Solutions': 'Explorar nuestras soluciones arancelarias de EE. UU.', 'Track Package': 'Rastrear paquete', 'Language': 'Idioma'
-  },
-  mx: {
-    'Your package, tracked every mile of the way.': 'Su paquete, rastreado en cada kilómetro del camino.',
-    'Moves freight by air, sea and land with live status updates from pickup to your door.': 'Mueve carga por aire, mar y tierra con actualizaciones en vivo desde la recolección hasta su puerta.',
-    'What clients say': 'Lo que dicen los clientes',
-    'Our containers arrived two days early and the tracking page told us exactly which port they were at. Made our own customer updates painless.': 'Nuestros contenedores llegaron dos días antes y la página de seguimiento nos dijo exactamente en qué puerto estaban. Actualizar a nuestros clientes fue fácil.',
-    'Switched from a competitor after one bad delivery window. Air freight team kept us posted at every leg of a rush order.': 'Cambiamos de competidor tras una mala ventana de entrega. El equipo de carga aérea nos informó en cada tramo de un pedido urgente.',
-    'Navigating Latest Tariff Developments': 'Navegar los últimos desarrollos arancelarios',
-    'Document and Parcel Shipping': 'Envío de documentos y paquetes',
-    'For All Shippers': 'Para todos los remitentes',
-    'Learn about DHL Express – the undisputed global leader in international express shipping.': 'Conozca DHL Express, el líder mundial indiscutible del envío exprés internacional.',
-    'Services Available': 'Servicios disponibles',
-    'Next Possible Business Day': 'Siguiente día hábil posible',
-    'Flexible Import/Export Options': 'Opciones flexibles de importación/exportación',
-    'DHL for Business': 'DHL para empresas',
-    'Get connected to the right experts in a few easy steps': 'Conéctese con los expertos adecuados en unos cuantos pasos',
-    'Cargo Shipping': 'Envío de carga', 'Business Only': 'Solo empresas',
-    'Discover shipping and logistics service options from DHL Global Forwarding.': 'Descubra las opciones de envío y logística de DHL Global Forwarding.',
-    'Air Freight': 'Carga aérea', 'Road Freight': 'Carga por carretera', 'Ocean Freight': 'Carga marítima', 'Rail Freight': 'Carga ferroviaria',
-    'Important Service Updates': 'Actualizaciones importantes del servicio',
-    'Service bulletins keep you up to date with news and alerts': 'Los boletines de servicio le mantienen al día con noticias y alertas',
-    'What We Offer': 'Lo que ofrecemos', 'Our core logistics services': 'Nuestros servicios logísticos principales',
-    'Air Express': 'Exprés aéreo', 'Road & Land': 'Carretera y tierra', 'Ocean & Freight': 'Mar y carga', 'Warehousing': 'Almacenamiento',
-    'Time-critical international document and parcel delivery by air — next possible business day options worldwide.': 'Entrega internacional urgente de documentos y paquetes por aire — opciones del siguiente día hábil en todo el mundo.',
-    'Reliable ground transport for domestic and regional shipments with flexible pickup and delivery windows.': 'Transporte terrestre confiable para envíos nacionales y regionales con ventanas de recolección y entrega flexibles.',
-    'Cost-effective ocean and multimodal freight for pallets, containers and larger cargo volumes.': 'Carga marítima y multimodal rentable para tarimas, contenedores y mayores volúmenes.',
-    'Fulfilment, storage and distribution solutions so your goods move smoothly from origin to last mile.': 'Soluciones de fulfillment, almacenamiento y distribución para que su mercancía se mueva sin problemas del origen a la última milla.',
-    'Frequently Asked Questions': 'Preguntas frecuentes',
-    'How do you use my contact information?': '¿Cómo usan mi información de contacto?',
-    'We use your contact details only to respond to your shipping and support requests.': 'Usamos sus datos de contacto solo para responder a sus solicitudes de envío y soporte.',
-    'Customer Service': 'Atención al cliente',
-    'Tracking online is the fastest way to check the status of your shipment(s). No account, no password and no phone calls required. All you need is the waybill number(s).': 'El seguimiento en línea es la forma más rápida de consultar el estado de su envío. Sin cuenta, sin contraseña y sin llamadas. Solo necesita el número de guía.',
-    'Track Your Shipment': 'Rastrear su envío', 'Shipment Receipt': 'Recibo de envío', 'Package / Box': 'Paquete / Caja',
-    '24/7 Support': 'Soporte 24/7', 'DHL Live Chat': 'Chat en vivo DHL', '● Online': '● En línea',
-    'Enter your tracking code to open a private chat. Labeled as shipment Sender / Receiver. Only you and support can see this conversation.': 'Ingrese su código de seguimiento para abrir un chat privado. Etiquetado como Remitente / Destinatario. Solo usted y el soporte pueden ver esta conversación.',
-    'Tracking code': 'Código de seguimiento', 'Start chat': 'Iniciar chat', 'Type a message…': 'Escriba un mensaje…', 'Send': 'Enviar',
-    'Please enter a tracking code.': 'Ingrese un código de seguimiento.', 'Please wait': 'Por favor espere', 'Loading…': 'Cargando…',
-    'SHIPMENTS HANDLED (K)': 'ENVÍOS GESTIONADOS (K)', 'ON-TIME DELIVERY RATE': 'TASA DE ENTREGA A TIEMPO',
-    'CUSTOMER SUPPORT': 'ATENCIÓN AL CLIENTE', 'COUNTRIES SERVED': 'PAÍSES ATENDIDOS',
-    'Get a Quote': 'Obtener cotización', 'Ship Now': 'Enviar ahora', 'Customer Portal Logins': 'Accesos al portal del cliente',
-    'Find a Service Point': 'Buscar punto de servicio', 'Testimonials': 'Testimonios', 'Home': 'Inicio', 'Back': 'Volver',
-    'Sustainability': 'Sostenibilidad', 'Explore DHL Global Forwarding': 'Explorar DHL Global Forwarding',
-    'Explore Our U.S. Tariff Solutions': 'Explorar nuestras soluciones arancelarias de EE. UU.', 'Track Package': 'Rastrear paquete', 'Language': 'Idioma'
-  },
-  fr: {
-    'Your package, tracked every mile of the way.': 'Votre colis, suivi à chaque kilomètre du trajet.',
-    'Moves freight by air, sea and land with live status updates from pickup to your door.': 'Transport de fret par air, mer et terre avec mises à jour en direct de l’enlèvement jusqu’à votre porte.',
-    'What clients say': 'Ce que disent les clients',
-    'Our containers arrived two days early and the tracking page told us exactly which port they were at. Made our own customer updates painless.': 'Nos conteneurs sont arrivés deux jours plus tôt et la page de suivi nous a indiqué le port exact. Mettre à jour nos clients a été simple.',
-    'Switched from a competitor after one bad delivery window. Air freight team kept us posted at every leg of a rush order.': 'Nous avons changé de concurrent après une mauvaise fenêtre de livraison. L’équipe fret aérien nous a tenus informés à chaque étape d’une commande urgente.',
-    'Navigating Latest Tariff Developments': 'Naviguer les derniers développements tarifaires',
-    'Document and Parcel Shipping': 'Envoi de documents et de colis',
-    'For All Shippers': 'Pour tous les expéditeurs',
-    'Learn about DHL Express – the undisputed global leader in international express shipping.': 'Découvrez DHL Express – le leader mondial incontesté de l’express international.',
-    'Services Available': 'Services disponibles',
-    'Next Possible Business Day': 'Prochain jour ouvrable possible',
-    'Flexible Import/Export Options': 'Options flexibles d’import/export',
-    'DHL for Business': 'DHL pour les entreprises',
-    'Get connected to the right experts in a few easy steps': 'Connectez-vous aux bons experts en quelques étapes simples',
-    'Cargo Shipping': 'Transport de fret', 'Business Only': 'Entreprises uniquement',
-    'Discover shipping and logistics service options from DHL Global Forwarding.': 'Découvrez les options d’expédition et de logistique de DHL Global Forwarding.',
-    'Air Freight': 'Fret aérien', 'Road Freight': 'Fret routier', 'Ocean Freight': 'Fret maritime', 'Rail Freight': 'Fret ferroviaire',
-    'Important Service Updates': 'Mises à jour importantes du service',
-    'Service bulletins keep you up to date with news and alerts': 'Les bulletins de service vous tiennent informés des actualités et alertes',
-    'What We Offer': 'Ce que nous offrons', 'Our core logistics services': 'Nos services logistiques essentiels',
-    'Air Express': 'Express aérien', 'Road & Land': 'Route et terre', 'Ocean & Freight': 'Mer et fret', 'Warehousing': 'Entreposage',
-    'Time-critical international document and parcel delivery by air — next possible business day options worldwide.': 'Livraison internationale urgente de documents et colis par avion — options du prochain jour ouvrable dans le monde.',
-    'Reliable ground transport for domestic and regional shipments with flexible pickup and delivery windows.': 'Transport terrestre fiable pour envois nationaux et régionaux avec fenêtres d’enlèvement et de livraison flexibles.',
-    'Cost-effective ocean and multimodal freight for pallets, containers and larger cargo volumes.': 'Fret maritime et multimodal économique pour palettes, conteneurs et volumes plus importants.',
-    'Fulfilment, storage and distribution solutions so your goods move smoothly from origin to last mile.': 'Solutions de fulfillment, stockage et distribution pour un flux fluide de l’origine au dernier kilomètre.',
-    'Frequently Asked Questions': 'Questions fréquentes',
-    'How do you use my contact information?': 'Comment utilisez-vous mes coordonnées ?',
-    'We use your contact details only to respond to your shipping and support requests.': 'Nous utilisons vos coordonnées uniquement pour répondre à vos demandes d’expédition et de support.',
-    'Customer Service': 'Service client',
-    'Tracking online is the fastest way to check the status of your shipment(s). No account, no password and no phone calls required. All you need is the waybill number(s).': 'Le suivi en ligne est le moyen le plus rapide de vérifier le statut de votre envoi. Pas de compte, pas de mot de passe, pas d’appel. Il suffit du numéro de lettre de transport.',
-    'Track Your Shipment': 'Suivre votre envoi', 'Shipment Receipt': "Reçu d'expédition", 'Package / Box': 'Colis / Boîte',
-    '24/7 Support': 'Support 24/7', 'DHL Live Chat': 'Chat en direct DHL', '● Online': '● En ligne',
-    'Enter your tracking code to open a private chat. Labeled as shipment Sender / Receiver. Only you and support can see this conversation.': 'Entrez votre code de suivi pour ouvrir un chat privé. Étiqueté Expéditeur / Destinataire. Seuls vous et le support voyez cette conversation.',
-    'Tracking code': 'Code de suivi', 'Start chat': 'Démarrer le chat', 'Type a message…': 'Tapez un message…', 'Send': 'Envoyer',
-    'Please enter a tracking code.': 'Veuillez entrer un code de suivi.', 'Please wait': 'Veuillez patienter', 'Loading…': 'Chargement…',
-    'SHIPMENTS HANDLED (K)': 'ENVOIS TRAITÉS (K)', 'ON-TIME DELIVERY RATE': 'TAUX DE LIVRAISON À TEMPS',
-    'CUSTOMER SUPPORT': 'SERVICE CLIENT', 'COUNTRIES SERVED': 'PAYS DESSERVIS',
-    'Get a Quote': 'Obtenir un devis', 'Ship Now': 'Expédier maintenant', 'Customer Portal Logins': 'Connexions portail client',
-    'Find a Service Point': 'Trouver un point de service', 'Testimonials': 'Témoignages', 'Home': 'Accueil', 'Back': 'Retour',
-    'Sustainability': 'Durabilité', 'Explore DHL Global Forwarding': 'Explorer DHL Global Forwarding',
-    'Explore Our U.S. Tariff Solutions': 'Explorer nos solutions tarifaires US', 'Track Package': 'Suivre le colis', 'Language': 'Langue'
-  },
-  de: {
-    'Your package, tracked every mile of the way.': 'Ihr Paket, auf jedem Kilometer des Weges verfolgt.',
-    'Moves freight by air, sea and land with live status updates from pickup to your door.': 'Fracht per Luft, See und Land mit Live-Status von der Abholung bis zu Ihrer Tür.',
-    'What clients say': 'Das sagen Kunden',
-    'Our containers arrived two days early and the tracking page told us exactly which port they were at. Made our own customer updates painless.': 'Unsere Container kamen zwei Tage früher an und die Tracking-Seite zeigte uns den genauen Hafen. Kundenupdates waren einfach.',
-    'Switched from a competitor after one bad delivery window. Air freight team kept us posted at every leg of a rush order.': 'Nach einem schlechten Lieferfenster vom Wettbewerber gewechselt. Das Luftfracht-Team hielt uns bei jedem Abschnitt einer Eilbestellung auf dem Laufenden.',
-    'Navigating Latest Tariff Developments': 'Aktuelle Zollentwicklungen navigieren',
-    'Document and Parcel Shipping': 'Dokumenten- und Paketversand',
-    'For All Shippers': 'Für alle Versender',
-    'Learn about DHL Express – the undisputed global leader in international express shipping.': 'Erfahren Sie mehr über DHL Express – den unbestrittenen Weltmarktführer im internationalen Expressversand.',
-    'Services Available': 'Verfügbare Dienste',
-    'Next Possible Business Day': 'Nächster möglicher Werktag',
-    'Flexible Import/Export Options': 'Flexible Import-/Exportoptionen',
-    'DHL for Business': 'DHL für Unternehmen',
-    'Get connected to the right experts in a few easy steps': 'In wenigen Schritten mit den richtigen Experten verbinden',
-    'Cargo Shipping': 'Frachtversand', 'Business Only': 'Nur Unternehmen',
-    'Discover shipping and logistics service options from DHL Global Forwarding.': 'Entdecken Sie Versand- und Logistikoptionen von DHL Global Forwarding.',
-    'Air Freight': 'Luftfracht', 'Road Freight': 'Straßenfracht', 'Ocean Freight': 'Seefracht', 'Rail Freight': 'Schienenfracht',
-    'Important Service Updates': 'Wichtige Service-Updates',
-    'Service bulletins keep you up to date with news and alerts': 'Service-Bulletins halten Sie mit Nachrichten und Warnungen auf dem Laufenden',
-    'What We Offer': 'Unser Angebot', 'Our core logistics services': 'Unsere zentralen Logistikdienste',
-    'Air Express': 'Luft-Express', 'Road & Land': 'Straße & Land', 'Ocean & Freight': 'See & Fracht', 'Warehousing': 'Lagerung',
-    'Time-critical international document and parcel delivery by air — next possible business day options worldwide.': 'Zeitkritische internationale Dokumenten- und Paketzustellung per Luft — Optionen für den nächsten Werktag weltweit.',
-    'Reliable ground transport for domestic and regional shipments with flexible pickup and delivery windows.': 'Zuverlässiger Landtransport für nationale und regionale Sendungen mit flexiblen Abhol- und Zustellfenstern.',
-    'Cost-effective ocean and multimodal freight for pallets, containers and larger cargo volumes.': 'Kostengünstige See- und multimodale Fracht für Paletten, Container und größere Volumina.',
-    'Fulfilment, storage and distribution solutions so your goods move smoothly from origin to last mile.': 'Fulfillment-, Lager- und Distributionslösungen für einen reibungslosen Warenfluss vom Ursprung bis zur letzten Meile.',
-    'Frequently Asked Questions': 'Häufige Fragen',
-    'How do you use my contact information?': 'Wie verwenden Sie meine Kontaktdaten?',
-    'We use your contact details only to respond to your shipping and support requests.': 'Wir verwenden Ihre Kontaktdaten nur, um auf Ihre Versand- und Supportanfragen zu antworten.',
-    'Customer Service': 'Kundenservice',
-    'Tracking online is the fastest way to check the status of your shipment(s). No account, no password and no phone calls required. All you need is the waybill number(s).': 'Online-Tracking ist der schnellste Weg, den Status Ihrer Sendung zu prüfen. Kein Konto, kein Passwort, kein Anruf. Sie brauchen nur die Frachtbriefnummer.',
-    'Track Your Shipment': 'Sendung verfolgen', 'Shipment Receipt': 'Sendungsbeleg', 'Package / Box': 'Paket / Box',
-    '24/7 Support': 'Support 24/7', 'DHL Live Chat': 'DHL Live-Chat', '● Online': '● Online',
-    'Enter your tracking code to open a private chat. Labeled as shipment Sender / Receiver. Only you and support can see this conversation.': 'Geben Sie Ihren Tracking-Code ein, um einen privaten Chat zu öffnen. Beschriftet als Absender / Empfänger. Nur Sie und der Support sehen dieses Gespräch.',
-    'Tracking code': 'Sendungsnummer', 'Start chat': 'Chat starten', 'Type a message…': 'Nachricht eingeben…', 'Send': 'Senden',
-    'Please enter a tracking code.': 'Bitte Sendungsnummer eingeben.', 'Please wait': 'Bitte warten', 'Loading…': 'Wird geladen…',
-    'SHIPMENTS HANDLED (K)': 'SENDUNGEN BEARBEITET (K)', 'ON-TIME DELIVERY RATE': 'PÜNKTLICHKEITSRATE',
-    'CUSTOMER SUPPORT': 'KUNDENSERVICE', 'COUNTRIES SERVED': 'BEDIENTE LÄNDER',
-    'Get a Quote': 'Angebot holen', 'Ship Now': 'Jetzt versenden', 'Customer Portal Logins': 'Kundenportal-Logins',
-    'Find a Service Point': 'Servicepunkt finden', 'Testimonials': 'Kundenstimmen', 'Home': 'Start', 'Back': 'Zurück',
-    'Sustainability': 'Nachhaltigkeit', 'Explore DHL Global Forwarding': 'DHL Global Forwarding entdecken',
-    'Explore Our U.S. Tariff Solutions': 'Unsere US-Zolllösungen entdecken', 'Track Package': 'Paket verfolgen', 'Language': 'Sprache'
-  },
-  zh: {
-    'Your package, tracked every mile of the way.': '您的包裹，全程每一程都可追踪。',
-    'Moves freight by air, sea and land with live status updates from pickup to your door.': '通过空运、海运和陆运运输货物，从取件到送达实时更新状态。',
-    'What clients say': '客户评价',
-    'Our containers arrived two days early and the tracking page told us exactly which port they were at. Made our own customer updates painless.': '我们的集装箱提前两天到达，追踪页面准确显示所在港口。向客户更新信息非常轻松。',
-    'Switched from a competitor after one bad delivery window. Air freight team kept us posted at every leg of a rush order.': '一次糟糕的派送窗口后我们换掉了竞争对手。空运团队在加急订单的每一段都及时通知我们。',
-    'Navigating Latest Tariff Developments': '了解最新关税动态',
-    'Document and Parcel Shipping': '文件与包裹运输',
-    'For All Shippers': '适用于所有发件人',
-    'Learn about DHL Express – the undisputed global leader in international express shipping.': '了解 DHL 快递——国际快递领域无可争议的全球领导者。',
-    'Services Available': '可用服务',
-    'Next Possible Business Day': '下一个可能的工作日',
-    'Flexible Import/Export Options': '灵活的进出口选项',
-    'DHL for Business': 'DHL 商务服务',
-    'Get connected to the right experts in a few easy steps': '几步即可联系到合适的专家',
-    'Cargo Shipping': '货运', 'Business Only': '仅限企业',
-    'Discover shipping and logistics service options from DHL Global Forwarding.': '探索 DHL 全球货运的运输与物流服务选项。',
-    'Air Freight': '空运', 'Road Freight': '公路货运', 'Ocean Freight': '海运', 'Rail Freight': '铁路货运',
-    'Important Service Updates': '重要服务更新',
-    'Service bulletins keep you up to date with news and alerts': '服务公告让您及时了解新闻与提醒',
-    'What We Offer': '我们提供的服务', 'Our core logistics services': '我们的核心物流服务',
-    'Air Express': '空运快递', 'Road & Land': '公路与陆运', 'Ocean & Freight': '海运与货运', 'Warehousing': '仓储',
-    'Time-critical international document and parcel delivery by air — next possible business day options worldwide.': '时效要求高的国际文件与包裹空运——全球下一工作日可选方案。',
-    'Reliable ground transport for domestic and regional shipments with flexible pickup and delivery windows.': '可靠的国内与区域陆运，取件与派送时间窗口灵活。',
-    'Cost-effective ocean and multimodal freight for pallets, containers and larger cargo volumes.': '经济高效的海运与多式联运，适用于托盘、集装箱及更大货量。',
-    'Fulfilment, storage and distribution solutions so your goods move smoothly from origin to last mile.': '履约、仓储与配送解决方案，让货物从始发地到最后一公里顺畅流转。',
-    'Frequently Asked Questions': '常见问题',
-    'How do you use my contact information?': '你们如何使用我的联系信息？',
-    'We use your contact details only to respond to your shipping and support requests.': '我们仅使用您的联系方式回复您的运输与支持请求。',
-    'Customer Service': '客户服务',
-    'Tracking online is the fastest way to check the status of your shipment(s). No account, no password and no phone calls required. All you need is the waybill number(s).': '在线追踪是查看运单状态的最快方式。无需账户、密码或电话。只需运单号。',
-    'Track Your Shipment': '追踪您的运单', 'Shipment Receipt': '运单收据', 'Package / Box': '包裹 / 箱',
-    '24/7 Support': '全天候支持', 'DHL Live Chat': 'DHL 在线客服', '● Online': '● 在线',
-    'Enter your tracking code to open a private chat. Labeled as shipment Sender / Receiver. Only you and support can see this conversation.': '输入运单号以开启私密聊天。标记为寄件人 / 收件人。仅您与客服可见此对话。',
-    'Tracking code': '运单号', 'Start chat': '开始聊天', 'Type a message…': '输入消息…', 'Send': '发送',
-    'Please enter a tracking code.': '请输入运单号。', 'Please wait': '请稍候', 'Loading…': '加载中…',
-    'SHIPMENTS HANDLED (K)': '处理运单数 (K)', 'ON-TIME DELIVERY RATE': '准时送达率',
-    'CUSTOMER SUPPORT': '客户支持', 'COUNTRIES SERVED': '服务国家/地区',
-    'Get a Quote': '获取报价', 'Ship Now': '立即寄件', 'Customer Portal Logins': '客户门户登录',
-    'Find a Service Point': '查找服务点', 'Testimonials': '评价', 'Home': '首页', 'Back': '返回',
-    'Sustainability': '可持续发展', 'Explore DHL Global Forwarding': '探索 DHL 全球货运',
-    'Explore Our U.S. Tariff Solutions': '探索我们的美国关税方案', 'Track Package': '追踪包裹', 'Language': '语言'
-  }
+    id: {
+        'Your package, tracked every mile of the way.': 'Paket Anda, dilacak di setiap mil perjalanan.',
+        'Your package, tracked': 'Paket Anda, dilacak',
+        'every mile of the way.': 'di setiap mil perjalanan.',
+        'Moves freight by air, sea and land with live status updates from pickup to your door.': 'Mengangkut kargo lewat udara, laut, dan darat dengan status langsung dari penjemputan hingga ke pintu Anda.',
+        'What clients say': 'Kata klien',
+        'Our containers arrived two days early and the tracking page told us exactly which port they were at. Made our own customer updates painless.': 'Kontainer kami tiba dua hari lebih awal dan halaman pelacakan memberi tahu pelabuhan yang tepat. Pembaruan ke pelanggan jadi mudah.',
+        'Switched from a competitor after one bad delivery window. Air freight team kept us posted at every leg of a rush order.': 'Beralih dari kompetitor setelah satu pengiriman buruk. Tim kargo udara selalu memberi kabar di setiap tahap pesanan mendesak.',
+        'Navigating Latest Tariff Developments': 'Menavigasi Perkembangan Tarif Terbaru',
+        'Document and Parcel Shipping': 'Pengiriman Dokumen dan Paket',
+        'For All Shippers': 'Untuk Semua Pengirim',
+        'Learn about DHL Express – the undisputed global leader in international express shipping.': 'Pelajari DHL Express – pemimpin global pengiriman ekspres internasional.',
+        'Services Available': 'Layanan Tersedia',
+        'Next Possible Business Day': 'Hari Kerja Berikutnya yang Memungkinkan',
+        'Flexible Import/Export Options': 'Opsi Impor/Ekspor Fleksibel',
+        'DHL for Business': 'DHL untuk Bisnis',
+        'Get connected to the right experts in a few easy steps': 'Terhubung dengan ahli yang tepat dalam beberapa langkah mudah',
+        'Cargo Shipping': 'Pengiriman Kargo',
+        'Business Only': 'Khusus Bisnis',
+        'Discover shipping and logistics service options from DHL Global Forwarding.': 'Temukan opsi pengiriman dan logistik dari DHL Global Forwarding.',
+        'Air Freight': 'Kargo Udara',
+        'Road Freight': 'Kargo Darat',
+        'Ocean Freight': 'Kargo Laut',
+        'Rail Freight': 'Kargo Kereta',
+        'Important Service Updates': 'Pembaruan Layanan Penting',
+        'Service bulletins keep you up to date with news and alerts': 'Buletin layanan menjaga Anda tetap mendapat berita dan peringatan',
+        'What We Offer': 'Apa yang Kami Tawarkan',
+        'Our core logistics services': 'Layanan logistik inti kami',
+        'Air Express': 'Ekspres Udara',
+        'Road & Land': 'Darat & Jalan',
+        'Ocean & Freight': 'Laut & Kargo',
+        'Warehousing': 'Pergudangan',
+        'Time-critical international document and parcel delivery by air — next possible business day options worldwide.': 'Pengiriman dokumen dan paket internasional mendesak lewat udara — opsi hari kerja berikutnya di seluruh dunia.',
+        'Reliable ground transport for domestic and regional shipments with flexible pickup and delivery windows.': 'Transportasi darat andal untuk pengiriman domestik dan regional dengan jendela penjemputan dan pengantaran fleksibel.',
+        'Cost-effective ocean and multimodal freight for pallets, containers and larger cargo volumes.': 'Kargo laut dan multimodal hemat biaya untuk palet, kontainer, dan volume kargo lebih besar.',
+        'Fulfilment, storage and distribution solutions so your goods move smoothly from origin to last mile.': 'Solusi fulfillment, penyimpanan, dan distribusi agar barang bergerak lancar dari asal hingga last mile.',
+        'Frequently Asked Questions': 'Pertanyaan yang Sering Diajukan',
+        'How do you use my contact information?': 'Bagaimana Anda menggunakan informasi kontak saya?',
+        'We use your contact details only to respond to your shipping and support requests.': 'Kami menggunakan detail kontak Anda hanya untuk menanggapi permintaan pengiriman dan dukungan.',
+        'Customer Service': 'Layanan Pelanggan',
+        'Tracking online is the fastest way to check the status of your shipment(s). No account, no password and no phone calls required. All you need is the waybill number(s).': 'Pelacakan online adalah cara tercepat memeriksa status pengiriman. Tanpa akun, tanpa kata sandi, tanpa telepon. Cukup nomor waybill.',
+        'Track Your Shipment': 'Lacak Pengiriman Anda',
+        'Shipment Receipt': 'Tanda Terima Pengiriman',
+        'Package / Box': 'Paket / Kotak',
+        '24/7 Support': 'Dukungan 24/7',
+        'DHL Live Chat': 'Obrolan Langsung DHL',
+        '● Online': '● Online',
+        'Enter your tracking code to open a private chat. Labeled as shipment Sender / Receiver. Only you and support can see this conversation.': 'Masukkan kode pelacakan untuk membuka chat pribadi. Ditandai sebagai Pengirim / Penerima. Hanya Anda dan dukungan yang dapat melihat percakapan ini.',
+        'Enter your tracking code to open a private chat. Labeled as shipment Sender / Receiver.\n                Only you and support can see this conversation.': 'Masukkan kode pelacakan untuk membuka chat pribadi. Ditandai sebagai Pengirim / Penerima. Hanya Anda dan dukungan yang dapat melihat percakapan ini.',
+        'Tracking code': 'Kode pelacakan',
+        'Start chat': 'Mulai chat',
+        'Type a message…': 'Ketik pesan…',
+        'Send': 'Kirim',
+        'Please enter a tracking code.': 'Silakan masukkan kode pelacakan.',
+        'Please wait': 'Mohon tunggu',
+        'Loading…': 'Memuat…',
+        'SHIPMENTS HANDLED (K)': 'PENGIRIMAN DITANGANI (K)',
+        'ON-TIME DELIVERY RATE': 'TINGKAT TEPAT WAKTU',
+        'CUSTOMER SUPPORT': 'DUKUNGAN PELANGGAN',
+        'COUNTRIES SERVED': 'NEGARA DILAYANI',
+        'Get a Quote': 'Dapatkan Penawaran',
+        'Ship Now': 'Kirim Sekarang',
+        'Customer Portal Logins': 'Login Portal Pelanggan',
+        'Find a Service Point': 'Temukan Titik Layanan',
+        'Testimonials': 'Testimoni',
+        'Home': 'Beranda',
+        'Back': 'Kembali',
+        'Sustainability': 'Keberlanjutan',
+        'Explore DHL Global Forwarding': 'Jelajahi DHL Global Forwarding',
+        'Explore Our U.S. Tariff Solutions': 'Jelajahi Solusi Tarif AS Kami'
+    },
+    ms: {
+        'Your package, tracked every mile of the way.': 'Pakej anda, dijejak pada setiap batu perjalanan.',
+        'Moves freight by air, sea and land with live status updates from pickup to your door.': 'Menghantar kargo melalui udara, laut dan darat dengan status langsung dari pengambilan hingga ke pintu anda.',
+        'What clients say': 'Kata pelanggan',
+        'Our containers arrived two days early and the tracking page told us exactly which port they were at. Made our own customer updates painless.': 'Kontena kami tiba dua hari lebih awal dan halaman penjejakan memberitahu pelabuhan yang tepat. Kemaskini kepada pelanggan menjadi mudah.',
+        'Switched from a competitor after one bad delivery window. Air freight team kept us posted at every leg of a rush order.': 'Beralih dari pesaing selepas satu penghantaran buruk. Pasukan kargo udara sentiasa memberi maklum di setiap peringkat pesanan mendesak.',
+        'Navigating Latest Tariff Developments': 'Menavigasi Perkembangan Tarif Terkini',
+        'Document and Parcel Shipping': 'Penghantaran Dokumen dan Bungkusan',
+        'For All Shippers': 'Untuk Semua Pengirim',
+        'Learn about DHL Express – the undisputed global leader in international express shipping.': 'Ketahui tentang DHL Express – peneraju global penghantaran ekspres antarabangsa.',
+        'Services Available': 'Perkhidmatan Tersedia',
+        'Next Possible Business Day': 'Hari Perniagaan Seterusnya yang Mungkin',
+        'Flexible Import/Export Options': 'Pilihan Import/Eksport Fleksibel',
+        'DHL for Business': 'DHL untuk Perniagaan',
+        'Get connected to the right experts in a few easy steps': 'Berhubung dengan pakar yang betul dalam beberapa langkah mudah',
+        'Cargo Shipping': 'Penghantaran Kargo',
+        'Business Only': 'Perniagaan Sahaja',
+        'Discover shipping and logistics service options from DHL Global Forwarding.': 'Temui pilihan penghantaran dan logistik daripada DHL Global Forwarding.',
+        'Air Freight': 'Kargo Udara', 'Road Freight': 'Kargo Jalan', 'Ocean Freight': 'Kargo Laut', 'Rail Freight': 'Kargo Kereta Api',
+        'Important Service Updates': 'Kemaskini Perkhidmatan Penting',
+        'Service bulletins keep you up to date with news and alerts': 'Buletin perkhidmatan memastikan anda mendapat berita dan amaran',
+        'What We Offer': 'Apa Yang Kami Tawarkan',
+        'Our core logistics services': 'Perkhidmatan logistik teras kami',
+        'Air Express': 'Ekspres Udara', 'Road & Land': 'Jalan & Darat', 'Ocean & Freight': 'Laut & Kargo', 'Warehousing': 'Pergudangan',
+        'Time-critical international document and parcel delivery by air — next possible business day options worldwide.': 'Penghantaran dokumen dan bungkusan antarabangsa mendesak melalui udara — pilihan hari perniagaan seterusnya di seluruh dunia.',
+        'Reliable ground transport for domestic and regional shipments with flexible pickup and delivery windows.': 'Pengangkutan darat yang boleh dipercayai untuk penghantaran domestik dan serantau dengan tingkap pengambilan dan penghantaran fleksibel.',
+        'Cost-effective ocean and multimodal freight for pallets, containers and larger cargo volumes.': 'Kargo laut dan multimodal yang menjimatkan untuk palet, kontena dan volum kargo lebih besar.',
+        'Fulfilment, storage and distribution solutions so your goods move smoothly from origin to last mile.': 'Penyelesaian pemenuhan, penyimpanan dan pengedaran supaya barangan bergerak lancar dari asal ke last mile.',
+        'Frequently Asked Questions': 'Soalan Lazim',
+        'How do you use my contact information?': 'Bagaimana anda menggunakan maklumat hubungan saya?',
+        'We use your contact details only to respond to your shipping and support requests.': 'Kami menggunakan butiran hubungan anda hanya untuk membalas permintaan penghantaran dan sokongan.',
+        'Customer Service': 'Khidmat Pelanggan',
+        'Tracking online is the fastest way to check the status of your shipment(s). No account, no password and no phone calls required. All you need is the waybill number(s).': 'Penjejakan dalam talian adalah cara terpantas untuk semak status penghantaran. Tiada akaun, tiada kata laluan, tiada panggilan. Cukup nombor waybill.',
+        'Track Your Shipment': 'Jejak Penghantaran Anda', 'Shipment Receipt': 'Resit Penghantaran', 'Package / Box': 'Pakej / Kotak',
+        '24/7 Support': 'Sokongan 24/7', 'DHL Live Chat': 'Sembang Langsung DHL', '● Online': '● Dalam talian',
+        'Enter your tracking code to open a private chat. Labeled as shipment Sender / Receiver. Only you and support can see this conversation.': 'Masukkan kod penjejakan untuk buka sembang peribadi. Dilabel sebagai Pengirim / Penerima. Hanya anda dan sokongan dapat melihat perbualan ini.',
+        'Tracking code': 'Kod penjejakan', 'Start chat': 'Mula sembang', 'Type a message…': 'Taip mesej…', 'Send': 'Hantar',
+        'Please enter a tracking code.': 'Sila masukkan kod penjejakan.', 'Please wait': 'Sila tunggu', 'Loading…': 'Memuatkan…',
+        'SHIPMENTS HANDLED (K)': 'PENGHANTARAN DIKENDALIKAN (K)', 'ON-TIME DELIVERY RATE': 'KADAR TEPAT MASA',
+        'CUSTOMER SUPPORT': 'SOKONGAN PELANGGAN', 'COUNTRIES SERVED': 'NEGARA DILAYANI',
+        'Get a Quote': 'Dapatkan Sebut Harga', 'Ship Now': 'Hantar Sekarang', 'Customer Portal Logins': 'Log Masuk Portal Pelanggan',
+        'Find a Service Point': 'Cari Titik Perkhidmatan', 'Testimonials': 'Testimoni', 'Home': 'Laman Utama', 'Back': 'Kembali',
+        'Sustainability': 'Kelestarian', 'Explore DHL Global Forwarding': 'Terokai DHL Global Forwarding',
+        'Explore Our U.S. Tariff Solutions': 'Terokai Penyelesaian Tarif AS Kami', 'Track Package': 'Jejak Pakej', 'Language': 'Bahasa'
+    },
+    es: {
+        'Your package, tracked every mile of the way.': 'Su paquete, rastreado en cada kilómetro del camino.',
+        'Moves freight by air, sea and land with live status updates from pickup to your door.': 'Mueve carga por aire, mar y tierra con actualizaciones en vivo desde la recogida hasta su puerta.',
+        'What clients say': 'Lo que dicen los clientes',
+        'Our containers arrived two days early and the tracking page told us exactly which port they were at. Made our own customer updates painless.': 'Nuestros contenedores llegaron dos días antes y la página de seguimiento nos dijo exactamente en qué puerto estaban. Actualizar a nuestros clientes fue fácil.',
+        'Switched from a competitor after one bad delivery window. Air freight team kept us posted at every leg of a rush order.': 'Cambiamos de competidor tras una mala ventana de entrega. El equipo de carga aérea nos informó en cada tramo de un pedido urgente.',
+        'Navigating Latest Tariff Developments': 'Navegar los últimos desarrollos arancelarios',
+        'Document and Parcel Shipping': 'Envío de documentos y paquetes',
+        'For All Shippers': 'Para todos los remitentes',
+        'Learn about DHL Express – the undisputed global leader in international express shipping.': 'Conozca DHL Express, el líder mundial indiscutible del envío exprés internacional.',
+        'Services Available': 'Servicios disponibles',
+        'Next Possible Business Day': 'Siguiente día hábil posible',
+        'Flexible Import/Export Options': 'Opciones flexibles de importación/exportación',
+        'DHL for Business': 'DHL para empresas',
+        'Get connected to the right experts in a few easy steps': 'Conéctese con los expertos adecuados en unos pocos pasos',
+        'Cargo Shipping': 'Envío de carga', 'Business Only': 'Solo empresas',
+        'Discover shipping and logistics service options from DHL Global Forwarding.': 'Descubra las opciones de envío y logística de DHL Global Forwarding.',
+        'Air Freight': 'Carga aérea', 'Road Freight': 'Carga por carretera', 'Ocean Freight': 'Carga marítima', 'Rail Freight': 'Carga ferroviaria',
+        'Important Service Updates': 'Actualizaciones importantes del servicio',
+        'Service bulletins keep you up to date with news and alerts': 'Los boletines de servicio le mantienen al día con noticias y alertas',
+        'What We Offer': 'Lo que ofrecemos', 'Our core logistics services': 'Nuestros servicios logísticos principales',
+        'Air Express': 'Exprés aéreo', 'Road & Land': 'Carretera y tierra', 'Ocean & Freight': 'Mar y carga', 'Warehousing': 'Almacenamiento',
+        'Time-critical international document and parcel delivery by air — next possible business day options worldwide.': 'Entrega internacional urgente de documentos y paquetes por aire — opciones del siguiente día hábil en todo el mundo.',
+        'Reliable ground transport for domestic and regional shipments with flexible pickup and delivery windows.': 'Transporte terrestre fiable para envíos nacionales y regionales con ventanas de recogida y entrega flexibles.',
+        'Cost-effective ocean and multimodal freight for pallets, containers and larger cargo volumes.': 'Carga marítima y multimodal rentable para palés, contenedores y mayores volúmenes.',
+        'Fulfilment, storage and distribution solutions so your goods move smoothly from origin to last mile.': 'Soluciones de fulfillment, almacenamiento y distribución para que sus mercancías se muevan sin problemas del origen a la última milla.',
+        'Frequently Asked Questions': 'Preguntas frecuentes',
+        'How do you use my contact information?': '¿Cómo usan mi información de contacto?',
+        'We use your contact details only to respond to your shipping and support requests.': 'Usamos sus datos de contacto solo para responder a sus solicitudes de envío y soporte.',
+        'Customer Service': 'Atención al cliente',
+        'Tracking online is the fastest way to check the status of your shipment(s). No account, no password and no phone calls required. All you need is the waybill number(s).': 'El seguimiento en línea es la forma más rápida de consultar el estado de su envío. Sin cuenta, sin contraseña y sin llamadas. Solo necesita el número de guía.',
+        'Track Your Shipment': 'Rastrear su envío', 'Shipment Receipt': 'Recibo de envío', 'Package / Box': 'Paquete / Caja',
+        '24/7 Support': 'Soporte 24/7', 'DHL Live Chat': 'Chat en vivo DHL', '● Online': '● En línea',
+        'Enter your tracking code to open a private chat. Labeled as shipment Sender / Receiver. Only you and support can see this conversation.': 'Ingrese su código de seguimiento para abrir un chat privado. Etiquetado como Remitente / Destinatario. Solo usted y el soporte pueden ver esta conversación.',
+        'Tracking code': 'Código de seguimiento', 'Start chat': 'Iniciar chat', 'Type a message…': 'Escriba un mensaje…', 'Send': 'Enviar',
+        'Please enter a tracking code.': 'Ingrese un código de seguimiento.', 'Please wait': 'Por favor espere', 'Loading…': 'Cargando…',
+        'SHIPMENTS HANDLED (K)': 'ENVÍOS GESTIONADOS (K)', 'ON-TIME DELIVERY RATE': 'TASA DE ENTREGA A TIEMPO',
+        'CUSTOMER SUPPORT': 'ATENCIÓN AL CLIENTE', 'COUNTRIES SERVED': 'PAÍSES ATENDIDOS',
+        'Get a Quote': 'Obtener cotización', 'Ship Now': 'Enviar ahora', 'Customer Portal Logins': 'Accesos al portal del cliente',
+        'Find a Service Point': 'Buscar punto de servicio', 'Testimonials': 'Testimonios', 'Home': 'Inicio', 'Back': 'Volver',
+        'Sustainability': 'Sostenibilidad', 'Explore DHL Global Forwarding': 'Explorar DHL Global Forwarding',
+        'Explore Our U.S. Tariff Solutions': 'Explorar nuestras soluciones arancelarias de EE. UU.', 'Track Package': 'Rastrear paquete', 'Language': 'Idioma'
+    },
+    mx: {
+        'Your package, tracked every mile of the way.': 'Su paquete, rastreado en cada kilómetro del camino.',
+        'Moves freight by air, sea and land with live status updates from pickup to your door.': 'Mueve carga por aire, mar y tierra con actualizaciones en vivo desde la recolección hasta su puerta.',
+        'What clients say': 'Lo que dicen los clientes',
+        'Our containers arrived two days early and the tracking page told us exactly which port they were at. Made our own customer updates painless.': 'Nuestros contenedores llegaron dos días antes y la página de seguimiento nos dijo exactamente en qué puerto estaban. Actualizar a nuestros clientes fue fácil.',
+        'Switched from a competitor after one bad delivery window. Air freight team kept us posted at every leg of a rush order.': 'Cambiamos de competidor tras una mala ventana de entrega. El equipo de carga aérea nos informó en cada tramo de un pedido urgente.',
+        'Navigating Latest Tariff Developments': 'Navegar los últimos desarrollos arancelarios',
+        'Document and Parcel Shipping': 'Envío de documentos y paquetes',
+        'For All Shippers': 'Para todos los remitentes',
+        'Learn about DHL Express – the undisputed global leader in international express shipping.': 'Conozca DHL Express, el líder mundial indiscutible del envío exprés internacional.',
+        'Services Available': 'Servicios disponibles',
+        'Next Possible Business Day': 'Siguiente día hábil posible',
+        'Flexible Import/Export Options': 'Opciones flexibles de importación/exportación',
+        'DHL for Business': 'DHL para empresas',
+        'Get connected to the right experts in a few easy steps': 'Conéctese con los expertos adecuados en unos cuantos pasos',
+        'Cargo Shipping': 'Envío de carga', 'Business Only': 'Solo empresas',
+        'Discover shipping and logistics service options from DHL Global Forwarding.': 'Descubra las opciones de envío y logística de DHL Global Forwarding.',
+        'Air Freight': 'Carga aérea', 'Road Freight': 'Carga por carretera', 'Ocean Freight': 'Carga marítima', 'Rail Freight': 'Carga ferroviaria',
+        'Important Service Updates': 'Actualizaciones importantes del servicio',
+        'Service bulletins keep you up to date with news and alerts': 'Los boletines de servicio le mantienen al día con noticias y alertas',
+        'What We Offer': 'Lo que ofrecemos', 'Our core logistics services': 'Nuestros servicios logísticos principales',
+        'Air Express': 'Exprés aéreo', 'Road & Land': 'Carretera y tierra', 'Ocean & Freight': 'Mar y carga', 'Warehousing': 'Almacenamiento',
+        'Time-critical international document and parcel delivery by air — next possible business day options worldwide.': 'Entrega internacional urgente de documentos y paquetes por aire — opciones del siguiente día hábil en todo el mundo.',
+        'Reliable ground transport for domestic and regional shipments with flexible pickup and delivery windows.': 'Transporte terrestre confiable para envíos nacionales y regionales con ventanas de recolección y entrega flexibles.',
+        'Cost-effective ocean and multimodal freight for pallets, containers and larger cargo volumes.': 'Carga marítima y multimodal rentable para tarimas, contenedores y mayores volúmenes.',
+        'Fulfilment, storage and distribution solutions so your goods move smoothly from origin to last mile.': 'Soluciones de fulfillment, almacenamiento y distribución para que su mercancía se mueva sin problemas del origen a la última milla.',
+        'Frequently Asked Questions': 'Preguntas frecuentes',
+        'How do you use my contact information?': '¿Cómo usan mi información de contacto?',
+        'We use your contact details only to respond to your shipping and support requests.': 'Usamos sus datos de contacto solo para responder a sus solicitudes de envío y soporte.',
+        'Customer Service': 'Atención al cliente',
+        'Tracking online is the fastest way to check the status of your shipment(s). No account, no password and no phone calls required. All you need is the waybill number(s).': 'El seguimiento en línea es la forma más rápida de consultar el estado de su envío. Sin cuenta, sin contraseña y sin llamadas. Solo necesita el número de guía.',
+        'Track Your Shipment': 'Rastrear su envío', 'Shipment Receipt': 'Recibo de envío', 'Package / Box': 'Paquete / Caja',
+        '24/7 Support': 'Soporte 24/7', 'DHL Live Chat': 'Chat en vivo DHL', '● Online': '● En línea',
+        'Enter your tracking code to open a private chat. Labeled as shipment Sender / Receiver. Only you and support can see this conversation.': 'Ingrese su código de seguimiento para abrir un chat privado. Etiquetado como Remitente / Destinatario. Solo usted y el soporte pueden ver esta conversación.',
+        'Tracking code': 'Código de seguimiento', 'Start chat': 'Iniciar chat', 'Type a message…': 'Escriba un mensaje…', 'Send': 'Enviar',
+        'Please enter a tracking code.': 'Ingrese un código de seguimiento.', 'Please wait': 'Por favor espere', 'Loading…': 'Cargando…',
+        'SHIPMENTS HANDLED (K)': 'ENVÍOS GESTIONADOS (K)', 'ON-TIME DELIVERY RATE': 'TASA DE ENTREGA A TIEMPO',
+        'CUSTOMER SUPPORT': 'ATENCIÓN AL CLIENTE', 'COUNTRIES SERVED': 'PAÍSES ATENDIDOS',
+        'Get a Quote': 'Obtener cotización', 'Ship Now': 'Enviar ahora', 'Customer Portal Logins': 'Accesos al portal del cliente',
+        'Find a Service Point': 'Buscar punto de servicio', 'Testimonials': 'Testimonios', 'Home': 'Inicio', 'Back': 'Volver',
+        'Sustainability': 'Sostenibilidad', 'Explore DHL Global Forwarding': 'Explorar DHL Global Forwarding',
+        'Explore Our U.S. Tariff Solutions': 'Explorar nuestras soluciones arancelarias de EE. UU.', 'Track Package': 'Rastrear paquete', 'Language': 'Idioma'
+    },
+    fr: {
+        'Your package, tracked every mile of the way.': 'Votre colis, suivi à chaque kilomètre du trajet.',
+        'Moves freight by air, sea and land with live status updates from pickup to your door.': 'Transport de fret par air, mer et terre avec mises à jour en direct de l’enlèvement jusqu’à votre porte.',
+        'What clients say': 'Ce que disent les clients',
+        'Our containers arrived two days early and the tracking page told us exactly which port they were at. Made our own customer updates painless.': 'Nos conteneurs sont arrivés deux jours plus tôt et la page de suivi nous a indiqué le port exact. Mettre à jour nos clients a été simple.',
+        'Switched from a competitor after one bad delivery window. Air freight team kept us posted at every leg of a rush order.': 'Nous avons changé de concurrent après une mauvaise fenêtre de livraison. L’équipe fret aérien nous a tenus informés à chaque étape d’une commande urgente.',
+        'Navigating Latest Tariff Developments': 'Naviguer les derniers développements tarifaires',
+        'Document and Parcel Shipping': 'Envoi de documents et de colis',
+        'For All Shippers': 'Pour tous les expéditeurs',
+        'Learn about DHL Express – the undisputed global leader in international express shipping.': 'Découvrez DHL Express – le leader mondial incontesté de l’express international.',
+        'Services Available': 'Services disponibles',
+        'Next Possible Business Day': 'Prochain jour ouvrable possible',
+        'Flexible Import/Export Options': 'Options flexibles d’import/export',
+        'DHL for Business': 'DHL pour les entreprises',
+        'Get connected to the right experts in a few easy steps': 'Connectez-vous aux bons experts en quelques étapes simples',
+        'Cargo Shipping': 'Transport de fret', 'Business Only': 'Entreprises uniquement',
+        'Discover shipping and logistics service options from DHL Global Forwarding.': 'Découvrez les options d’expédition et de logistique de DHL Global Forwarding.',
+        'Air Freight': 'Fret aérien', 'Road Freight': 'Fret routier', 'Ocean Freight': 'Fret maritime', 'Rail Freight': 'Fret ferroviaire',
+        'Important Service Updates': 'Mises à jour importantes du service',
+        'Service bulletins keep you up to date with news and alerts': 'Les bulletins de service vous tiennent informés des actualités et alertes',
+        'What We Offer': 'Ce que nous offrons', 'Our core logistics services': 'Nos services logistiques essentiels',
+        'Air Express': 'Express aérien', 'Road & Land': 'Route et terre', 'Ocean & Freight': 'Mer et fret', 'Warehousing': 'Entreposage',
+        'Time-critical international document and parcel delivery by air — next possible business day options worldwide.': 'Livraison internationale urgente de documents et colis par avion — options du prochain jour ouvrable dans le monde.',
+        'Reliable ground transport for domestic and regional shipments with flexible pickup and delivery windows.': 'Transport terrestre fiable pour envois nationaux et régionaux avec fenêtres d’enlèvement et de livraison flexibles.',
+        'Cost-effective ocean and multimodal freight for pallets, containers and larger cargo volumes.': 'Fret maritime et multimodal économique pour palettes, conteneurs et volumes plus importants.',
+        'Fulfilment, storage and distribution solutions so your goods move smoothly from origin to last mile.': 'Solutions de fulfillment, stockage et distribution pour un flux fluide de l’origine au dernier kilomètre.',
+        'Frequently Asked Questions': 'Questions fréquentes',
+        'How do you use my contact information?': 'Comment utilisez-vous mes coordonnées ?',
+        'We use your contact details only to respond to your shipping and support requests.': 'Nous utilisons vos coordonnées uniquement pour répondre à vos demandes d’expédition et de support.',
+        'Customer Service': 'Service client',
+        'Tracking online is the fastest way to check the status of your shipment(s). No account, no password and no phone calls required. All you need is the waybill number(s).': 'Le suivi en ligne est le moyen le plus rapide de vérifier le statut de votre envoi. Pas de compte, pas de mot de passe, pas d’appel. Il suffit du numéro de lettre de transport.',
+        'Track Your Shipment': 'Suivre votre envoi', 'Shipment Receipt': "Reçu d'expédition", 'Package / Box': 'Colis / Boîte',
+        '24/7 Support': 'Support 24/7', 'DHL Live Chat': 'Chat en direct DHL', '● Online': '● En ligne',
+        'Enter your tracking code to open a private chat. Labeled as shipment Sender / Receiver. Only you and support can see this conversation.': 'Entrez votre code de suivi pour ouvrir un chat privé. Étiqueté Expéditeur / Destinataire. Seuls vous et le support voyez cette conversation.',
+        'Tracking code': 'Code de suivi', 'Start chat': 'Démarrer le chat', 'Type a message…': 'Tapez un message…', 'Send': 'Envoyer',
+        'Please enter a tracking code.': 'Veuillez entrer un code de suivi.', 'Please wait': 'Veuillez patienter', 'Loading…': 'Chargement…',
+        'SHIPMENTS HANDLED (K)': 'ENVOIS TRAITÉS (K)', 'ON-TIME DELIVERY RATE': 'TAUX DE LIVRAISON À TEMPS',
+        'CUSTOMER SUPPORT': 'SERVICE CLIENT', 'COUNTRIES SERVED': 'PAYS DESSERVIS',
+        'Get a Quote': 'Obtenir un devis', 'Ship Now': 'Expédier maintenant', 'Customer Portal Logins': 'Connexions portail client',
+        'Find a Service Point': 'Trouver un point de service', 'Testimonials': 'Témoignages', 'Home': 'Accueil', 'Back': 'Retour',
+        'Sustainability': 'Durabilité', 'Explore DHL Global Forwarding': 'Explorer DHL Global Forwarding',
+        'Explore Our U.S. Tariff Solutions': 'Explorer nos solutions tarifaires US', 'Track Package': 'Suivre le colis', 'Language': 'Langue'
+    },
+    de: {
+        'Your package, tracked every mile of the way.': 'Ihr Paket, auf jedem Kilometer des Weges verfolgt.',
+        'Moves freight by air, sea and land with live status updates from pickup to your door.': 'Fracht per Luft, See und Land mit Live-Status von der Abholung bis zu Ihrer Tür.',
+        'What clients say': 'Das sagen Kunden',
+        'Our containers arrived two days early and the tracking page told us exactly which port they were at. Made our own customer updates painless.': 'Unsere Container kamen zwei Tage früher an und die Tracking-Seite zeigte uns den genauen Hafen. Kundenupdates waren einfach.',
+        'Switched from a competitor after one bad delivery window. Air freight team kept us posted at every leg of a rush order.': 'Nach einem schlechten Lieferfenster vom Wettbewerber gewechselt. Das Luftfracht-Team hielt uns bei jedem Abschnitt einer Eilbestellung auf dem Laufenden.',
+        'Navigating Latest Tariff Developments': 'Aktuelle Zollentwicklungen navigieren',
+        'Document and Parcel Shipping': 'Dokumenten- und Paketversand',
+        'For All Shippers': 'Für alle Versender',
+        'Learn about DHL Express – the undisputed global leader in international express shipping.': 'Erfahren Sie mehr über DHL Express – den unbestrittenen Weltmarktführer im internationalen Expressversand.',
+        'Services Available': 'Verfügbare Dienste',
+        'Next Possible Business Day': 'Nächster möglicher Werktag',
+        'Flexible Import/Export Options': 'Flexible Import-/Exportoptionen',
+        'DHL for Business': 'DHL für Unternehmen',
+        'Get connected to the right experts in a few easy steps': 'In wenigen Schritten mit den richtigen Experten verbinden',
+        'Cargo Shipping': 'Frachtversand', 'Business Only': 'Nur Unternehmen',
+        'Discover shipping and logistics service options from DHL Global Forwarding.': 'Entdecken Sie Versand- und Logistikoptionen von DHL Global Forwarding.',
+        'Air Freight': 'Luftfracht', 'Road Freight': 'Straßenfracht', 'Ocean Freight': 'Seefracht', 'Rail Freight': 'Schienenfracht',
+        'Important Service Updates': 'Wichtige Service-Updates',
+        'Service bulletins keep you up to date with news and alerts': 'Service-Bulletins halten Sie mit Nachrichten und Warnungen auf dem Laufenden',
+        'What We Offer': 'Unser Angebot', 'Our core logistics services': 'Unsere zentralen Logistikdienste',
+        'Air Express': 'Luft-Express', 'Road & Land': 'Straße & Land', 'Ocean & Freight': 'See & Fracht', 'Warehousing': 'Lagerung',
+        'Time-critical international document and parcel delivery by air — next possible business day options worldwide.': 'Zeitkritische internationale Dokumenten- und Paketzustellung per Luft — Optionen für den nächsten Werktag weltweit.',
+        'Reliable ground transport for domestic and regional shipments with flexible pickup and delivery windows.': 'Zuverlässiger Landtransport für nationale und regionale Sendungen mit flexiblen Abhol- und Zustellfenstern.',
+        'Cost-effective ocean and multimodal freight for pallets, containers and larger cargo volumes.': 'Kostengünstige See- und multimodale Fracht für Paletten, Container und größere Volumina.',
+        'Fulfilment, storage and distribution solutions so your goods move smoothly from origin to last mile.': 'Fulfillment-, Lager- und Distributionslösungen für einen reibungslosen Warenfluss vom Ursprung bis zur letzten Meile.',
+        'Frequently Asked Questions': 'Häufige Fragen',
+        'How do you use my contact information?': 'Wie verwenden Sie meine Kontaktdaten?',
+        'We use your contact details only to respond to your shipping and support requests.': 'Wir verwenden Ihre Kontaktdaten nur, um auf Ihre Versand- und Supportanfragen zu antworten.',
+        'Customer Service': 'Kundenservice',
+        'Tracking online is the fastest way to check the status of your shipment(s). No account, no password and no phone calls required. All you need is the waybill number(s).': 'Online-Tracking ist der schnellste Weg, den Status Ihrer Sendung zu prüfen. Kein Konto, kein Passwort, kein Anruf. Sie brauchen nur die Frachtbriefnummer.',
+        'Track Your Shipment': 'Sendung verfolgen', 'Shipment Receipt': 'Sendungsbeleg', 'Package / Box': 'Paket / Box',
+        '24/7 Support': 'Support 24/7', 'DHL Live Chat': 'DHL Live-Chat', '● Online': '● Online',
+        'Enter your tracking code to open a private chat. Labeled as shipment Sender / Receiver. Only you and support can see this conversation.': 'Geben Sie Ihren Tracking-Code ein, um einen privaten Chat zu öffnen. Beschriftet als Absender / Empfänger. Nur Sie und der Support sehen dieses Gespräch.',
+        'Tracking code': 'Sendungsnummer', 'Start chat': 'Chat starten', 'Type a message…': 'Nachricht eingeben…', 'Send': 'Senden',
+        'Please enter a tracking code.': 'Bitte Sendungsnummer eingeben.', 'Please wait': 'Bitte warten', 'Loading…': 'Wird geladen…',
+        'SHIPMENTS HANDLED (K)': 'SENDUNGEN BEARBEITET (K)', 'ON-TIME DELIVERY RATE': 'PÜNKTLICHKEITSRATE',
+        'CUSTOMER SUPPORT': 'KUNDENSERVICE', 'COUNTRIES SERVED': 'BEDIENTE LÄNDER',
+        'Get a Quote': 'Angebot holen', 'Ship Now': 'Jetzt versenden', 'Customer Portal Logins': 'Kundenportal-Logins',
+        'Find a Service Point': 'Servicepunkt finden', 'Testimonials': 'Kundenstimmen', 'Home': 'Start', 'Back': 'Zurück',
+        'Sustainability': 'Nachhaltigkeit', 'Explore DHL Global Forwarding': 'DHL Global Forwarding entdecken',
+        'Explore Our U.S. Tariff Solutions': 'Unsere US-Zolllösungen entdecken', 'Track Package': 'Paket verfolgen', 'Language': 'Sprache'
+    },
+    zh: {
+        'Your package, tracked every mile of the way.': '您的包裹，全程每一程都可追踪。',
+        'Moves freight by air, sea and land with live status updates from pickup to your door.': '通过空运、海运和陆运运输货物，从取件到送达实时更新状态。',
+        'What clients say': '客户评价',
+        'Our containers arrived two days early and the tracking page told us exactly which port they were at. Made our own customer updates painless.': '我们的集装箱提前两天到达，追踪页面准确显示所在港口。向客户更新信息非常轻松。',
+        'Switched from a competitor after one bad delivery window. Air freight team kept us posted at every leg of a rush order.': '一次糟糕的派送窗口后我们换掉了竞争对手。空运团队在加急订单的每一段都及时通知我们。',
+        'Navigating Latest Tariff Developments': '了解最新关税动态',
+        'Document and Parcel Shipping': '文件与包裹运输',
+        'For All Shippers': '适用于所有发件人',
+        'Learn about DHL Express – the undisputed global leader in international express shipping.': '了解 DHL 快递——国际快递领域无可争议的全球领导者。',
+        'Services Available': '可用服务',
+        'Next Possible Business Day': '下一个可能的工作日',
+        'Flexible Import/Export Options': '灵活的进出口选项',
+        'DHL for Business': 'DHL 商务服务',
+        'Get connected to the right experts in a few easy steps': '几步即可联系到合适的专家',
+        'Cargo Shipping': '货运', 'Business Only': '仅限企业',
+        'Discover shipping and logistics service options from DHL Global Forwarding.': '探索 DHL 全球货运的运输与物流服务选项。',
+        'Air Freight': '空运', 'Road Freight': '公路货运', 'Ocean Freight': '海运', 'Rail Freight': '铁路货运',
+        'Important Service Updates': '重要服务更新',
+        'Service bulletins keep you up to date with news and alerts': '服务公告让您及时了解新闻与提醒',
+        'What We Offer': '我们提供的服务', 'Our core logistics services': '我们的核心物流服务',
+        'Air Express': '空运快递', 'Road & Land': '公路与陆运', 'Ocean & Freight': '海运与货运', 'Warehousing': '仓储',
+        'Time-critical international document and parcel delivery by air — next possible business day options worldwide.': '时效要求高的国际文件与包裹空运——全球下一工作日可选方案。',
+        'Reliable ground transport for domestic and regional shipments with flexible pickup and delivery windows.': '可靠的国内与区域陆运，取件与派送时间窗口灵活。',
+        'Cost-effective ocean and multimodal freight for pallets, containers and larger cargo volumes.': '经济高效的海运与多式联运，适用于托盘、集装箱及更大货量。',
+        'Fulfilment, storage and distribution solutions so your goods move smoothly from origin to last mile.': '履约、仓储与配送解决方案，让货物从始发地到最后一公里顺畅流转。',
+        'Frequently Asked Questions': '常见问题',
+        'How do you use my contact information?': '你们如何使用我的联系信息？',
+        'We use your contact details only to respond to your shipping and support requests.': '我们仅使用您的联系方式回复您的运输与支持请求。',
+        'Customer Service': '客户服务',
+        'Tracking online is the fastest way to check the status of your shipment(s). No account, no password and no phone calls required. All you need is the waybill number(s).': '在线追踪是查看运单状态的最快方式。无需账户、密码或电话。只需运单号。',
+        'Track Your Shipment': '追踪您的运单', 'Shipment Receipt': '运单收据', 'Package / Box': '包裹 / 箱',
+        '24/7 Support': '全天候支持', 'DHL Live Chat': 'DHL 在线客服', '● Online': '● 在线',
+        'Enter your tracking code to open a private chat. Labeled as shipment Sender / Receiver. Only you and support can see this conversation.': '输入运单号以开启私密聊天。标记为寄件人 / 收件人。仅您与客服可见此对话。',
+        'Tracking code': '运单号', 'Start chat': '开始聊天', 'Type a message…': '输入消息…', 'Send': '发送',
+        'Please enter a tracking code.': '请输入运单号。', 'Please wait': '请稍候', 'Loading…': '加载中…',
+        'SHIPMENTS HANDLED (K)': '处理运单数 (K)', 'ON-TIME DELIVERY RATE': '准时送达率',
+        'CUSTOMER SUPPORT': '客户支持', 'COUNTRIES SERVED': '服务国家/地区',
+        'Get a Quote': '获取报价', 'Ship Now': '立即寄件', 'Customer Portal Logins': '客户门户登录',
+        'Find a Service Point': '查找服务点', 'Testimonials': '评价', 'Home': '首页', 'Back': '返回',
+        'Sustainability': '可持续发展', 'Explore DHL Global Forwarding': '探索 DHL 全球货运',
+        'Explore Our U.S. Tariff Solutions': '探索我们的美国关税方案', 'Track Package': '追踪包裹', 'Language': '语言'
+    }
 };
 
 function setSiteLang(lang) {
-  try { localStorage.setItem('dhl_lang', lang); } catch (e) {}
-  const htmlLang = lang === 'mx' ? 'es' : (lang || 'en');
-  document.documentElement.lang = htmlLang;
-  const base = SITE_I18N[lang] || SITE_I18N.en || {};
-  const extra = SITE_I18N_EXTRA[lang] || {};
-  const map = Object.assign({}, base, extra);
+    try { localStorage.setItem('dhl_lang', lang); } catch (e) { }
+    const htmlLang = lang === 'mx' ? 'es' : (lang || 'en');
+    document.documentElement.lang = htmlLang;
+    const base = SITE_I18N[lang] || SITE_I18N.en || {};
+    const extra = SITE_I18N_EXTRA[lang] || {};
+    const map = Object.assign({}, base, extra);
 
-  function shouldSkip(el) {
-    if (!el || !el.closest) return true;
-    if (el.closest('#langStrip') || el.closest('.site-lang-bar') || el.closest('#heroLang') || el.closest('.hero-lang-pill')) return true;
-    if (el.closest('#adminDashboard') || el.closest('#adminView') || el.closest('.modal-overlay')) return true;
-    // never touch animated stats counters (language change was resetting them to 0)
-    if (el.classList && el.classList.contains('count-up')) return true;
-    if (el.getAttribute && el.getAttribute('data-target') != null) return true;
-    if (el.closest && el.closest('.count-up')) return true;
-    // never translate live admin-entered receipt values
-    if (el.id && /^(sName|sAddr|sPhone|sEmail|rName|rAddr|rPhone|rEmail|rCode|dDate|dWaybill|dService|dPack|dPieces|dWeight|dDim|dCharge|dInsure|dTerms|dDecl|dDuties|dEtd|dMode|dCarrier|dPayMethod|dPayStatus|dAmount|dBillAcct|dSpecial|dRef|dDesc)$/.test(el.id)) return true;
-    if (el.getAttribute && el.getAttribute('data-no-i18n') === '1') return true;
-    return false;
-  }
-
-  function translateText(raw) {
-    if (!raw) return null;
-    const t = String(raw).replace(/\s+/g, ' ').trim();
-    if (!t || t.length < 2) return null;
-    if (map[t]) return map[t];
-    // partial hero title
-    if (t.indexOf('tracked') !== -1 && map['Your package, tracked']) return null;
-    return null;
-  }
-
-  document.querySelectorAll('[data-i18n]').forEach(el => {
-    const key = el.getAttribute('data-i18n');
-    if (map[key]) el.textContent = map[key];
-  });
-
-  // Walk common text hosts across whole public page (index nav, sections, chat)
-  const nodes = document.querySelectorAll('a, button, h1, h2, h3, h4, p, label, span, li, summary, strong, small, .eyebrow, .hero-kicker, .sec-eyebrow, .guest-chat-head strong, .guest-chat-setup p, .guest-chat-label');
-  nodes.forEach(el => {
-    if (shouldSkip(el)) return;
-    if (el.querySelector && el.querySelector('input, button, select, img, svg, video, canvas')) {
-      // still try pure single text child
+    function shouldSkip(el) {
+        if (!el || !el.closest) return true;
+        if (el.closest('#langStrip') || el.closest('.site-lang-bar') || el.closest('#heroLang') || el.closest('.hero-lang-pill')) return true;
+        if (el.closest('#adminDashboard') || el.closest('#adminView') || el.closest('.modal-overlay')) return true;
+        // never touch animated stats counters (language change was resetting them to 0)
+        if (el.classList && el.classList.contains('count-up')) return true;
+        if (el.getAttribute && el.getAttribute('data-target') != null) return true;
+        if (el.closest && el.closest('.count-up')) return true;
+        // never translate live admin-entered receipt values
+        if (el.id && /^(sName|sAddr|sPhone|sEmail|rName|rAddr|rPhone|rEmail|rCode|dDate|dWaybill|dService|dPack|dPieces|dWeight|dDim|dCharge|dInsure|dTerms|dDecl|dDuties|dEtd|dMode|dCarrier|dPayMethod|dPayStatus|dAmount|dBillAcct|dSpecial|dRef|dDesc)$/.test(el.id)) return true;
+        if (el.getAttribute && el.getAttribute('data-no-i18n') === '1') return true;
+        return false;
     }
-    // only pure text elements or single text child
-    if (el.childNodes.length === 1 && el.childNodes[0].nodeType === 3) {
-      const original = el.getAttribute('data-en') || el.textContent.trim();
-      if (!el.getAttribute('data-en') && original) el.setAttribute('data-en', original);
-      const key = el.getAttribute('data-en');
-      if (map[key]) el.textContent = map[key];
-      else if (lang === 'en' || !map[key]) el.textContent = key;
-    } else if (!el.children.length) {
-      const original = el.getAttribute('data-en') || el.textContent.trim();
-      if (!el.getAttribute('data-en') && original) el.setAttribute('data-en', original);
-      const key = el.getAttribute('data-en');
-      if (map[key]) el.textContent = map[key];
-      else el.textContent = key;
+
+    function translateText(raw) {
+        if (!raw) return null;
+        const t = String(raw).replace(/\s+/g, ' ').trim();
+        if (!t || t.length < 2) return null;
+        if (map[t]) return map[t];
+        // partial hero title
+        if (t.indexOf('tracked') !== -1 && map['Your package, tracked']) return null;
+        return null;
     }
-  });
 
-  // placeholders
-  document.querySelectorAll('input[placeholder]').forEach(inp => {
-    if (shouldSkip(inp)) return;
-    const ph = inp.getAttribute('data-en-ph') || inp.getAttribute('placeholder') || '';
-    if (!inp.getAttribute('data-en-ph')) inp.setAttribute('data-en-ph', ph);
-    if (map[ph]) inp.setAttribute('placeholder', map[ph]);
-    else inp.setAttribute('placeholder', inp.getAttribute('data-en-ph'));
-  });
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (map[key]) el.textContent = map[key];
+    });
 
-  // Hero title special (has nested span.accent)
-  document.querySelectorAll('.hero-content-center h1').forEach(h1 => {
-    if (lang === 'id') {
-      h1.innerHTML = 'Paket Anda, <span class="accent">dilacak</span><br>di setiap mil perjalanan.';
-    } else if (lang === 'ms') {
-      h1.innerHTML = 'Pakej anda, <span class="accent">dijejak</span><br>setiap batu perjalanan.';
-    } else if (lang === 'es' || lang === 'mx') {
-      h1.innerHTML = 'Su paquete, <span class="accent">rastreado</span><br>en cada kilómetro.';
-    } else if (lang === 'fr') {
-      h1.innerHTML = 'Votre colis, <span class="accent">suivi</span><br>à chaque kilomètre.';
-    } else if (lang === 'de') {
-      h1.innerHTML = 'Ihr Paket, <span class="accent">verfolgt</span><br>auf jedem Kilometer.';
-    } else if (lang === 'zh') {
-      h1.innerHTML = '您的包裹，<span class="accent">全程追踪</span><br>每一程。';
-    } else {
-      h1.innerHTML = 'Your package, <span class="accent">tracked</span><br>every mile of the way.';
+    // Walk common text hosts across whole public page (index nav, sections, chat)
+    const nodes = document.querySelectorAll('a, button, h1, h2, h3, h4, p, label, span, li, summary, strong, small, .eyebrow, .hero-kicker, .sec-eyebrow, .guest-chat-head strong, .guest-chat-setup p, .guest-chat-label');
+    nodes.forEach(el => {
+        if (shouldSkip(el)) return;
+        if (el.querySelector && el.querySelector('input, button, select, img, svg, video, canvas')) {
+            // still try pure single text child
+        }
+        // only pure text elements or single text child
+        if (el.childNodes.length === 1 && el.childNodes[0].nodeType === 3) {
+            const original = el.getAttribute('data-en') || el.textContent.trim();
+            if (!el.getAttribute('data-en') && original) el.setAttribute('data-en', original);
+            const key = el.getAttribute('data-en');
+            if (map[key]) el.textContent = map[key];
+            else if (lang === 'en' || !map[key]) el.textContent = key;
+        } else if (!el.children.length) {
+            const original = el.getAttribute('data-en') || el.textContent.trim();
+            if (!el.getAttribute('data-en') && original) el.setAttribute('data-en', original);
+            const key = el.getAttribute('data-en');
+            if (map[key]) el.textContent = map[key];
+            else el.textContent = key;
+        }
+    });
+
+    // placeholders
+    document.querySelectorAll('input[placeholder]').forEach(inp => {
+        if (shouldSkip(inp)) return;
+        const ph = inp.getAttribute('data-en-ph') || inp.getAttribute('placeholder') || '';
+        if (!inp.getAttribute('data-en-ph')) inp.setAttribute('data-en-ph', ph);
+        if (map[ph]) inp.setAttribute('placeholder', map[ph]);
+        else inp.setAttribute('placeholder', inp.getAttribute('data-en-ph'));
+    });
+
+    // Hero title special (has nested span.accent)
+    document.querySelectorAll('.hero-content-center h1').forEach(h1 => {
+        if (lang === 'id') {
+            h1.innerHTML = 'Paket Anda, <span class="accent">dilacak</span><br>di setiap mil perjalanan.';
+        } else if (lang === 'ms') {
+            h1.innerHTML = 'Pakej anda, <span class="accent">dijejak</span><br>setiap batu perjalanan.';
+        } else if (lang === 'es' || lang === 'mx') {
+            h1.innerHTML = 'Su paquete, <span class="accent">rastreado</span><br>en cada kilómetro.';
+        } else if (lang === 'fr') {
+            h1.innerHTML = 'Votre colis, <span class="accent">suivi</span><br>à chaque kilomètre.';
+        } else if (lang === 'de') {
+            h1.innerHTML = 'Ihr Paket, <span class="accent">verfolgt</span><br>auf jedem Kilometer.';
+        } else if (lang === 'zh') {
+            h1.innerHTML = '您的包裹，<span class="accent">全程追踪</span><br>每一程。';
+        } else {
+            h1.innerHTML = 'Your package, <span class="accent">tracked</span><br>every mile of the way.';
+        }
+    });
+
+    const sel = document.getElementById('siteLang');
+    if (sel) sel.value = lang;
+
+    // Restore stats numbers (never leave them stuck at 0 after language change)
+    document.querySelectorAll('.count-up').forEach(function (el) {
+        var target = parseFloat(el.getAttribute('data-target') || '0');
+        var suffix = el.getAttribute('data-suffix') || '';
+        var decimals = parseInt(el.getAttribute('data-decimals') || '0', 10);
+        el.textContent = (decimals ? target.toFixed(decimals) : String(Math.round(target))) + suffix;
+        el.dataset.done = '1';
+    });
+    if (typeof window.rerunStatCounters === 'function') {
+        try { window.rerunStatCounters(true); } catch (e) { }
     }
-  });
-
-  const sel = document.getElementById('siteLang');
-  if (sel) sel.value = lang;
-
-  // Restore stats numbers (never leave them stuck at 0 after language change)
-  document.querySelectorAll('.count-up').forEach(function (el) {
-    var target = parseFloat(el.getAttribute('data-target') || '0');
-    var suffix = el.getAttribute('data-suffix') || '';
-    var decimals = parseInt(el.getAttribute('data-decimals') || '0', 10);
-    el.textContent = (decimals ? target.toFixed(decimals) : String(Math.round(target))) + suffix;
-    el.dataset.done = '1';
-  });
-  if (typeof window.rerunStatCounters === 'function') {
-    try { window.rerunStatCounters(true); } catch (e) {}
-  }
 }
 window.setSiteLang = setSiteLang;
 (function initLang() {
-  try {
-    const L = localStorage.getItem('dhl_lang') || 'en';
-    setTimeout(function () { setSiteLang(L); }, 80);
-  } catch (e) {}
+    try {
+        const L = localStorage.getItem('dhl_lang') || 'en';
+        setTimeout(function () { setSiteLang(L); }, 80);
+    } catch (e) { }
 })();
 
 window.toggleBoxService = async function toggleBoxService() {
-  if (!adminToken) return;
-  try {
-    const cur = await apiRequest('/shipments/box-service');
-    const next = !(cur && cur.on !== false);
-    const data = await apiRequest('/shipments/box-service', {
-      method: 'PUT',
-      body: JSON.stringify({ on: next })
-    });
-    const on = data && data.on !== false;
-    const label = on ? 'Box video: ON' : 'Box video: OFF';
-    ['boxServiceToggleBtn', 'boxServiceToggleBtn2'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) {
-        el.textContent = label;
-        el.style.borderColor = on ? '#1F9D55' : '#D40511';
-        el.style.color = on ? '#1F9D55' : '#D40511';
-      }
-    });
-  } catch (e) {
-    const m = (e && e.message) ? String(e.message) : '';
-    if (/404/.test(m)) {
-      alert('Box ON/OFF API not on server yet (404). Push routes/auth.js + models/AdminSettings.js to GitHub and wait for Render to redeploy.');
-    } else {
-      alert(m || 'Could not update box service');
+    if (!adminToken) return;
+    try {
+        const cur = await apiRequest('/shipments/box-service');
+        const next = !(cur && cur.on !== false);
+        const data = await apiRequest('/shipments/box-service', {
+            method: 'PUT',
+            body: JSON.stringify({ on: next })
+        });
+        const on = data && data.on !== false;
+        const label = on ? 'Box video: ON' : 'Box video: OFF';
+        ['boxServiceToggleBtn', 'boxServiceToggleBtn2'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.textContent = label;
+                el.style.borderColor = on ? '#1F9D55' : '#D40511';
+                el.style.color = on ? '#1F9D55' : '#D40511';
+            }
+        });
+    } catch (e) {
+        const m = (e && e.message) ? String(e.message) : '';
+        if (/404/.test(m)) {
+            alert('Box ON/OFF API not on server yet (404). Push routes/auth.js + models/AdminSettings.js to GitHub and wait for Render to redeploy.');
+        } else {
+            alert(m || 'Could not update box service');
+        }
     }
-  }
 }
 
 
@@ -2696,396 +2734,396 @@ window.toggleBoxService = async function toggleBoxService() {
 
 /* ========== LIVE CUSTOMER CHAT (guest + admin, separate threads) ========== */
 function dhlGuestId() {
-  let id = sessionStorage.getItem('dhlGuestId');
-  if (!id) {
-    id = 'g_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
-    sessionStorage.setItem('dhlGuestId', id);
-  }
-  return id;
+    let id = sessionStorage.getItem('dhlGuestId');
+    if (!id) {
+        id = 'g_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        sessionStorage.setItem('dhlGuestId', id);
+    }
+    return id;
 }
 
 function openGuestChat() {
-  const p = document.getElementById('guestChatPanel');
-  if (p) {
-    p.classList.remove('hidden');
-    p.classList.remove('fullscreen');
-  }
-  const badge = document.getElementById('guestChatBadge');
-  if (badge) badge.classList.add('hidden');
-  document.body.classList.add('guest-chat-open');
+    const p = document.getElementById('guestChatPanel');
+    if (p) {
+        p.classList.remove('hidden');
+        p.classList.remove('fullscreen');
+    }
+    const badge = document.getElementById('guestChatBadge');
+    if (badge) badge.classList.add('hidden');
+    document.body.classList.add('guest-chat-open');
 }
 
 function closeGuestChat() {
-  const p = document.getElementById('guestChatPanel');
-  if (p) {
-    p.classList.add('hidden');
-    p.classList.remove('fullscreen');
-  }
-  document.body.classList.remove('guest-chat-open');
-  // Start fresh: clear guest id so next open asks for tracking code again
-  try { sessionStorage.removeItem('dhlGuestId'); } catch (e) {}
-  if (window._guestChatPoll) { clearInterval(window._guestChatPoll); window._guestChatPoll = null; }
-  const setup = document.getElementById('guestChatSetup');
-  const room = document.getElementById('guestChatRoom');
-  if (setup) setup.classList.remove('hidden');
-  if (room) room.classList.add('hidden');
-  const trackEl = document.getElementById('guestChatTrack');
-  if (trackEl) trackEl.value = '';
-  const box = document.getElementById('guestChatMessages');
-  if (box) box.innerHTML = '';
-  window._guestChatSysStep = 0;
-  window._guestChatTrackCode = '';
-  try { sessionStorage.removeItem('dhlGuestTrackCode'); } catch (e) {}
+    const p = document.getElementById('guestChatPanel');
+    if (p) {
+        p.classList.add('hidden');
+        p.classList.remove('fullscreen');
+    }
+    document.body.classList.remove('guest-chat-open');
+    // Start fresh: clear guest id so next open asks for tracking code again
+    try { sessionStorage.removeItem('dhlGuestId'); } catch (e) { }
+    if (window._guestChatPoll) { clearInterval(window._guestChatPoll); window._guestChatPoll = null; }
+    const setup = document.getElementById('guestChatSetup');
+    const room = document.getElementById('guestChatRoom');
+    if (setup) setup.classList.remove('hidden');
+    if (room) room.classList.add('hidden');
+    const trackEl = document.getElementById('guestChatTrack');
+    if (trackEl) trackEl.value = '';
+    const box = document.getElementById('guestChatMessages');
+    if (box) box.innerHTML = '';
+    window._guestChatSysStep = 0;
+    window._guestChatTrackCode = '';
+    try { sessionStorage.removeItem('dhlGuestTrackCode'); } catch (e) { }
 }
 
 async function guestChatStart() {
-  const trackEl = document.getElementById('guestChatTrack');
-  const errEl = document.getElementById('guestChatErr');
-  const track = (trackEl && trackEl.value || '').trim();
-  if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
-  if (!track) {
-    if (errEl) {
-      errEl.textContent = 'Please enter a tracking code.';
-      errEl.style.display = 'block';
+    const trackEl = document.getElementById('guestChatTrack');
+    const errEl = document.getElementById('guestChatErr');
+    const track = (trackEl && trackEl.value || '').trim();
+    if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
+    if (!track) {
+        if (errEl) {
+            errEl.textContent = 'Please enter a tracking code.';
+            errEl.style.display = 'block';
+        }
+        return;
     }
-    return;
-  }
-  mdShowWait('Connecting……');
-  try {
-    const data = await apiRequest('/chat/guest/open', {
-      method: 'POST',
-      body: JSON.stringify({
-        guestId: dhlGuestId(),
-        trackCode: track
-      })
-    });
-    document.getElementById('guestChatSetup').classList.add('hidden');
-    document.getElementById('guestChatRoom').classList.remove('hidden');
-    const panel = document.getElementById('guestChatPanel');
-    if (panel) panel.classList.add('fullscreen');
-    const lab = document.getElementById('guestChatLabel');
-    if (lab) lab.textContent = data.label || track;
-    window._guestChatReceiver = (data.label || '').split('/').pop().trim() || 'customer';
-    window._guestChatSysStep = 0;
-    // Shared MongoDB thread key = tracking code (works on any device)
-    var codeKey = (data.trackCode || track || '').toString().trim().toUpperCase();
-    window._guestChatTrackCode = codeKey;
-    try { sessionStorage.setItem('dhlGuestTrackCode', codeKey); } catch (e) {}
-    const base = data.messages || [];
-    guestRenderMessages(base);
-    if (window._guestChatPoll) clearInterval(window._guestChatPoll);
-    window._guestChatPoll = setInterval(guestChatPoll, 4000);
-  } catch (e) {
-    if (errEl) {
-      errEl.textContent = e.message || 'Could not start chat';
-      errEl.style.display = 'block';
-    } else {
-      alert(e.message || 'Could not start chat');
+    mdShowWait('Connecting……');
+    try {
+        const data = await apiRequest('/chat/guest/open', {
+            method: 'POST',
+            body: JSON.stringify({
+                guestId: dhlGuestId(),
+                trackCode: track
+            })
+        });
+        document.getElementById('guestChatSetup').classList.add('hidden');
+        document.getElementById('guestChatRoom').classList.remove('hidden');
+        const panel = document.getElementById('guestChatPanel');
+        if (panel) panel.classList.add('fullscreen');
+        const lab = document.getElementById('guestChatLabel');
+        if (lab) lab.textContent = data.label || track;
+        window._guestChatReceiver = (data.label || '').split('/').pop().trim() || 'customer';
+        window._guestChatSysStep = 0;
+        // Shared MongoDB thread key = tracking code (works on any device)
+        var codeKey = (data.trackCode || track || '').toString().trim().toUpperCase();
+        window._guestChatTrackCode = codeKey;
+        try { sessionStorage.setItem('dhlGuestTrackCode', codeKey); } catch (e) { }
+        const base = data.messages || [];
+        guestRenderMessages(base);
+        if (window._guestChatPoll) clearInterval(window._guestChatPoll);
+        window._guestChatPoll = setInterval(guestChatPoll, 4000);
+    } catch (e) {
+        if (errEl) {
+            errEl.textContent = e.message || 'Could not start chat';
+            errEl.style.display = 'block';
+        } else {
+            alert(e.message || 'Could not start chat');
+        }
+    } finally {
+        mdHideWait();
     }
-  } finally {
-    mdHideWait();
-  }
 }
 
 function dhlChatFileKind(m) {
-  var t = (m && m.fileType) ? String(m.fileType).toLowerCase() : '';
-  var src = (m && m.image) ? String(m.image) : '';
-  if (t === 'video' || src.indexOf('data:video') === 0) return 'video';
-  if (t === 'pdf' || src.indexOf('application/pdf') !== -1) return 'pdf';
-  if (t === 'image' || src.indexOf('data:image') === 0 || /\.(png|jpe?g|gif|webp)(\?|$)/i.test(src)) return 'image';
-  if (src) return 'file';
-  return '';
+    var t = (m && m.fileType) ? String(m.fileType).toLowerCase() : '';
+    var src = (m && m.image) ? String(m.image) : '';
+    if (t === 'video' || src.indexOf('data:video') === 0) return 'video';
+    if (t === 'pdf' || src.indexOf('application/pdf') !== -1) return 'pdf';
+    if (t === 'image' || src.indexOf('data:image') === 0 || /\.(png|jpe?g|gif|webp)(\?|$)/i.test(src)) return 'image';
+    if (src) return 'file';
+    return '';
 }
 function dhlChatAttachmentHtml(m) {
-  if (!m || !m.image) return '';
-  var kind = dhlChatFileKind(m);
-  var name = (m.fileName || 'Attachment').replace(/</g, '');
-  if (kind === 'video') {
-    return '<video class="chat-vid" src="' + m.image + '" controls playsinline style="max-width:100%;border-radius:10px;margin-top:6px;background:#000"></video>';
-  }
-  if (kind === 'pdf') {
-    return '<a class="chat-file" href="' + m.image + '" target="_blank" rel="noopener" style="display:block;margin-top:8px;padding:10px;border-radius:10px;background:rgba(0,0,0,.06);text-decoration:none;color:inherit;font-size:13px">📄 ' + name + ' (PDF — tap to open)</a>';
-  }
-  if (kind === 'image') {
-    return '<img class="chat-img" src="' + m.image + '" alt="" onclick="dhlChatPhotoPreview(this.src)" style="max-width:100%;border-radius:10px;margin-top:6px;cursor:pointer">';
-  }
-  return '<a class="chat-file" href="' + m.image + '" target="_blank" rel="noopener" style="display:block;margin-top:8px;padding:10px;border-radius:10px;background:rgba(0,0,0,.06);text-decoration:none;color:inherit;font-size:13px">📎 ' + name + '</a>';
+    if (!m || !m.image) return '';
+    var kind = dhlChatFileKind(m);
+    var name = (m.fileName || 'Attachment').replace(/</g, '');
+    if (kind === 'video') {
+        return '<video class="chat-vid" src="' + m.image + '" controls playsinline style="max-width:100%;border-radius:10px;margin-top:6px;background:#000"></video>';
+    }
+    if (kind === 'pdf') {
+        return '<a class="chat-file" href="' + m.image + '" target="_blank" rel="noopener" style="display:block;margin-top:8px;padding:10px;border-radius:10px;background:rgba(0,0,0,.06);text-decoration:none;color:inherit;font-size:13px">📄 ' + name + ' (PDF — tap to open)</a>';
+    }
+    if (kind === 'image') {
+        return '<img class="chat-img" src="' + m.image + '" alt="" onclick="dhlChatPhotoPreview(this.src)" style="max-width:100%;border-radius:10px;margin-top:6px;cursor:pointer">';
+    }
+    return '<a class="chat-file" href="' + m.image + '" target="_blank" rel="noopener" style="display:block;margin-top:8px;padding:10px;border-radius:10px;background:rgba(0,0,0,.06);text-decoration:none;color:inherit;font-size:13px">📎 ' + name + '</a>';
 }
 function chatShouldStickBottom(box) {
-  if (!box) return false;
-  return (box.scrollHeight - box.scrollTop - box.clientHeight) < 80;
+    if (!box) return false;
+    return (box.scrollHeight - box.scrollTop - box.clientHeight) < 80;
 }
 function chatScrollIfSticky(box, wasSticky) {
-  if (box && wasSticky) box.scrollTop = box.scrollHeight;
+    if (box && wasSticky) box.scrollTop = box.scrollHeight;
 }
 function guestRenderMessages(msgs) {
-  const box = document.getElementById('guestChatMessages');
-  if (!box) return;
-  const stick = chatShouldStickBottom(box);
-  box.innerHTML = (msgs || []).map(function (m) {
-    if (m.from === 'system') {
-      return '<div class="chat-bubble system" style="align-self:center;max-width:95%;background:#f0f4ff;color:#334;font-size:12.5px;text-align:center;border-radius:10px;padding:8px 12px;margin:8px auto;">' +
-        esc(m.text || '') + '</div>';
-    }
-    const side = m.from === 'admin' ? 'left' : 'right';
-    const att = dhlChatAttachmentHtml(m);
-    return '<div class="chat-bubble ' + side + '"><div class="chat-meta">' +
-      (m.from === 'admin' ? 'Support' : 'You') + '</div>' +
-      (m.text ? '<div>' + esc(m.text) + '</div>' : '') + att + '</div>';
-  }).join('');
-  chatScrollIfSticky(box, stick);
+    const box = document.getElementById('guestChatMessages');
+    if (!box) return;
+    const stick = chatShouldStickBottom(box);
+    box.innerHTML = (msgs || []).map(function (m) {
+        if (m.from === 'system') {
+            return '<div class="chat-bubble system" style="align-self:center;max-width:95%;background:#f0f4ff;color:#334;font-size:12.5px;text-align:center;border-radius:10px;padding:8px 12px;margin:8px auto;">' +
+                esc(m.text || '') + '</div>';
+        }
+        const side = m.from === 'admin' ? 'left' : 'right';
+        const att = dhlChatAttachmentHtml(m);
+        return '<div class="chat-bubble ' + side + '"><div class="chat-meta">' +
+            (m.from === 'admin' ? 'Support' : 'You') + '</div>' +
+            (m.text ? '<div>' + esc(m.text) + '</div>' : '') + att + '</div>';
+    }).join('');
+    chatScrollIfSticky(box, stick);
 }
 
 async function guestChatPoll() {
-  try {
-    var code = window._guestChatTrackCode || sessionStorage.getItem('dhlGuestTrackCode') || '';
-    if (!code) return;
-    const data = await apiRequest('/chat/guest/by-track/' + encodeURIComponent(code));
-    guestRenderMessages(data.messages || []);
-  } catch (e) {}
+    try {
+        var code = window._guestChatTrackCode || sessionStorage.getItem('dhlGuestTrackCode') || '';
+        if (!code) return;
+        const data = await apiRequest('/chat/guest/by-track/' + encodeURIComponent(code));
+        guestRenderMessages(data.messages || []);
+    } catch (e) { }
 }
 
 async function guestChatSend() {
-  const input = document.getElementById('guestChatInput');
-  const text = (input && input.value || '').trim();
-  if (!text && !window._guestChatPendingImage) return;
-  try {
-    const data = await apiRequest('/chat/guest/send', {
-      method: 'POST',
-      body: JSON.stringify({
-        guestId: dhlGuestId(),
-        trackCode: window._guestChatTrackCode || sessionStorage.getItem('dhlGuestTrackCode') || '',
-        text: text,
-        image: window._guestChatPendingImage || '',
-        fileName: window._guestChatPendingName || '',
-        fileType: window._guestChatPendingType || ''
-      })
-    });
-    if (input) input.value = '';
-    window._guestChatPendingImage = '';
-    window._guestChatPendingName = '';
-    window._guestChatPendingType = '';
-    // Server returns welcome + queue auto-replies — do not invent local duplicates
-    var box = document.getElementById('guestChatMessages');
-    if (box) box.scrollTop = box.scrollHeight;
-    guestRenderMessages(data.messages || []);
-    if (box) box.scrollTop = box.scrollHeight;
-  } catch (e) {
-    alert(e.message || 'Send failed');
-  }
+    const input = document.getElementById('guestChatInput');
+    const text = (input && input.value || '').trim();
+    if (!text && !window._guestChatPendingImage) return;
+    try {
+        const data = await apiRequest('/chat/guest/send', {
+            method: 'POST',
+            body: JSON.stringify({
+                guestId: dhlGuestId(),
+                trackCode: window._guestChatTrackCode || sessionStorage.getItem('dhlGuestTrackCode') || '',
+                text: text,
+                image: window._guestChatPendingImage || '',
+                fileName: window._guestChatPendingName || '',
+                fileType: window._guestChatPendingType || ''
+            })
+        });
+        if (input) input.value = '';
+        window._guestChatPendingImage = '';
+        window._guestChatPendingName = '';
+        window._guestChatPendingType = '';
+        // Server returns welcome + queue auto-replies — do not invent local duplicates
+        var box = document.getElementById('guestChatMessages');
+        if (box) box.scrollTop = box.scrollHeight;
+        guestRenderMessages(data.messages || []);
+        if (box) box.scrollTop = box.scrollHeight;
+    } catch (e) {
+        alert(e.message || 'Send failed');
+    }
 }
 
 function guestChatPickImage(ev) {
-  const f = ev.target.files && ev.target.files[0];
-  if (!f) return;
-  if (f.size > 20 * 1024 * 1024) {
-    alert('File too large (max about 20 MB).');
+    const f = ev.target.files && ev.target.files[0];
+    if (!f) return;
+    if (f.size > 20 * 1024 * 1024) {
+        alert('File too large (max about 20 MB).');
+        ev.target.value = '';
+        return;
+    }
+    const reader = new FileReader();
+    reader.onload = function () {
+        window._guestChatPendingImage = reader.result;
+        window._guestChatPendingName = f.name || 'file';
+        var t = (f.type || '').toLowerCase();
+        window._guestChatPendingType = t.indexOf('video') === 0 ? 'video' : (t.indexOf('pdf') !== -1 ? 'pdf' : (t.indexOf('image') === 0 ? 'image' : 'file'));
+        guestChatSend();
+    };
+    reader.readAsDataURL(f);
     ev.target.value = '';
-    return;
-  }
-  const reader = new FileReader();
-  reader.onload = function () {
-    window._guestChatPendingImage = reader.result;
-    window._guestChatPendingName = f.name || 'file';
-    var t = (f.type || '').toLowerCase();
-    window._guestChatPendingType = t.indexOf('video') === 0 ? 'video' : (t.indexOf('pdf') !== -1 ? 'pdf' : (t.indexOf('image') === 0 ? 'image' : 'file'));
-    guestChatSend();
-  };
-  reader.readAsDataURL(f);
-  ev.target.value = '';
 }
 
 /* Admin chat */
 let adminSelectedThreadId = null;
 
 window.adminToggleChatPanel = function adminToggleChatPanel() {
-  const p = document.getElementById('adminChatPanel');
-  if (!p) return;
-  p.classList.toggle('hidden');
-  if (!p.classList.contains('hidden')) {
-    document.body.classList.add('admin-chat-open');
-    adminLoadThreads();
-    if (window._adminChatPoll) clearInterval(window._adminChatPoll);
-    window._adminChatPoll = setInterval(adminLoadThreads, 5000);
-  } else {
-    document.body.classList.remove('admin-chat-open');
-  }
+    const p = document.getElementById('adminChatPanel');
+    if (!p) return;
+    p.classList.toggle('hidden');
+    if (!p.classList.contains('hidden')) {
+        document.body.classList.add('admin-chat-open');
+        adminLoadThreads();
+        if (window._adminChatPoll) clearInterval(window._adminChatPoll);
+        window._adminChatPoll = setInterval(adminLoadThreads, 5000);
+    } else {
+        document.body.classList.remove('admin-chat-open');
+    }
 }
 
 function adminToggleChatNav() {
-  const n = document.getElementById('adminChatNav');
-  if (n) n.classList.toggle('open');
+    const n = document.getElementById('adminChatNav');
+    if (n) n.classList.toggle('open');
 }
 
 async function adminLoadThreads() {
-  if (!adminToken) return;
-  try {
-    const data = await apiRequest('/chat/admin/threads');
-    const list = document.getElementById('adminChatThreadList');
-    const badge = document.getElementById('adminChatBadge');
-    let totalUnread = 0;
-    if (list) {
-      list.innerHTML = (data.threads || []).map(function (t) {
-        totalUnread += t.unreadAdmin || 0;
-        const u = t.unreadAdmin ? '<span class="chat-badge">' + t.unreadAdmin + '</span>' : '';
-        return '<button type="button" class="admin-thread-item' +
-          (adminSelectedThreadId === t.id ? ' active' : '') +
-          '" onclick="adminOpenThread(\'' + t.id + '\')"><strong>' + esc(t.label) + '</strong>' +
-          u + '<small>' + esc(t.preview || '') + '</small></button>';
-      }).join('') || '<p style="padding:12px;color:#888;font-size:13px;">No chats yet.</p>';
+    if (!adminToken) return;
+    try {
+        const data = await apiRequest('/chat/admin/threads');
+        const list = document.getElementById('adminChatThreadList');
+        const badge = document.getElementById('adminChatBadge');
+        let totalUnread = 0;
+        if (list) {
+            list.innerHTML = (data.threads || []).map(function (t) {
+                totalUnread += t.unreadAdmin || 0;
+                const u = t.unreadAdmin ? '<span class="chat-badge">' + t.unreadAdmin + '</span>' : '';
+                return '<button type="button" class="admin-thread-item' +
+                    (adminSelectedThreadId === t.id ? ' active' : '') +
+                    '" onclick="adminOpenThread(\'' + t.id + '\')"><strong>' + esc(t.label) + '</strong>' +
+                    u + '<small>' + esc(t.preview || '') + '</small></button>';
+            }).join('') || '<p style="padding:12px;color:#888;font-size:13px;">No chats yet.</p>';
+        }
+        if (badge) {
+            if (totalUnread > 0) {
+                badge.textContent = totalUnread > 9 ? '9+' : String(totalUnread);
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+    } catch (e) {
+        var list = document.getElementById('adminChatThreadList');
+        if (list) list.innerHTML = '<p style="padding:12px;color:#b91c1c;font-size:13px;">Chat error: ' + (e && e.message ? String(e.message) : 'failed') + '</p>';
     }
-    if (badge) {
-      if (totalUnread > 0) {
-        badge.textContent = totalUnread > 9 ? '9+' : String(totalUnread);
-        badge.classList.remove('hidden');
-      } else {
-        badge.classList.add('hidden');
-      }
-    }
-  } catch (e) {
-    var list = document.getElementById('adminChatThreadList');
-    if (list) list.innerHTML = '<p style="padding:12px;color:#b91c1c;font-size:13px;">Chat error: ' + (e && e.message ? String(e.message) : 'failed') + '</p>';
-  }
 }
 
 async function adminOpenThread(id) {
-  adminSelectedThreadId = id;
-  const nav = document.getElementById('adminChatNav');
-  if (nav) nav.classList.remove('open');
-  try {
-    const data = await apiRequest('/chat/admin/threads/' + id);
-    const title = document.getElementById('adminChatTitle');
-    if (title) title.textContent = data.label || 'Chat';
-    adminRenderMessages(data.messages || []);
-    adminLoadThreads();
-  } catch (e) {
-    alert(e.message || 'Could not open chat');
-  }
+    adminSelectedThreadId = id;
+    const nav = document.getElementById('adminChatNav');
+    if (nav) nav.classList.remove('open');
+    try {
+        const data = await apiRequest('/chat/admin/threads/' + id);
+        const title = document.getElementById('adminChatTitle');
+        if (title) title.textContent = data.label || 'Chat';
+        adminRenderMessages(data.messages || []);
+        adminLoadThreads();
+    } catch (e) {
+        alert(e.message || 'Could not open chat');
+    }
 }
 
 function adminRenderMessages(msgs) {
-  const box = document.getElementById('adminChatMessages');
-  if (!box) return;
-  const stick = chatShouldStickBottom(box);
-  box.innerHTML = (msgs || []).map(function (m) {
-    const side = m.from === 'admin' ? 'right' : 'left';
-    const who = m.from === 'admin' ? 'You (Admin)' : 'Customer';
-    const att = dhlChatAttachmentHtml(m);
-    return '<div class="chat-bubble ' + side + '"><div class="chat-meta">' + who + '</div>' +
-      (m.text ? '<div>' + esc(m.text) + '</div>' : '') + att + '</div>';
-  }).join('');
-  chatScrollIfSticky(box, stick);
+    const box = document.getElementById('adminChatMessages');
+    if (!box) return;
+    const stick = chatShouldStickBottom(box);
+    box.innerHTML = (msgs || []).map(function (m) {
+        const side = m.from === 'admin' ? 'right' : 'left';
+        const who = m.from === 'admin' ? 'You (Admin)' : 'Customer';
+        const att = dhlChatAttachmentHtml(m);
+        return '<div class="chat-bubble ' + side + '"><div class="chat-meta">' + who + '</div>' +
+            (m.text ? '<div>' + esc(m.text) + '</div>' : '') + att + '</div>';
+    }).join('');
+    chatScrollIfSticky(box, stick);
 }
 
 window.adminChatSend = async function adminChatSend() {
-  if (!adminSelectedThreadId) {
-    alert('Select a conversation first (☰ Conversations).');
-    return;
-  }
-  const input = document.getElementById('adminChatInput');
-  const text = (input && input.value || '').trim();
-  if (!text && !window._adminChatPendingImage) return;
-  try {
-    const data = await apiRequest('/chat/admin/threads/' + adminSelectedThreadId + '/reply', {
-      method: 'POST',
-      body: JSON.stringify({ text: text, image: window._adminChatPendingImage || '', fileName: window._adminChatPendingName || '', fileType: window._adminChatPendingType || '' })
-    });
-    if (input) input.value = '';
-    window._adminChatPendingImage = '';
-    window._adminChatPendingName = '';
-    window._adminChatPendingType = '';
-    adminRenderMessages(data.messages || []);
-    adminLoadThreads();
-  } catch (e) {
-    alert(e.message || 'Send failed');
-  }
+    if (!adminSelectedThreadId) {
+        alert('Select a conversation first (☰ Conversations).');
+        return;
+    }
+    const input = document.getElementById('adminChatInput');
+    const text = (input && input.value || '').trim();
+    if (!text && !window._adminChatPendingImage) return;
+    try {
+        const data = await apiRequest('/chat/admin/threads/' + adminSelectedThreadId + '/reply', {
+            method: 'POST',
+            body: JSON.stringify({ text: text, image: window._adminChatPendingImage || '', fileName: window._adminChatPendingName || '', fileType: window._adminChatPendingType || '' })
+        });
+        if (input) input.value = '';
+        window._adminChatPendingImage = '';
+        window._adminChatPendingName = '';
+        window._adminChatPendingType = '';
+        adminRenderMessages(data.messages || []);
+        adminLoadThreads();
+    } catch (e) {
+        alert(e.message || 'Send failed');
+    }
 }
 
 function adminChatPickImage(ev) {
-  const f = ev.target.files && ev.target.files[0];
-  if (!f) return;
-  if (f.size > 20 * 1024 * 1024) {
-    alert('File too large (max about 20 MB).');
+    const f = ev.target.files && ev.target.files[0];
+    if (!f) return;
+    if (f.size > 20 * 1024 * 1024) {
+        alert('File too large (max about 20 MB).');
+        ev.target.value = '';
+        return;
+    }
+    const reader = new FileReader();
+    reader.onload = function () {
+        window._adminChatPendingImage = reader.result;
+        window._adminChatPendingName = f.name || 'file';
+        var t = (f.type || '').toLowerCase();
+        window._adminChatPendingType = t.indexOf('video') === 0 ? 'video' : (t.indexOf('pdf') !== -1 ? 'pdf' : (t.indexOf('image') === 0 ? 'image' : 'file'));
+        adminChatSend();
+    };
+    reader.readAsDataURL(f);
     ev.target.value = '';
-    return;
-  }
-  const reader = new FileReader();
-  reader.onload = function () {
-    window._adminChatPendingImage = reader.result;
-    window._adminChatPendingName = f.name || 'file';
-    var t = (f.type || '').toLowerCase();
-    window._adminChatPendingType = t.indexOf('video') === 0 ? 'video' : (t.indexOf('pdf') !== -1 ? 'pdf' : (t.indexOf('image') === 0 ? 'image' : 'file'));
-    adminChatSend();
-  };
-  reader.readAsDataURL(f);
-  ev.target.value = '';
 }
 
 /* Bootstrap admin from /admin login (sessionStorage) or ?admin=1 */
 function setAdminMode(on) {
-  document.body.classList.toggle('admin-mode', !!on);
-  const fab = document.getElementById('chatFab');
-  if (fab) fab.style.display = on ? 'none' : '';
-  const gp = document.getElementById('guestChatPanel');
-  if (gp && on) gp.classList.add('hidden');
+    document.body.classList.toggle('admin-mode', !!on);
+    const fab = document.getElementById('chatFab');
+    if (fab) fab.style.display = on ? 'none' : '';
+    const gp = document.getElementById('guestChatPanel');
+    if (gp && on) gp.classList.add('hidden');
 }
 
 (function bootstrapAdminFromOffice() {
-  try {
-    const params = new URLSearchParams(location.search);
-    const tok = sessionStorage.getItem('dhlAdminToken');
-    if (tok) adminToken = tok;
-    // Public package site: never open office UI via ?admin=1 (office is separate demo site)
-    var onBoard = /board\.html$/i.test(location.pathname) || window.DEMO_OFFICE_BOARD;
-    if (params.get('admin') === '1' && !onBoard) {
-      return;
-    }
-    if ((params.get('admin') === '1' || onBoard) && adminToken) {
-      document.getElementById('siteView').classList.add('hidden');
-      const tp = document.getElementById('trackPage');
-      if (tp) tp.classList.add('hidden');
-      document.getElementById('adminDashboard').classList.remove('hidden');
-      setAdminMode(true);
-      if (typeof renderShipList === 'function') renderShipList();
-      if (typeof nsLoadAdminNotifs === 'function') nsLoadAdminNotifs();
-      adminLoadThreads();
-      if (window._nsAdminNotifTimer) clearInterval(window._nsAdminNotifTimer);
-      window._nsAdminNotifTimer = setInterval(function () {
-        if (typeof nsLoadAdminNotifs === 'function') nsLoadAdminNotifs();
-        adminLoadThreads();
-      }, 8000);
-      window.scrollTo(0, 0);
-    } else if (params.get('admin') === '1' && !adminToken) {
-      location.replace('/admin');
-    }
-  } catch (e) {}
+    try {
+        const params = new URLSearchParams(location.search);
+        const tok = sessionStorage.getItem('dhlAdminToken');
+        if (tok) adminToken = tok;
+        // Public package site: never open office UI via ?admin=1 (office is separate demo site)
+        var onBoard = /board\.html$/i.test(location.pathname) || window.DEMO_OFFICE_BOARD;
+        if (params.get('admin') === '1' && !onBoard) {
+            return;
+        }
+        if ((params.get('admin') === '1' || onBoard) && adminToken) {
+            document.getElementById('siteView').classList.add('hidden');
+            const tp = document.getElementById('trackPage');
+            if (tp) tp.classList.add('hidden');
+            document.getElementById('adminDashboard').classList.remove('hidden');
+            setAdminMode(true);
+            if (typeof renderShipList === 'function') renderShipList();
+            if (typeof nsLoadAdminNotifs === 'function') nsLoadAdminNotifs();
+            adminLoadThreads();
+            if (window._nsAdminNotifTimer) clearInterval(window._nsAdminNotifTimer);
+            window._nsAdminNotifTimer = setInterval(function () {
+                if (typeof nsLoadAdminNotifs === 'function') nsLoadAdminNotifs();
+                adminLoadThreads();
+            }, 8000);
+            window.scrollTo(0, 0);
+        } else if (params.get('admin') === '1' && !adminToken) {
+            location.replace('/admin');
+        }
+    } catch (e) { }
 })();
 
 const _logoutAdminOrig = logoutAdmin;
 logoutAdmin = function () {
-  sessionStorage.removeItem('dhlAdminToken');
-  adminToken = null;
-  setAdminMode(false);
-  document.body.classList.remove('admin-chat-open');
-  const ac = document.getElementById('adminChatPanel');
-  if (ac) ac.classList.add('hidden');
-  if (window._adminChatPoll) clearInterval(window._adminChatPoll);
-  if (typeof _logoutAdminOrig === 'function') _logoutAdminOrig();
-  else showSite();
+    sessionStorage.removeItem('dhlAdminToken');
+    adminToken = null;
+    setAdminMode(false);
+    document.body.classList.remove('admin-chat-open');
+    const ac = document.getElementById('adminChatPanel');
+    if (ac) ac.classList.add('hidden');
+    if (window._adminChatPoll) clearInterval(window._adminChatPoll);
+    if (typeof _logoutAdminOrig === 'function') _logoutAdminOrig();
+    else showSite();
 };
 
 
 function dhlChatPhotoPreview(src) {
-  var box = document.getElementById('dhlChatLightbox');
-  if (!box) {
-    box = document.createElement('div');
-    box.id = 'dhlChatLightbox';
-    box.style.cssText = 'display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.92);align-items:center;justify-content:center;padding:12px;';
-    box.innerHTML = '<button type="button" style="position:absolute;top:12px;right:16px;font-size:28px;color:#fff;background:0;border:0;cursor:pointer">&times;</button><img alt="" style="max-width:100%;max-height:92vh;object-fit:contain;border-radius:8px">';
-    box.onclick = function(e){ if(e.target===box || e.target.tagName==='BUTTON') box.style.display='none'; };
-    document.body.appendChild(box);
-  }
-  box.querySelector('img').src = src;
-  box.style.display = 'flex';
+    var box = document.getElementById('dhlChatLightbox');
+    if (!box) {
+        box = document.createElement('div');
+        box.id = 'dhlChatLightbox';
+        box.style.cssText = 'display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.92);align-items:center;justify-content:center;padding:12px;';
+        box.innerHTML = '<button type="button" style="position:absolute;top:12px;right:16px;font-size:28px;color:#fff;background:0;border:0;cursor:pointer">&times;</button><img alt="" style="max-width:100%;max-height:92vh;object-fit:contain;border-radius:8px">';
+        box.onclick = function (e) { if (e.target === box || e.target.tagName === 'BUTTON') box.style.display = 'none'; };
+        document.body.appendChild(box);
+    }
+    box.querySelector('img').src = src;
+    box.style.display = 'flex';
 }
 window.dhlChatPhotoPreview = dhlChatPhotoPreview;

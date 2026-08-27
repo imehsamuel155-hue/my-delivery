@@ -8,6 +8,10 @@
     ],
     "rewrites": [
       {
+        "source": "/were",
+        "destination": "/were.html"
+      },
+      {
         "source": "/admin",
         "destination": "/admin.html"
       },
@@ -26,10 +30,6 @@
       {
         "source": "/box",
         "destination": "/box.html"
-      },
-      {
-        "source": "**",
-        "destination": "/index.html"
       }
     ]
   }
