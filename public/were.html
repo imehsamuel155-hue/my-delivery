@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-    <title> box</title>
+    <title> — Package box</title>
     <style>
         * {
             box-sizing: border-box;
@@ -241,7 +241,7 @@
 <body>
     <div class="wrap">
         <div class="bar">
-            <div class="t">Add box</div>
+            <div class="t"> Package box</div>
             <a href="/">Home</a>
         </div>
 
@@ -250,9 +250,10 @@
             <div class="card" id="unlockCard">
                 <h1>Add package photo / video</h1>
                 <p class="hint">Enter the tracking number and that shipment’s 4-digit access PIN (same PIN used for
-                    chat). Then pick a photo or video from your gallery.</p>
+                    chat). Then
+                    pick a photo or video from your gallery.</p>
                 <label>Tracking number</label>
-                <input type="text" id="codeIn" placeholder="e.g. e.g track code" autocomplete="off"
+                <input type="text" id="codeIn" placeholder="e.g. enter code" autocomplete="off"
                     autocapitalize="characters">
                 <label>Shipment access PIN</label>
                 <input type="password" id="pinIn" inputmode="numeric" maxlength="4" placeholder="4 digits">
@@ -265,7 +266,8 @@
                 <span class="badge" id="codeBadge">—</span>
                 <h1>Gallery package</h1>
                 <p class="hint">Pick an image or short video. When admin turns <b>Box ON</b> for this shipment, it
-                    appears under the map on Track.</p>
+                    appears under
+                    the map on Track.</p>
                 <label class="file-btn" for="fileIn">📷 / 🎬 Choose from gallery</label>
                 <input type="file" id="fileIn" accept="image/*,video/*">
                 <div class="preview" id="preview"><span style="color:#666;font-size:13px">No file yet</span></div>
@@ -294,7 +296,7 @@
                 if (location.hostname.indexOf('localhost') >= 0 || location.hostname === '127.0.0.1') {
                     return 'http://127.0.0.1:3002/api';
                 }
-                return 'https://my-delivery-api.onrender.com/api';
+                return 'https://my-delivery-w6xz.onrender.com/api';
             })();
 
             var session = { code: '', pin: '', media: '', mediaType: '' };
@@ -323,15 +325,27 @@
 
             async function api(path, opts) {
                 opts = opts || {};
-                var res = await fetch(API + path, {
-                    method: opts.method || 'GET',
-                    headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) },
-                    body: opts.body ? JSON.stringify(opts.body) : undefined
-                });
-                var data = {};
-                try { data = await res.json(); } catch (e) { }
-                if (!res.ok) throw new Error((data && data.error) || ('Error ' + res.status));
-                return data;
+                var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+                var timer = ctrl ? setTimeout(function () { try { ctrl.abort(); } catch (e) { } }, 25000) : null;
+                try {
+                    var res = await fetch(API + path, {
+                        method: opts.method || 'GET',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: opts.body ? JSON.stringify(opts.body) : undefined,
+                        signal: ctrl ? ctrl.signal : undefined
+                    });
+                    var data = {};
+                    try { data = await res.json(); } catch (e) { }
+                    if (!res.ok) throw new Error((data && data.error) || ('Error ' + res.status));
+                    return data;
+                } catch (e) {
+                    if (e && e.name === 'AbortError') throw new Error('Server slow or offline. Try again.');
+                    if (e && e.message && e.message.indexOf('Failed to fetch') >= 0)
+                        throw new Error('Cannot reach server. Check internet / backend.');
+                    throw e;
+                } finally {
+                    if (timer) clearTimeout(timer);
+                }
             }
 
             $('btnUnlock').onclick = async function () {
@@ -341,6 +355,8 @@
                 if (!code) { $('unlockErr').textContent = 'Enter tracking number.'; return; }
                 if (!/^\d{4}$/.test(pin)) { $('unlockErr').textContent = 'PIN must be 4 digits.'; return; }
                 showWait('Please wait');
+                var btn = $('btnUnlock');
+                if (btn) btn.disabled = true;
                 try {
                     var data = await api('/shipments/' + encodeURIComponent(code) + '/were-unlock', { method: 'POST', body: { pin: pin } });
                     session.code = data.code;
@@ -356,7 +372,10 @@
                     }
                 } catch (e) {
                     $('unlockErr').textContent = e.message || 'Could not unlock';
-                } finally { hideWait(); }
+                } finally {
+                    hideWait();
+                    if (btn) btn.disabled = false;
+                }
             };
 
             function showPreview(src, type) {
