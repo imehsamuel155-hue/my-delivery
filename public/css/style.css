@@ -204,6 +204,7 @@ main#siteView {
     min-height: 88vh;
     display: flex;
     align-items: center;
+    background-image: url('/my-delivery/public/images/my-delivery/public/images/fb8ee2c7a00ecfaad8d7780704ddb256.jpg');
     /* no default background image — add your own if you use this class */
     background: #2a2a2a;
     color: #fff;
@@ -1985,7 +1986,7 @@ header.navbar .btn-outline {
         min-height: 260px;
     }
 }
-}
+
 
 /* Old full-width black language bar removed */
 .lang-strip,

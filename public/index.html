@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DHL Home - Global Logistics and International Shipping</title>
+    <title>Home - Global Logistics and International Shipping</title>
     <meta name="description"
-        content="DHL — Track your shipment, ship documents and parcels, get a quote. Global logistics and international shipping.">
+        content="Track your shipment, ship documents and parcels, get a quote. Global logistics and international shipping.">
     <link rel="icon" href="https://www.dhl.com/favicon.ico">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -134,7 +134,7 @@
     <header class="dhl-header video-header">
         <div class="header-bar">
             <a class="dhl-logo brand-text" href="/" onclick="showSite(); return true;" aria-label="Home">
-                <span class="brand-line"><span class="brand-dhl">DHL</span><span class="brand-sub">GLOBAL FREIGHT &amp;
+                <span class="brand-line"><span class="brand-dhl">D</span><span class="brand-sub">GLOBAL FREIGHT &amp;
                         COURIER</span></span>
             </a>
             <div class="header-right-actions">
@@ -152,7 +152,7 @@
         style="position:fixed;top:0;right:0;width:min(320px,92vw);height:100%;background:#fff;z-index:9999;transform:translateX(100%);transition:transform .25s;overflow:auto;box-shadow:-8px 0 24px rgba(0,0,0,.25);">
         <div
             style="background:#FFCC00;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;">
-            <strong style="color:#D40511;font-size:18px;letter-spacing:1px;">DHL</strong>
+            <strong style="color:#D40511;font-size:18px;letter-spacing:1px;">H</strong>
             <button type="button" onclick="closeMenu()"
                 style="border:0;background:0;font-size:28px;cursor:pointer;line-height:1;color:#111;">&times;</button>
         </div>
@@ -178,8 +178,7 @@
                 <a href="#services" onclick="closeMenu()"
                     style="display:block;padding:8px 16px 12px 28px;color:#c00;text-decoration:none;font-size:14px;">Explore
                     Freight Services</a>
-                <span style="display:block;padding:10px 16px 4px 28px;color:#666;font-size:12px;">DHL for
-                    Business</span>
+                <span style="display:block;padding:10px 16px 4px 28px;color:#666;font-size:12px;">For Business</span>
                 <a href="#services" onclick="closeMenu()"
                     style="display:block;padding:8px 16px 14px 28px;color:#c00;text-decoration:none;font-size:14px;">Frequent
                     Shipping Options</a>
@@ -234,10 +233,30 @@
                 <h1>Your package, <span class="accent">tracked</span><br>every mile of the way.</h1>
                 <p class="hero-lead">Moves freight by air, sea and land with live status updates from pickup to your
                     door.</p>
-                <div class="hero-track-row">
+                <div class="hero-track-row" style="flex-wrap:wrap;gap:8px;align-items:center;">
                     <input id="heroTrackInput" type="text" placeholder="Enter tracking code" class="mono"
                         autocomplete="off">
                     <button type="button" class="btn-track-yellow" onclick="trackFromHero()">Track Package</button>
+                    <button type="button" id="btnScanTrack" title="Scan barcode / QR" onclick="openTrackScanner()"
+                        style="border:0;background:#111;color:#FFCC00;padding:10px 14px;border-radius:8px;cursor:pointer;font-size:18px;line-height:1;">
+                        <span aria-hidden="true">&#128247;</span> Scan
+                    </button>
+                    <input type="file" id="scanGalleryInput" accept="image/*" capture="environment"
+                        style="display:none">
+                </div>
+                <div id="scanOverlay"
+                    style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:10050;flex-direction:column;align-items:center;justify-content:center;padding:16px;">
+                    <div style="color:#fff;font-weight:700;margin-bottom:10px;">Scan tracking barcode / QR</div>
+                    <div id="scanReader"
+                        style="width:min(100%,360px);max-width:100%;border-radius:12px;overflow:hidden;background:#000;min-height:240px;">
+                    </div>
+                    <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;justify-content:center;">
+                        <button type="button" onclick="scanFromGallery()"
+                            style="padding:10px 16px;border:0;border-radius:8px;background:#FFCC00;color:#111;font-weight:700;cursor:pointer;">Gallery</button>
+                        <button type="button" onclick="closeTrackScanner()"
+                            style="padding:10px 16px;border:0;border-radius:8px;background:#fff;color:#111;font-weight:700;cursor:pointer;">Close</button>
+                    </div>
+                    <p id="scanStatus" style="color:#ccc;font-size:13px;margin-top:10px;text-align:center;"></p>
                 </div>
                 <div class="track-msg" id="heroTrackMsg"></div>
             </div>
@@ -302,7 +321,7 @@
             <div class="wrap">
                 <h2>Navigating Latest Tariff Developments</h2>
                 <p>Global trade is becoming increasingly complex as new U.S. tariffs and varying reciprocal measures
-                    emerge across countries and industries. At DHL, we are committed to helping you navigate these
+                    emerge across countries and industries. We are committed to helping you navigate these
                     changes.</p>
                 <a class="btn btn-red" href="#customer-service">Explore Our U.S. Tariff Solutions</a>
             </div>
@@ -317,7 +336,7 @@
                 </div>
                 <h2>Document and Parcel Shipping</h2>
                 <p class="eyebrow">For All Shippers</p>
-                <p>Learn about DHL Express – the undisputed global leader in international express shipping.</p>
+                <p>Learn about Express — international express shipping options.</p>
                 <h3 class="subhead">Services Available</h3>
                 <ul class="service-icons">
                     <li><span class="si">✈</span> Next Possible Business Day</li>
@@ -325,7 +344,7 @@
                     <li><span class="si">⚙</span> Tailored Business Solutions</li>
                     <li><span class="si">★</span> Wide Variety of Optional Services</li>
                 </ul>
-                <a class="btn btn-red" href="#" onclick="goTrack(); return false;">Track an Express shipment</a>
+                <a class="btn btn-red" href="#" onclick="goTrack(); return false;">Track a shipment</a>
             </div>
         </section>
 
@@ -358,22 +377,22 @@
             </div>
         </section>
 
-        <!-- DHL for Business -->
+        <!-- For Business -->
         <section class="dhl-section" id="business">
             <div class="wrap">
-                <h2>DHL for Business</h2>
+                <h2>For Business</h2>
                 <p class="lead">Get connected to the right experts in a few easy steps</p>
                 <ul class="plain-list">
                     <li>Benefit from attractive prices for businesses based on your shipment volume and frequency.</li>
-                    <li>Increase efficiency and control all your shipments with our exclusive DHL Shipping tools.</li>
+                    <li>Increase efficiency and control all your shipments with our exclusive shipping tools.</li>
                     <li>Benefit from our global experience and a large and reliable logistics network.</li>
                 </ul>
-                <h3 class="subhead">Which DHL for Business Services Are Right for You?</h3>
+                <h3 class="subhead">Which For Business Services Are Right for You?</h3>
                 <p>From sending flyers and small packages to forwarding large cargo or freight—and everything in
                     between—we can set you up with the right account to simplify the way you ship and cut costs.</p>
                 <a class="btn btn-red" href="#customer-service">Get Started With a Shipping Profile</a>
                 <h3 class="subhead">A Family of Divisions</h3>
-                <p>DHL is the leading global brand in the logistics industry. Our DHL family of divisions offer an
+                <p>We operate across the logistics industry. Our family of divisions offer an
                     unrivalled portfolio of logistics services ranging from national and international parcel delivery,
                     e-commerce shipping and fulfilment solutions, international express, road, air and ocean transport.
                 </p>
@@ -385,7 +404,7 @@
             <div class="wrap">
                 <h2>Cargo Shipping</h2>
                 <p class="eyebrow">Business Only</p>
-                <p>Discover shipping and logistics service options from DHL Global Forwarding.</p>
+                <p>Discover shipping and logistics service options from Global Forwarding.</p>
                 <h3 class="subhead">Services Available</h3>
                 <ul class="service-icons">
                     <li><span class="si">✈</span> Air Freight</li>
@@ -393,7 +412,7 @@
                     <li><span class="si">🚢</span> Ocean Freight</li>
                     <li><span class="si">🚂</span> Rail Freight</li>
                 </ul>
-                <a class="btn btn-red" href="#customer-service">Explore DHL Global Forwarding</a>
+                <a class="btn btn-red" href="#customer-service">Explore Global Forwarding</a>
             </div>
         </section>
 
@@ -406,7 +425,7 @@
                     <li>New Customs Rules for Shipments Under €150 From Outside the EU Starting July 1, 2026</li>
                     <li>Operational Update Middle East</li>
                     <li>New Jet Fuel Index change effective August 03, 2026</li>
-                    <li>DHL Express will implement weekly Fuel Surcharge updates</li>
+                    <li>Express will implement weekly Fuel Surcharge updates</li>
                 </ul>
             </div>
         </section>
@@ -428,7 +447,7 @@
                     <img src="/images/d4fa7bd2582b5d78c19c4976f5ff8225.jpg" alt="" onerror="this.classList.add('ph')">
                 </div>
                 <h2 style="margin-top:28px;">Globalization holds firm at a record level</h2>
-                <p>The DHL Global Connectedness Report 2026 offers the most comprehensive view of globalization
+                <p>The Global Connectedness Report 2026 offers the most comprehensive view of globalization
                     available.</p>
             </div>
         </section>
@@ -502,15 +521,16 @@
                 <details class="faq-item">
                     <summary>I want to speak with someone. Why do I have to fill out the shipping profile to get
                         connected?</summary>
-                    <p>A short profile helps us route you to the right DHL expert for your shipment type and volume.</p>
+                    <p>A short profile helps us route you to the right logistics expert for your shipment type and
+                        volume.</p>
                 </details>
                 <details class="faq-item">
-                    <summary>What different business shipping methods does DHL offer?</summary>
+                    <summary>What different business shipping methods do we offer?</summary>
                     <p>Express documents and parcels, eCommerce delivery, and Global Forwarding for air, ocean, road and
                         rail freight.</p>
                 </details>
                 <details class="faq-item">
-                    <summary>What benefits do I get from opening a business account with DHL?</summary>
+                    <summary>What benefits do I get from opening a business account?</summary>
                     <p>Volume pricing, shipping tools, invoicing options, and dedicated support.</p>
                 </details>
             </div>
@@ -537,12 +557,13 @@
                     <div class="cs-card">
                         <div class="cs-icon" aria-hidden="true">📍</div>
                         <h3>Find a Service Point</h3>
-                        <p>Locate nearby DHL service points for drop-off, pickup and packaging assistance.</p>
+                        <p>Locate nearby service points for drop-off, pickup and packaging assistance.</p>
                     </div>
                     <div class="cs-card">
                         <div class="cs-icon" aria-hidden="true">🔐</div>
                         <h3>Customer Portal Logins</h3>
-                        <p>Access MyDHL+, shipping tools and invoices with your business portal credentials.</p>
+                        <p>Access Customer Portal, shipping tools and invoices with your business portal credentials.
+                        </p>
                     </div>
                 </div>
             </div>
@@ -559,7 +580,7 @@
                     <a href="#customer-service">Customer Service</a>
                     <a href="#customer-service">Customer Portal Logins</a>
                     <a href="#quote">Get a Quote</a>
-                    <a href="#business">DHL for Business</a>
+                    <a href="#business">For Business</a>
                     <a href="#" onclick="goTrack();return false;">Track a Shipment</a>
                     <a href="/receipt">Shipment Receipt</a>
                     <a href="/box.html">Package / Box</a>
@@ -567,10 +588,10 @@
                 </div>
                 <div class="footer-col">
                     <h4>Our Divisions</h4>
-                    <a href="#express">DHL Express</a>
-                    <a href="#forwarding">DHL Global Forwarding</a>
-                    <a href="#express">DHL eCommerce</a>
-                    <a href="#about">DHL Supply Chain</a>
+                    <a href="#express">Express</a>
+                    <a href="#forwarding">Global Forwarding</a>
+                    <a href="#express">eCommerce</a>
+                    <a href="#about">Supply Chain</a>
                     <a href="#about">Other Global Divisions</a>
                 </div>
                 <div class="footer-col">
@@ -593,7 +614,7 @@
                 </div>
                 <div class="footer-col">
                     <h4>Company Information</h4>
-                    <a href="#about">About DHL</a>
+                    <a href="#about">About Us</a>
                     <a href="#about">Press Center</a>
                     <a href="#about">Careers</a>
                     <a href="#about">Investor Relations</a>
@@ -603,7 +624,7 @@
                 </div>
                 <div class="footer-col">
                     <h4>Follow &amp; More</h4>
-                    <a href="#about">DHL Group</a>
+                    <a href="#about">Group</a>
                     <a href="#about">Innovation</a>
                     <a href="#about">Digital Partners</a>
                     <a href="#services">Air · Road · Ocean · Warehouse</a>
@@ -611,9 +632,9 @@
                 </div>
             </div>
             <div class="footer-bottom wrap">
-                <img src="/images/Screenshot_20260818-050108-removebg-preview.png" alt="DHL" class="logo-img sm"
+                <img src="/images/Screenshot_20260818-050108-removebg-preview.png" alt="L" class="logo-img sm"
                     onerror="this.style.display='none'">
-                <span>© DHL International GmbH. Global Logistics and International Shipping. All rights reserved.</span>
+                <span>© L International GmbH. Global Logistics and International Shipping. All rights reserved.</span>
             </div>
         </footer>
     </main>
@@ -629,7 +650,7 @@
                     normal tracking — not the print receipt.</p>
             </div>
             <div class="track-bar" style="max-width:520px; margin:0;">
-                <input id="pageTrackInput" type="text" placeholder="e.g. DHL XXX" class="mono"
+                <input id="pageTrackInput" type="text" placeholder="e.g. TRACK123" class="mono"
                     style="color:var(--ink); border:1px solid var(--line);">
                 <button class="btn btn-red" onclick="trackFromPage()">Track</button>
             </div>
@@ -667,7 +688,7 @@
     <div id="guestChatPanel" class="guest-chat-panel hidden">
         <div class="guest-chat-head">
             <div>
-                <strong>DHL Live Chat</strong>
+                <strong>Live Chat</strong>
                 <span class="chat-online">● Online</span>
             </div>
             <button type="button" onclick="closeGuestChat()" aria-label="Close">✕</button>
@@ -675,7 +696,7 @@
         <div class="guest-chat-setup" id="guestChatSetup">
             <p>Enter your <b>tracking code</b> to open a private chat. Labeled as shipment <b>Sender / Receiver</b>.
                 Only you and support can see this conversation.</p>
-            <label>Tracking code <input type="text" id="guestChatTrack" placeholder="e.g. DHL123456" class="mono"
+            <label>Tracking code <input type="text" id="guestChatTrack" placeholder="e.g. TRACK123456" class="mono"
                     autocomplete="off" required></label>
             <p class="guest-chat-err" id="guestChatErr"
                 style="display:none;color:#D40511;font-size:13px;margin:8px 0 0;"></p>
