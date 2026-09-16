@@ -981,10 +981,7 @@
                     var mk = msg.getAttribute('data-en');
                     msg.textContent = m[mk] || mk;
                 }
-                document.querySelectorAll('.foot a').forEach(function (a) {
-                    a.href = 'https://trackmyshipmentorder.web.app';
-                    a.textContent = 'trackmyshipmentorder.web.app';
-                });
+
             }
             try {
                 var L = localStorage.getItem('dhl_lang') || 'en';
