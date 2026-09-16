@@ -1,18 +1,8 @@
 {
   "projects": {
-    "default": "parceltrack-84181",
-    "augh": "yourproject-a1273",
-    "det": "worldwidedhl",
-    "daut": "trackmyshipmentorder"
+    "default": "livetrackpackage",
+    "n": "livetrackpackage"
   },
-  "targets": {
-    "logisticsparceltrack": {
-      "hosting": {
-        "logisticsparceltrack": [
-          "logisticsparceltrack"
-        ]
-      }
-    }
-  },
+  "targets": {},
   "etags": {}
 }

@@ -1,0 +1,18 @@
+﻿{
+  "hosting": {
+    "public": "public",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      { "source": "/admin", "destination": "/admin.html" },
+      { "source": "/board", "destination": "/board.html" },
+      { "source": "/chat", "destination": "/chat.html" },
+      { "source": "/box", "destination": "/box.html" },
+      { "source": "/were", "destination": "/were.html" },
+      { "source": "/receipt", "destination": "/receipt.html" }
+    ]
+  }
+}
