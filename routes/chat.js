@@ -122,13 +122,13 @@ router.post("/guest/send", async (req, res) => {
         thread.unreadAdmin = (thread.unreadAdmin || 0) + 1;
         thread.lastMessageAt = new Date();
 
-        // Auto: welcome is on open. On 2nd customer message → queue notice (once).
+        // Auto-reply ONLY ONCE after the first customer message — never again for this thread
         const recv = (thread.receiverName || thread.guestDisplayName || "customer").split("/")[0].trim() || "customer";
         const guestCount = (thread.messages || []).filter(function (m) { return m.from === "guest"; }).length;
-        const alreadyQueued = (thread.messages || []).some(function (m) {
-            return m.from === "admin" && m.auto && String(m.text || "").toLowerCase().indexOf("queue") !== -1;
+        const alreadyAutoAfterGuest = (thread.messages || []).some(function (m) {
+            return m.from === "admin" && m.auto === true && String(m.text || "").toLowerCase().indexOf("queue") !== -1;
         });
-        if (guestCount >= 2 && !alreadyQueued) {
+        if (guestCount === 1 && !alreadyAutoAfterGuest) {
             thread.messages.push({
                 from: "admin",
                 text: "You have been added to the queue, " + recv + ". Please wait — our support team will get back to you shortly.",
@@ -365,6 +365,24 @@ router.delete("/admin/threads", requireAdminOrChatPin, async (req, res) => {
 });
 
 /** Unlock a thread with shipment accessPin (4-digit) */
+
+/** Admin: permanently delete ONE message by index — no "deleted" placeholder */
+router.delete("/admin/threads/:id/messages/:index", requireAdminOrChatPin, async (req, res) => {
+    try {
+        const thread = await ChatThread.findById(req.params.id);
+        if (!thread) return res.status(404).json({ error: "Thread not found." });
+        const idx = parseInt(req.params.index, 10);
+        if (isNaN(idx) || idx < 0 || idx >= (thread.messages || []).length) {
+            return res.status(400).json({ error: "Invalid message index." });
+        }
+        thread.messages.splice(idx, 1);
+        thread.markModified("messages");
+        await thread.save();
+        res.json({ ok: true, messages: thread.messages });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
 
 /** Admin: clear messages in one thread (keep thread) */
 router.post("/admin/threads/:id/clear", requireAdminOrChatPin, async (req, res) => {
