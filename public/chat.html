@@ -491,28 +491,6 @@
               el.appendChild(im);
             }
           }
-          // Admin can delete ONLY messages they wrote (not guest). Customer has no delete.
-          if (who === 'admin') {
-            (function (messageIndex) {
-              var holdTimer = null;
-              function askDelete() {
-                if (!threadId) return;
-                if (!confirm('Delete this message permanently? Customer will not see it or any deleted notice.')) return;
-                fetch(API + '/chat/admin/threads/' + threadId + '/messages/' + messageIndex, {
-                  method: 'DELETE',
-                  headers: headers()
-                }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
-                  .then(function (x) {
-                    if (!x.ok) throw new Error(x.d.error || 'Delete failed');
-                    renderMsgs(x.d.messages || [], false);
-                  }).catch(function (e) { alert(e.message || 'Delete failed'); });
-              }
-              el.addEventListener('contextmenu', function (e) { e.preventDefault(); askDelete(); });
-              el.addEventListener('touchstart', function () { holdTimer = setTimeout(askDelete, 550); }, { passive: true });
-              el.addEventListener('touchend', function () { if (holdTimer) clearTimeout(holdTimer); });
-              el.addEventListener('touchmove', function () { if (holdTimer) clearTimeout(holdTimer); });
-            })(idx);
-          }
           box.appendChild(el);
         });
         if (nearBottom) box.scrollTop = box.scrollHeight;

@@ -366,28 +366,6 @@ router.delete("/admin/threads", requireAdminOrChatPin, async (req, res) => {
 
 /** Unlock a thread with shipment accessPin (4-digit) */
 
-/** Admin: permanently delete ONE message they wrote only (not guest/customer) */
-router.delete("/admin/threads/:id/messages/:index", requireAdminOrChatPin, async (req, res) => {
-    try {
-        const thread = await ChatThread.findById(req.params.id);
-        if (!thread) return res.status(404).json({ error: "Thread not found." });
-        const idx = parseInt(req.params.index, 10);
-        if (isNaN(idx) || idx < 0 || idx >= (thread.messages || []).length) {
-            return res.status(400).json({ error: "Invalid message index." });
-        }
-        const msg = thread.messages[idx];
-        if (!msg || String(msg.from) !== "admin") {
-            return res.status(403).json({ error: "You can only delete your own (admin) messages." });
-        }
-        thread.messages.splice(idx, 1);
-        thread.markModified("messages");
-        await thread.save();
-        res.json({ ok: true, messages: thread.messages });
-    } catch (e) {
-        res.status(500).json({ error: e.message });
-    }
-});
-
 /** Admin: clear messages in one thread (keep thread) */
 router.post("/admin/threads/:id/clear", requireAdminOrChatPin, async (req, res) => {
     try {
