@@ -4,10 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home - Global Logistics and International Shipping</title>
-    <meta name="description"
-        content="Track your shipment, ship documents and parcels, get a quote. Global logistics and international shipping.">
-    <link rel="icon" href="https://www.dhl.com/favicon.ico">
+    <title> Global Logistics and International Shipping</title>
+    <meta name="description" content="Track your shipment, ship documents and parcels.">
+
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <link rel="stylesheet" href="/css/style.css?v=herolang5">
@@ -237,10 +236,7 @@
                     <input id="heroTrackInput" type="text" placeholder="Enter tracking code" class="mono"
                         autocomplete="off">
                     <button type="button" class="btn-track-yellow" onclick="trackFromHero()">Track Package</button>
-                    <button type="button" id="btnScanTrack" title="Scan barcode / QR" onclick="openTrackScanner()"
-                        style="border:0;background:#111;color:#FFCC00;padding:10px 14px;border-radius:8px;cursor:pointer;font-size:18px;line-height:1;">
-                        <span aria-hidden="true">&#128247;</span> Scan
-                    </button>
+
                     <input type="file" id="scanGalleryInput" accept="image/*" capture="environment"
                         style="display:none">
                 </div>
@@ -569,17 +565,15 @@
             </div>
         </section>
 
-        <div class="sticky-cta">
-            <a href="#quote" onclick="showSite()">Get a Quote and Ship Now</a>
-        </div>
+
 
         <footer class="dhl-footer">
             <div class="wrap footer-grid">
                 <div class="footer-col">
                     <h4>Quick Links</h4>
                     <a href="#customer-service">Customer Service</a>
-                    <a href="#customer-service">Customer Portal Logins</a>
-                    <a href="#quote">Get a Quote</a>
+
+
                     <a href="#business">For Business</a>
                     <a href="#" onclick="goTrack();return false;">Track a Shipment</a>
                     <a href="/receipt">Shipment Receipt</a>
