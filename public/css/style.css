@@ -204,7 +204,6 @@ main#siteView {
     min-height: 88vh;
     display: flex;
     align-items: center;
-    background-image: url('/my-delivery/public/images/my-delivery/public/images/fb8ee2c7a00ecfaad8d7780704ddb256.jpg');
     /* no default background image — add your own if you use this class */
     background: #2a2a2a;
     color: #fff;
@@ -4350,6 +4349,58 @@ body.guest-chat-open {
     margin-bottom: 2px;
 }
 
+.chat-text {
+    margin: 0;
+}
+
+.chat-msg-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+}
+
+.chat-copy-btn,
+.chat-del-btn {
+    border: 0;
+    border-radius: 8px;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    line-height: 1.3;
+}
+
+.chat-copy-btn {
+    background: rgba(0, 0, 0, .08);
+    color: inherit;
+}
+
+.chat-bubble.right .chat-copy-btn {
+    background: rgba(0, 0, 0, .12);
+}
+
+.chat-del-btn {
+    background: #b91c1c;
+    color: #fff;
+}
+
+.chat-status {
+    font-size: 11px;
+    margin-top: 4px;
+    opacity: .9;
+    text-align: right;
+}
+
+.chat-status.sent {
+    color: #555;
+}
+
+.chat-status.seen {
+    color: #166534;
+    font-weight: 700;
+}
+
 .chat-img {
     max-width: 100%;
     border-radius: 8px;
@@ -4700,8 +4751,8 @@ body.menu-open #overlay {
     /* Background file: public/images/0bb6d71f2100ec98646099d8716334e5.jpg */
 
     background-image:
-        url('/images/fb8ee2c7a00ecfaad8d7780704ddb256.jpg');
-
+        linear-gradient(180deg, rgba(0, 0, 0, .30), rgba(0, 0, 0, .45)),
+        url('/images/0bb6d71f2100ec98646099d8716334e5.jpg');
     background-size: cover, cover;
     background-position: center center, center center;
     background-repeat: no-repeat, no-repeat;

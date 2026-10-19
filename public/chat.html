@@ -178,6 +178,61 @@
       cursor: pointer
     }
 
+    .chat-text {
+      margin: 0
+    }
+
+    .chat-msg-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+      flex-wrap: wrap
+    }
+
+    .chat-copy-btn,
+    .chat-del-btn {
+      border: 0;
+      border-radius: 8px;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer
+    }
+
+    .chat-copy-btn {
+      background: rgba(0, 0, 0, .12);
+      color: inherit
+    }
+
+    .bubble.guest .chat-copy-btn {
+      background: rgba(255, 255, 255, .12)
+    }
+
+    .chat-del-btn {
+      background: #b91c1c;
+      color: #fff
+    }
+
+    .chat-status {
+      font-size: 11px;
+      margin-top: 4px;
+      opacity: .85;
+      text-align: right
+    }
+
+    .chat-status.sent {
+      color: #333
+    }
+
+    .chat-status.seen {
+      color: #166534;
+      font-weight: 700
+    }
+
+    .bubble.guest .chat-status {
+      color: #aaa
+    }
+
     .compose {
       display: flex;
       gap: 8px;
@@ -318,7 +373,7 @@
     <div class="center hidden" id="stepTrack">
       <div class="card">
         <h1>Tracking number</h1>
-        <p class="hint">Example: DHL20089 — must match the shipment the customer used.</p>
+        <p class="hint">Example: enter code — must match the shipment the customer used.</p>
         <label>Tracking code</label>
         <input id="trackIn" type="text" placeholder="e.g. DHL20089" autocomplete="off" style="text-transform:uppercase">
         <button type="button" class="primary" id="btnTrack">Continue</button>
@@ -449,6 +504,31 @@
         finally { hideWait(); }
       };
 
+      function copyMsgText(btn, text) {
+        var t = String(text || '');
+        function ok() { if (btn) { var p = btn.textContent; btn.textContent = 'Copied'; setTimeout(function () { btn.textContent = p || 'Copy'; }, 1200); } }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(t).then(ok).catch(function () {
+            try { var ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); ok(); } catch (e) { }
+          });
+        } else {
+          try { var ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); ok(); } catch (e) { }
+        }
+      }
+
+      async function deleteMsg(msgId) {
+        if (!threadId || !msgId) return;
+        if (!confirm('Delete this message permanently?')) return;
+        showWait('Please wait');
+        try {
+          var r = await fetch(API + '/chat/admin/threads/' + threadId + '/messages/' + encodeURIComponent(msgId), { method: 'DELETE', headers: headers() });
+          var d = await r.json().catch(function () { return {}; });
+          if (!r.ok) throw new Error(d.error || 'Delete failed');
+          renderMsgs(d.messages || [], false);
+        } catch (e) { alert(e.message || 'Delete failed'); }
+        finally { hideWait(); }
+      }
+
       function renderMsgs(list, forceBottom) {
         var box = $('msgs');
         var nearBottom = forceBottom || ((box.scrollHeight - box.scrollTop - box.clientHeight) < 80);
@@ -458,12 +538,14 @@
           return;
         }
         box.innerHTML = '';
-        list.forEach(function (m, idx) {
+        list.forEach(function (m) {
           var who = m.from === 'admin' ? 'admin' : 'guest';
           var el = document.createElement('div');
           el.className = 'bubble ' + who;
+          var mid = m._id ? String(m._id) : '';
           if (m.text) {
             var t = document.createElement('div');
+            t.className = 'chat-text';
             t.textContent = m.text;
             el.appendChild(t);
           }
@@ -490,6 +572,31 @@
               im.onclick = function () { openPhoto(im.src); };
               el.appendChild(im);
             }
+          }
+          var actions = document.createElement('div');
+          actions.className = 'chat-msg-actions';
+          if (m.text) {
+            var copyBtn = document.createElement('button');
+            copyBtn.type = 'button';
+            copyBtn.className = 'chat-copy-btn';
+            copyBtn.textContent = 'Copy';
+            copyBtn.onclick = function () { copyMsgText(copyBtn, m.text); };
+            actions.appendChild(copyBtn);
+          }
+          if (mid) {
+            var delBtn = document.createElement('button');
+            delBtn.type = 'button';
+            delBtn.className = 'chat-del-btn';
+            delBtn.textContent = 'Delete';
+            delBtn.onclick = function () { deleteMsg(mid); };
+            actions.appendChild(delBtn);
+          }
+          el.appendChild(actions);
+          if (m.from === 'admin') {
+            var st = document.createElement('div');
+            st.className = 'chat-status ' + (m.seenByGuest ? 'seen' : 'sent');
+            st.textContent = m.seenByGuest ? '✓✓ Seen' : '✓ Sent';
+            el.appendChild(st);
           }
           box.appendChild(el);
         });

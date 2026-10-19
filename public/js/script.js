@@ -2856,6 +2856,43 @@ function chatShouldStickBottom(box) {
 function chatScrollIfSticky(box, wasSticky) {
     if (box && wasSticky) box.scrollTop = box.scrollHeight;
 }
+function dhlCopyText(text) {
+    var t = String(text || '');
+    if (!t) return;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(t).then(function () {
+            try { if (typeof showToast === 'function') showToast('Copied'); else { /* silent ok */ } } catch (e) { }
+        }).catch(function () {
+            dhlCopyFallback(t);
+        });
+    } else {
+        dhlCopyFallback(t);
+    }
+}
+function dhlCopyFallback(t) {
+    try {
+        var ta = document.createElement('textarea');
+        ta.value = t;
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+    } catch (e) { }
+}
+window.dhlCopyChatText = function (btn) {
+    var bubble = btn && btn.closest ? btn.closest('.chat-bubble') : null;
+    var textEl = bubble && bubble.querySelector('.chat-text');
+    var text = textEl ? textEl.textContent : (btn.getAttribute('data-text') || '');
+    dhlCopyText(text);
+    if (btn) {
+        var prev = btn.textContent;
+        btn.textContent = 'Copied';
+        setTimeout(function () { btn.textContent = prev || 'Copy'; }, 1200);
+    }
+};
+
 function guestRenderMessages(msgs) {
     const box = document.getElementById('guestChatMessages');
     if (!box) return;
@@ -2867,9 +2904,13 @@ function guestRenderMessages(msgs) {
         }
         const side = m.from === 'admin' ? 'left' : 'right';
         const att = dhlChatAttachmentHtml(m);
+        const textBlock = m.text
+            ? ('<div class="chat-text">' + esc(m.text) + '</div>' +
+                '<div class="chat-msg-actions"><button type="button" class="chat-copy-btn" onclick="dhlCopyChatText(this)">Copy</button></div>')
+            : '';
         return '<div class="chat-bubble ' + side + '"><div class="chat-meta">' +
             (m.from === 'admin' ? 'Support' : 'You') + '</div>' +
-            (m.text ? '<div>' + esc(m.text) + '</div>' : '') + att + '</div>';
+            textBlock + att + '</div>';
     }).join('');
     chatScrollIfSticky(box, stick);
 }
@@ -3009,11 +3050,40 @@ function adminRenderMessages(msgs) {
         const side = m.from === 'admin' ? 'right' : 'left';
         const who = m.from === 'admin' ? 'You (Admin)' : 'Customer';
         const att = dhlChatAttachmentHtml(m);
-        return '<div class="chat-bubble ' + side + '"><div class="chat-meta">' + who + '</div>' +
-            (m.text ? '<div>' + esc(m.text) + '</div>' : '') + att + '</div>';
+        const mid = m._id ? String(m._id) : '';
+        const textBlock = m.text
+            ? ('<div class="chat-text">' + esc(m.text) + '</div>')
+            : '';
+        let actions = '<div class="chat-msg-actions">';
+        if (m.text) actions += '<button type="button" class="chat-copy-btn" onclick="dhlCopyChatText(this)">Copy</button>';
+        if (mid) actions += '<button type="button" class="chat-del-btn" data-mid="' + esc(mid) + '" onclick="adminDeleteChatMsg(this)">Delete</button>';
+        actions += '</div>';
+        let status = '';
+        if (m.from === 'admin') {
+            const seen = !!m.seenByGuest;
+            status = '<div class="chat-status ' + (seen ? 'seen' : 'sent') + '">' +
+                (seen ? '✓✓ Seen' : '✓ Sent') + '</div>';
+        }
+        return '<div class="chat-bubble ' + side + '" data-mid="' + esc(mid) + '"><div class="chat-meta">' + who + '</div>' +
+            textBlock + att + actions + status + '</div>';
     }).join('');
     chatScrollIfSticky(box, stick);
 }
+
+window.adminDeleteChatMsg = async function adminDeleteChatMsg(btn) {
+    if (!adminSelectedThreadId) return;
+    var mid = btn && btn.getAttribute('data-mid');
+    if (!mid) return;
+    if (!confirm('Delete this message permanently?')) return;
+    try {
+        const data = await apiRequest('/chat/admin/threads/' + adminSelectedThreadId + '/messages/' + encodeURIComponent(mid), {
+            method: 'DELETE'
+        });
+        adminRenderMessages(data.messages || []);
+    } catch (e) {
+        alert(e.message || 'Delete failed');
+    }
+};
 
 window.adminChatSend = async function adminChatSend() {
     if (!adminSelectedThreadId) {

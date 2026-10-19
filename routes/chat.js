@@ -71,11 +71,26 @@ router.post("/guest/open", async (req, res) => {
                     image: "",
                     createdAt: now,
                     auto: true,
+                    seenByGuest: true,
                 },
             ];
-            thread.unreadGuest = 1;
+            thread.unreadGuest = 0;
             thread.lastMessageAt = now;
             await thread.save();
+        } else {
+            // Customer opened chat → mark support messages as Seen
+            let changed = false;
+            (thread.messages || []).forEach(function (m) {
+                if (m.from === "admin" && !m.seenByGuest) {
+                    m.seenByGuest = true;
+                    changed = true;
+                }
+            });
+            if (thread.unreadGuest > 0) {
+                thread.unreadGuest = 0;
+                changed = true;
+            }
+            if (changed) await thread.save();
         }
 
         res.json({
@@ -147,16 +162,24 @@ router.post("/guest/send", async (req, res) => {
     }
 });
 
-/** Guest: poll by tracking code (shared across devices) */
+/** Guest: poll by tracking code (shared across devices) — marks admin msgs as Seen */
 router.get("/guest/by-track/:code", async (req, res) => {
     try {
         const code = String(req.params.code || "").trim().toUpperCase();
         const thread = await ChatThread.findOne({ trackCode: code }).sort({ lastMessageAt: -1 });
         if (!thread) return res.json({ messages: [], unreadGuest: 0, label: "", trackCode: code });
+        let changed = false;
         if (thread.unreadGuest > 0) {
             thread.unreadGuest = 0;
-            await thread.save();
+            changed = true;
         }
+        (thread.messages || []).forEach(function (m) {
+            if (m.from === "admin" && !m.seenByGuest) {
+                m.seenByGuest = true;
+                changed = true;
+            }
+        });
+        if (changed) await thread.save();
         res.json({
             messages: thread.messages || [],
             unreadGuest: 0,
@@ -278,12 +301,33 @@ router.post("/admin/threads/:id/reply", requireAdminOrChatPin, async (req, res) 
             image: image || "",
             fileName: fileName || "",
             fileType: ft || "",
+            seenByGuest: false,
             createdAt: new Date(),
         });
         thread.unreadGuest = (thread.unreadGuest || 0) + 1;
         thread.lastMessageAt = new Date();
         await thread.save();
 
+        res.json({ ok: true, messages: thread.messages });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+/** Admin: delete one message (no trace) */
+router.delete("/admin/threads/:id/messages/:msgId", requireAdminOrChatPin, async (req, res) => {
+    try {
+        const thread = await ChatThread.findById(req.params.id);
+        if (!thread) return res.status(404).json({ error: "Thread not found." });
+        const msgId = String(req.params.msgId || "");
+        const before = (thread.messages || []).length;
+        thread.messages = (thread.messages || []).filter(function (m) {
+            return String(m._id) !== msgId;
+        });
+        if (thread.messages.length === before) {
+            return res.status(404).json({ error: "Message not found." });
+        }
+        await thread.save();
         res.json({ ok: true, messages: thread.messages });
     } catch (e) {
         res.status(500).json({ error: e.message });

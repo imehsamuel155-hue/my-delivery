@@ -7,6 +7,9 @@ const MessageSchema = new mongoose.Schema(
         image: { type: String, default: "" }, // data URL or url (image/video/pdf)
         fileName: { type: String, default: "" },
         fileType: { type: String, default: "" }, // image | video | pdf | file
+        /** Admin messages: false until customer opens/polls the chat */
+        seenByGuest: { type: Boolean, default: false },
+        auto: { type: Boolean, default: false },
         createdAt: { type: Date, default: Date.now },
     },
     { _id: true }
