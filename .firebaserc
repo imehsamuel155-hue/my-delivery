@@ -1,7 +1,10 @@
 {
   "projects": {
-    "default": "livetrackpackage",
-    "n": "livetrackpackage"
+    "default": "trackyourpackagelive",
+    "n": "livepackagingtracking",
+    "dault": "trackyourpackagelive",
+    "da": "livepackagetracking",
+    "dau": "livepackagingtracking"
   },
   "targets": {},
   "etags": {}
