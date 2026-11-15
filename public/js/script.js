@@ -127,7 +127,7 @@ async function apiRequest(path, options = {}) {
     try {
         res = await fetch(API_BASE + path, Object.assign({}, options, { headers }));
     } catch (networkErr) {
-        throw new Error("Could not reach the backend. Is it running at " + API_BASE + "?");
+        throw new Error("Could not reach backend. Check your network connection and try again.");
     }
     let data = {};
     try { data = await res.json(); } catch (e) { /* empty body is fine */ }
@@ -205,7 +205,7 @@ async function renderTrackResult(code) {
     try {
         shipment = await apiRequest('/shipments/track/' + encodeURIComponent(code));
     } catch (err) {
-        msg.textContent = err.message.includes('backend') ? err.message : "No shipment found for that code. Double-check and try again.";
+        msg.textContent = (err.message && (err.message.toLowerCase().includes('reach') || err.message.toLowerCase().includes('network') || err.message.toLowerCase().includes('fetch'))) ? "Could not reach backend. Poor network connection — try again." : (err.message && err.message.toLowerCase().includes('invalid') ? err.message : "No shipment found for that code. Double-check and try again.");
         box.innerHTML = "";
         return;
     }

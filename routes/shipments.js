@@ -20,6 +20,43 @@ async function pushNotify({ code, title, message, type, location }) {
 
 const router = express.Router();
 
+function parseMoney(v) {
+    if (v === null || v === undefined || v === '') return 0;
+    if (typeof v === 'number' && !Number.isNaN(v)) return v;
+    const s = String(v).replace(/[(),\s$€£₦]/g, '').replace(/[^0-9.\-]/g, '');
+    const n = parseFloat(s);
+    return Number.isFinite(n) ? n : 0;
+}
+function sanitizeShipmentBody(body) {
+    const b = { ...(body || {}) };
+    if (b.package && typeof b.package === 'object') {
+        b.package = { ...b.package };
+        if (b.package.weightKg !== undefined && b.package.weightKg !== null && b.package.weightKg !== '') {
+            b.package.weightKg = parseMoney(b.package.weightKg);
+        } else {
+            b.package.weightKg = Number(b.package.weightKg) || 0;
+        }
+        ['length', 'width', 'height'].forEach((k) => {
+            if (b.package[k] !== undefined && b.package[k] !== null && b.package[k] !== '') {
+                b.package[k] = parseMoney(b.package[k]);
+            }
+        });
+    }
+    if (b.payment && typeof b.payment === 'object') {
+        b.payment = { ...b.payment };
+        if (b.payment.amount !== undefined && b.payment.amount !== null && b.payment.amount !== '') {
+            b.payment.amount = parseMoney(b.payment.amount);
+        } else {
+            b.payment.amount = 0;
+        }
+        if (b.payment.method != null) b.payment.method = String(b.payment.method).trim() || 'Card';
+        if (b.payment.status != null) b.payment.status = String(b.payment.status).trim() || 'Unpaid';
+    }
+    return b;
+}
+
+
+
 /* ---------- PUBLIC: tracking lookup (what ship.html/the track page calls) ---------- */
 // GET /api/shipments/track/:code
 
@@ -146,12 +183,15 @@ router.post("/", requireAdmin, async (req, res) => {
         const existing = await Shipment.findOne({ code });
         if (existing) return res.status(409).json({ error: "A shipment with that code already exists." });
 
+        const clean = sanitizeShipmentBody(req.body);
+        if (!clean.package) clean.package = { weightKg: 0 };
+        if (!clean.payment) clean.payment = { amount: 0, method: 'Card', status: 'Unpaid' };
         const shipment = await Shipment.create({
-            ...req.body,
+            ...clean,
             code,
-            history: req.body.history?.length
-                ? req.body.history
-                : [{ label: "Order Received", date: new Date().toISOString().slice(0, 10), location: req.body.sender?.address || "Origin" }],
+            history: clean.history?.length
+                ? clean.history
+                : [{ label: "Order Received", date: new Date().toISOString().slice(0, 10), location: clean.sender?.address || "Origin" }],
         });
         await pushNotify({
             code: shipment.code,
@@ -169,7 +209,7 @@ router.post("/", requireAdmin, async (req, res) => {
 // PUT /api/shipments/:code - update sender/receiver/package/payment/mode
 router.put("/:code", requireAdmin, async (req, res) => {
     try {
-        const body = { ...(req.body || {}) };
+        const body = sanitizeShipmentBody(req.body || {});
         delete body._id;
         delete body.__v;
         const oldCode = req.params.code.trim().toUpperCase();

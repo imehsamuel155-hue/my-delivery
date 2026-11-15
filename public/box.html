@@ -195,33 +195,33 @@
       playVideo(PROMPT_VIDEO, true);
     }
 
-    function showPackageVideo(code) {
-      // Unique per tracking code first — never mix different shipments
-      const specific = '/videos/' + encodeURIComponent(code) + '.mp4';
+    function showShipmentBox(s, code) {
       const stage = document.getElementById('stage');
       stage.innerHTML = '';
-      const v = document.createElement('video');
-      v.controls = true;
-      v.playsInline = true;
-      v.autoplay = true;
-      v.muted = true;
-      v.src = specific;
-      v.onerror = function () {
-        v.onerror = null;
-        v.src = PACKAGE_VIDEO;
+      const media = (s && (s.boxMedia || s.boxImage)) || '';
+      const mediaType = (s && s.boxMediaType) || (media.indexOf('video') >= 0 || /\.(mp4|webm|mov)(\?|$)/i.test(media) ? 'video' : (media ? 'image' : ''));
+      if (media && mediaType === 'video') {
+        const v = document.createElement('video');
+        v.controls = true; v.playsInline = true; v.autoplay = true; v.muted = true;
+        v.src = media;
+        stage.appendChild(v);
         v.play().catch(function () { });
-      };
-      stage.appendChild(v);
-      v.play().catch(function () { });
-    }
-
-    async function isBoxServiceOn() {
-      try {
-        const res = await fetch(API + '/shipments/box-service');
-        const data = await res.json().catch(() => ({}));
-        return data.on !== false;
-      } catch (e) {
-        return true;
+        return;
+      }
+      if (media) {
+        const img = document.createElement('img');
+        img.src = media;
+        img.alt = 'Package ' + (code || '');
+        img.style.cssText = 'max-width:100%;max-height:70vh;display:block;margin:0 auto;';
+        stage.appendChild(img);
+        return;
+      }
+      // Fallback: static videos folder by tracking code, then generic package video
+      const specific = '/videos/' + encodeURIComponent(code) + '.mp4';
+      playVideo(specific, false);
+      const v = stage.querySelector('video');
+      if (v) {
+        v.onerror = function () { playVideo(PACKAGE_VIDEO, false); };
       }
     }
 
@@ -231,24 +231,18 @@
       if (!code) {
         msg.className = 'msg err';
         msg.textContent = ERR_QR;
-        showPrompt();
         return;
       }
       showWait();
-      msg.className = 'msg';
-      msg.textContent = 'Please wait…';
       try {
-        const on = await isBoxServiceOn();
-        if (!on) {
-          throw Object.assign(new Error(ERR_OFF), { off: true });
-        }
         const res = await fetch(API + '/shipments/track/' + encodeURIComponent(code));
-        const s = await res.json().catch(() => ({}));
         if (!res.ok) {
-          throw new Error(ERR_QR);
+          if (res.status === 404) throw new Error(ERR_QR);
+          throw new Error(ERR_OFF);
         }
-        // Only this code's video — bound to admin shipment
-        showPackageVideo(s.code || code);
+        const s = await res.json();
+        // Only this shipment's box media from were.html / admin
+        showShipmentBox(s, s.code || code);
         msg.className = 'msg';
         msg.textContent = '';
       } catch (e) {

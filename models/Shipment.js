@@ -12,7 +12,7 @@ const PartySchema = new mongoose.Schema(
 
 const PackageSchema = new mongoose.Schema(
     {
-        weightKg: { type: Number, required: true },
+        weightKg: { type: Number, required: false, default: 0 },
         length: { type: Number },
         width: { type: Number },
         height: { type: Number },
@@ -23,17 +23,17 @@ const PackageSchema = new mongoose.Schema(
 
 const PaymentSchema = new mongoose.Schema(
     {
-        amount: { type: Number, required: true },
+        amount: { type: Number, required: false, default: 0 },
         currency: { type: String, default: "USD", trim: true },
         method: {
             type: String,
-            enum: ["Card", "Bank Transfer", "Outstanding Payment", "Cash on Delivery"],
             default: "Card",
+            trim: true,
         },
         status: {
             type: String,
-            enum: ["Paid", "Unpaid", "Refunded"],
             default: "Unpaid",
+            trim: true,
         },
     },
     { _id: false }
