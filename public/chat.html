@@ -373,7 +373,7 @@
     <div class="center hidden" id="stepTrack">
       <div class="card">
         <h1>Tracking number</h1>
-        <p class="hint">Example: enter code — must match the shipment the customer used.</p>
+        <p class="hint">Example: DHL20089 — must match the shipment the customer used.</p>
         <label>Tracking code</label>
         <input id="trackIn" type="text" placeholder="e.g. DHL20089" autocomplete="off" style="text-transform:uppercase">
         <button type="button" class="primary" id="btnTrack">Continue</button>
@@ -556,8 +556,18 @@
             var isPdf = ft === 'pdf' || src.indexOf('application/pdf') !== -1;
             if (isVid) {
               var v = document.createElement('video');
-              v.src = src; v.controls = true; v.playsInline = true;
-              v.style.cssText = 'max-width:100%;border-radius:10px;margin-top:6px;background:#000';
+              v.controls = true; v.playsInline = true; v.preload = 'metadata';
+              v.setAttribute('playsinline', '');
+              v.setAttribute('webkit-playsinline', '');
+              if (src.indexOf('data:video/mp4') === 0) v.setAttribute('type', 'video/mp4');
+              v.style.cssText = 'max-width:100%;max-height:280px;border-radius:10px;margin-top:6px;background:#000';
+              v.onerror = function () {
+                var d = document.createElement('div');
+                d.style.cssText = 'padding:12px;font-size:13px;opacity:.9';
+                d.textContent = 'Video cannot play. Resend a shorter clip (under 4 MB).';
+                if (v.parentNode) v.parentNode.replaceChild(d, v);
+              };
+              v.src = src;
               el.appendChild(v);
             } else if (isPdf) {
               var a = document.createElement('a');
@@ -631,7 +641,7 @@
       $('btnImg').onclick = function () { $('imgIn').click(); };
       $('imgIn').onchange = function (ev) {
         var f = ev.target.files && ev.target.files[0]; if (!f || !threadId) return;
-        if (f.size > 20 * 1024 * 1024) { alert('File too large (max ~20 MB)'); ev.target.value = ''; return; }
+        if (f.size > 4 * 1024 * 1024) { alert('File too large (max ~20 MB)'); ev.target.value = ''; return; }
         var reader = new FileReader();
         reader.onload = async function () {
           showWait('Please wait');

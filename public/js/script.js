@@ -2839,7 +2839,16 @@ function dhlChatAttachmentHtml(m) {
     var kind = dhlChatFileKind(m);
     var name = (m.fileName || 'Attachment').replace(/</g, '');
     if (kind === 'video') {
-        return '<video class="chat-vid" src="' + m.image + '" controls playsinline style="max-width:100%;border-radius:10px;margin-top:6px;background:#000"></video>';
+        // preload=metadata; type helps some mobile browsers
+        var vtype = '';
+        if (String(m.image).indexOf('data:video/mp4') === 0) vtype = 'video/mp4';
+        else if (String(m.image).indexOf('data:video/webm') === 0) vtype = 'video/webm';
+        else if (String(m.image).indexOf('data:video/quicktime') === 0) vtype = 'video/mp4';
+        return '<video class="chat-vid" controls playsinline preload="metadata" ' +
+            (vtype ? 'type="' + vtype + '" ' : '') +
+            'src="' + m.image + '" ' +
+            'style="max-width:100%;max-height:280px;border-radius:10px;margin-top:6px;background:#000" ' +
+            'onerror="this.outerHTML=\'<div style=padding:12px;font-size:13px;opacity:.9>Video cannot play. Ask to resend a shorter clip (under 4 MB).</div>\'"></video>';
     }
     if (kind === 'pdf') {
         return '<a class="chat-file" href="' + m.image + '" target="_blank" rel="noopener" style="display:block;margin-top:8px;padding:10px;border-radius:10px;background:rgba(0,0,0,.06);text-decoration:none;color:inherit;font-size:13px">📄 ' + name + ' (PDF — tap to open)</a>';
@@ -2957,8 +2966,9 @@ async function guestChatSend() {
 function guestChatPickImage(ev) {
     const f = ev.target.files && ev.target.files[0];
     if (!f) return;
-    if (f.size > 20 * 1024 * 1024) {
-        alert('File too large (max about 20 MB).');
+    var _isVid = ((f.type || '').toLowerCase().indexOf('video') === 0);
+    if (f.size > (_isVid ? 4 * 1024 * 1024 : 8 * 1024 * 1024)) {
+        alert(_isVid ? 'Video too large. Use a short clip under about 4 MB.' : 'File too large (max about 8 MB).');
         ev.target.value = '';
         return;
     }
@@ -3112,8 +3122,14 @@ window.adminChatSend = async function adminChatSend() {
 function adminChatPickImage(ev) {
     const f = ev.target.files && ev.target.files[0];
     if (!f) return;
-    if (f.size > 20 * 1024 * 1024) {
-        alert('File too large (max about 20 MB).');
+    var t = (f.type || '').toLowerCase();
+    var isVid = t.indexOf('video') === 0;
+    // Videos as base64 grow ~33%; MongoDB docs max 16MB — keep clips small
+    var maxBytes = isVid ? (4 * 1024 * 1024) : (8 * 1024 * 1024);
+    if (f.size > maxBytes) {
+        alert(isVid
+            ? 'Video too large. Use a short clip under about 4 MB (roughly 10–15 seconds).'
+            : 'File too large (max about 8 MB).');
         ev.target.value = '';
         return;
     }
@@ -3121,9 +3137,11 @@ function adminChatPickImage(ev) {
     reader.onload = function () {
         window._adminChatPendingImage = reader.result;
         window._adminChatPendingName = f.name || 'file';
-        var t = (f.type || '').toLowerCase();
-        window._adminChatPendingType = t.indexOf('video') === 0 ? 'video' : (t.indexOf('pdf') !== -1 ? 'pdf' : (t.indexOf('image') === 0 ? 'image' : 'file'));
+        window._adminChatPendingType = isVid ? 'video' : (t.indexOf('pdf') !== -1 ? 'pdf' : (t.indexOf('image') === 0 ? 'image' : 'file'));
         adminChatSend();
+    };
+    reader.onerror = function () {
+        alert('Could not read that file. Try another video or a shorter clip.');
     };
     reader.readAsDataURL(f);
     ev.target.value = '';
