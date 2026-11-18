@@ -112,52 +112,76 @@ router.post("/guest/send", async (req, res) => {
         const code = String(trackCode || "").trim().toUpperCase();
         if (!code) return res.status(400).json({ error: "Tracking code required." });
         const msgText = String(text || "").trim();
-        if (!msgText && !image) return res.status(400).json({ error: "Empty message." });
-
-        // Only this shipment's thread
-        let thread = await ChatThread.findOne({ trackCode: code }).sort({ lastMessageAt: -1 });
-        if (!thread) return res.status(404).json({ error: "Open chat first with this tracking code." });
+        let img = image || "";
+        let ft0 = String(fileType || "").toLowerCase();
+        if (!ft0 && img) {
+            if (String(img).startsWith("data:video")) ft0 = "video";
+            else if (String(img).startsWith("data:image")) ft0 = "image";
+        }
+        // base64 length limits (MongoDB doc max 16MB; keep room for other messages)
+        const maxLen = ft0 === "video" ? 5500000 : 1200000;
+        if (img && img.length > maxLen) {
+            return res.status(400).json({
+                error: ft0 === "video"
+                    ? "Video too large. Send a shorter clip (about 10–15 seconds or under ~4 MB)."
+                    : "Photo too large. Send a smaller photo.",
+            });
+        }
+        if (!msgText && !img) return res.status(400).json({ error: "Empty message." });
 
         let ft = String(fileType || "").toLowerCase();
-        if (!ft && image) {
-            if (String(image).startsWith("data:video")) ft = "video";
-            else if (String(image).indexOf("application/pdf") !== -1) ft = "pdf";
-            else if (String(image).startsWith("data:image")) ft = "image";
+        if (!ft && img) {
+            if (String(img).startsWith("data:video")) ft = "video";
+            else if (String(img).indexOf("application/pdf") !== -1) ft = "pdf";
+            else if (String(img).startsWith("data:image")) ft = "image";
             else ft = "file";
         }
 
-        thread.messages.push({
+        const msg = {
             from: "guest",
             text: msgText,
-            image: image || "",
+            image: img,
             fileName: fileName || "",
             fileType: ft || "",
             createdAt: new Date(),
-        });
-        thread.unreadAdmin = (thread.unreadAdmin || 0) + 1;
-        thread.lastMessageAt = new Date();
+        };
 
-        // Auto-reply ONLY ONCE after the first customer message — never again for this thread
-        const recv = (thread.receiverName || thread.guestDisplayName || "customer").split("/")[0].trim() || "customer";
+        // Fast path: $push without rewriting entire document history in app memory
+        let thread = await ChatThread.findOneAndUpdate(
+            { trackCode: code },
+            {
+                $push: { messages: msg },
+                $inc: { unreadAdmin: 1 },
+                $set: { lastMessageAt: new Date() },
+            },
+            { new: true, sort: { lastMessageAt: -1 } }
+        );
+        if (!thread) return res.status(404).json({ error: "Open chat first with this tracking code." });
+
+        // Auto-reply once after first guest message
         const guestCount = (thread.messages || []).filter(function (m) { return m.from === "guest"; }).length;
-        const alreadyAutoAfterGuest = (thread.messages || []).some(function (m) {
-            return m.from === "admin" && m.auto === true && String(m.text || "").toLowerCase().indexOf("queue") !== -1;
+        const alreadyAuto = (thread.messages || []).some(function (m) {
+            return m.from === "admin" && m.auto === true;
         });
-        if (guestCount === 1 && !alreadyAutoAfterGuest) {
-            thread.messages.push({
+        if (guestCount === 1 && !alreadyAuto) {
+            const recv = (thread.receiverName || thread.guestDisplayName || "customer").split("/")[0].trim() || "customer";
+            const autoMsg = {
                 from: "admin",
                 text: "You have been added to the queue, " + recv + ". Please wait — our support team will get back to you shortly.",
                 image: "",
-                createdAt: new Date(),
                 auto: true,
-            });
-            thread.unreadGuest = (thread.unreadGuest || 0) + 1;
+                createdAt: new Date(),
+            };
+            thread = await ChatThread.findByIdAndUpdate(
+                thread._id,
+                { $push: { messages: autoMsg }, $inc: { unreadGuest: 1 }, $set: { lastMessageAt: new Date() } },
+                { new: true }
+            );
         }
-
-        await thread.save();
 
         res.json({ ok: true, messages: thread.messages, unreadGuest: thread.unreadGuest });
     } catch (e) {
+        console.error("guest/send", e);
         res.status(500).json({ error: e.message || "Send failed." });
     }
 });
@@ -166,20 +190,26 @@ router.post("/guest/send", async (req, res) => {
 router.get("/guest/by-track/:code", async (req, res) => {
     try {
         const code = String(req.params.code || "").trim().toUpperCase();
-        const thread = await ChatThread.findOne({ trackCode: code }).sort({ lastMessageAt: -1 });
+        const thread = await ChatThread.findOne({ trackCode: code }).sort({ lastMessageAt: -1 }).lean();
         if (!thread) return res.json({ messages: [], unreadGuest: 0, label: "", trackCode: code });
-        let changed = false;
-        if (thread.unreadGuest > 0) {
-            thread.unreadGuest = 0;
-            changed = true;
-        }
-        (thread.messages || []).forEach(function (m) {
-            if (m.from === "admin" && !m.seenByGuest) {
-                m.seenByGuest = true;
-                changed = true;
-            }
+
+        // Mark seen without full document rewrite (avoids re-saving huge base64 images every poll)
+        const needsSeen = (thread.messages || []).some(function (m) {
+            return m.from === "admin" && !m.seenByGuest;
         });
-        if (changed) await thread.save();
+        if ((thread.unreadGuest || 0) > 0 || needsSeen) {
+            await ChatThread.updateOne(
+                { _id: thread._id },
+                {
+                    $set: {
+                        unreadGuest: 0,
+                        "messages.$[m].seenByGuest": true,
+                    },
+                },
+                { arrayFilters: [{ "m.from": "admin", "m.seenByGuest": { $ne: true } }] }
+            );
+        }
+
         res.json({
             messages: thread.messages || [],
             unreadGuest: 0,
@@ -199,8 +229,7 @@ router.get("/guest/:guestId", async (req, res) => {
         const thread = await ChatThread.findOne({ guestId: req.params.guestId }).sort({ lastMessageAt: -1 });
         if (!thread) return res.json({ messages: [], unreadGuest: 0, label: "" });
         if (thread.unreadGuest > 0) {
-            thread.unreadGuest = 0;
-            await thread.save();
+            await ChatThread.updateOne({ _id: thread._id }, { $set: { unreadGuest: 0 } });
         }
         res.json({
             threadId: thread._id,
@@ -216,32 +245,68 @@ router.get("/guest/:guestId", async (req, res) => {
 /** Admin: list all threads (separate A, B, C…) */
 router.get("/admin/threads", requireAdminOrChatPin, async (req, res) => {
     try {
-        const threads = await ChatThread.find()
-            .sort({ lastMessageAt: -1 })
-            .select("label senderName receiverName guestDisplayName trackCode unreadAdmin lastMessageAt messages")
-            .limit(200)
-            .lean();
+        // Do NOT load full messages (base64 images) — only last message text for preview
+        const threads = await ChatThread.aggregate([
+            { $sort: { lastMessageAt: -1 } },
+            { $limit: 200 },
+            {
+                $project: {
+                    label: 1,
+                    senderName: 1,
+                    receiverName: 1,
+                    guestDisplayName: 1,
+                    trackCode: 1,
+                    unreadAdmin: 1,
+                    lastMessageAt: 1,
+                    lastMsg: { $arrayElemAt: ["$messages", -1] },
+                },
+            },
+            {
+                $project: {
+                    label: 1,
+                    senderName: 1,
+                    receiverName: 1,
+                    guestDisplayName: 1,
+                    trackCode: 1,
+                    unreadAdmin: 1,
+                    lastMessageAt: 1,
+                    preview: {
+                        $cond: [
+                            { $and: [{ $ne: ["$lastMsg.text", null] }, { $ne: ["$lastMsg.text", ""] }] },
+                            "$lastMsg.text",
+                            {
+                                $cond: [
+                                    { $and: [{ $ne: ["$lastMsg.image", null] }, { $ne: ["$lastMsg.image", ""] }] },
+                                    "[Photo]",
+                                    "",
+                                ],
+                            },
+                        ],
+                    },
+                },
+            },
+        ]);
 
-        const list = threads.map((t) => {
-            const last = (t.messages && t.messages[t.messages.length - 1]) || null;
-            return {
-                id: t._id,
-                label: t.label,
-                senderName: t.senderName,
-                receiverName: t.receiverName,
-                guestDisplayName: t.guestDisplayName,
-                trackCode: t.trackCode,
-                unreadAdmin: t.unreadAdmin || 0,
-                lastMessageAt: t.lastMessageAt,
-                preview: last ? (last.text || (last.image ? "[Photo]" : "")) : "",
-            };
-        });
-        // One conversation per tracking code (keep latest)
+        const list = threads.map((t) => ({
+            id: t._id,
+            label: t.label,
+            senderName: t.senderName,
+            receiverName: t.receiverName,
+            guestDisplayName: t.guestDisplayName,
+            trackCode: t.trackCode,
+            unreadAdmin: t.unreadAdmin || 0,
+            lastMessageAt: t.lastMessageAt,
+            preview: t.preview || "",
+        }));
+
         const byCode = new Map();
         const noCode = [];
         for (const t of list) {
             const key = (t.trackCode || "").trim();
-            if (!key) { noCode.push(t); continue; }
+            if (!key) {
+                noCode.push(t);
+                continue;
+            }
             const prev = byCode.get(key);
             if (!prev || new Date(t.lastMessageAt || 0) > new Date(prev.lastMessageAt || 0)) {
                 byCode.set(key, t);
@@ -258,11 +323,11 @@ router.get("/admin/threads", requireAdminOrChatPin, async (req, res) => {
 /** Admin: get one thread messages */
 router.get("/admin/threads/:id", requireAdminOrChatPin, async (req, res) => {
     try {
-        const thread = await ChatThread.findById(req.params.id);
+        const thread = await ChatThread.findById(req.params.id).lean();
         if (!thread) return res.status(404).json({ error: "Thread not found." });
-        if (thread.unreadAdmin > 0) {
-            thread.unreadAdmin = 0;
-            await thread.save();
+        if ((thread.unreadAdmin || 0) > 0) {
+            // Clear unread without rewriting message images
+            await ChatThread.updateOne({ _id: thread._id }, { $set: { unreadAdmin: 0 } });
         }
         res.json({
             id: thread._id,
@@ -270,7 +335,7 @@ router.get("/admin/threads/:id", requireAdminOrChatPin, async (req, res) => {
             senderName: thread.senderName,
             receiverName: thread.receiverName,
             trackCode: thread.trackCode,
-            messages: thread.messages,
+            messages: thread.messages || [],
         });
     } catch (e) {
         res.status(500).json({ error: e.message });
@@ -282,34 +347,54 @@ router.post("/admin/threads/:id/reply", requireAdminOrChatPin, async (req, res) 
     try {
         const { text, image, fileName, fileType } = req.body || {};
         const msgText = String(text || "").trim();
-        if (!msgText && !image) return res.status(400).json({ error: "Empty message." });
-
-        const thread = await ChatThread.findById(req.params.id);
-        if (!thread) return res.status(404).json({ error: "Thread not found." });
+        let img = image || "";
+        let ftCheck = String(fileType || "").toLowerCase();
+        if (!ftCheck && img) {
+            if (String(img).startsWith("data:video")) ftCheck = "video";
+            else if (String(img).startsWith("data:image")) ftCheck = "image";
+        }
+        const maxAdmin = ftCheck === "video" ? 5500000 : 1200000;
+        if (img && img.length > maxAdmin) {
+            return res.status(400).json({
+                error: ftCheck === "video"
+                    ? "Video too large. Send a shorter clip (about 10–15 seconds or under ~4 MB)."
+                    : "Photo too large. Send a smaller photo.",
+            });
+        }
+        if (!msgText && !img) return res.status(400).json({ error: "Empty message." });
 
         let ft = String(fileType || "").toLowerCase();
-        if (!ft && image) {
-            if (String(image).startsWith("data:video")) ft = "video";
-            else if (String(image).indexOf("application/pdf") !== -1) ft = "pdf";
-            else if (String(image).startsWith("data:image")) ft = "image";
+        if (!ft && img) {
+            if (String(img).startsWith("data:video")) ft = "video";
+            else if (String(img).indexOf("application/pdf") !== -1) ft = "pdf";
+            else if (String(img).startsWith("data:image")) ft = "image";
             else ft = "file";
         }
 
-        thread.messages.push({
+        const msg = {
             from: "admin",
             text: msgText,
-            image: image || "",
+            image: img,
             fileName: fileName || "",
             fileType: ft || "",
             seenByGuest: false,
             createdAt: new Date(),
-        });
-        thread.unreadGuest = (thread.unreadGuest || 0) + 1;
-        thread.lastMessageAt = new Date();
-        await thread.save();
+        };
+
+        const thread = await ChatThread.findByIdAndUpdate(
+            req.params.id,
+            {
+                $push: { messages: msg },
+                $inc: { unreadGuest: 1 },
+                $set: { lastMessageAt: new Date() },
+            },
+            { new: true }
+        );
+        if (!thread) return res.status(404).json({ error: "Thread not found." });
 
         res.json({ ok: true, messages: thread.messages });
     } catch (e) {
+        console.error("admin reply", e);
         res.status(500).json({ error: e.message });
     }
 });
@@ -317,20 +402,37 @@ router.post("/admin/threads/:id/reply", requireAdminOrChatPin, async (req, res) 
 /** Admin: delete one message (no trace) */
 router.delete("/admin/threads/:id/messages/:msgId", requireAdminOrChatPin, async (req, res) => {
     try {
-        const thread = await ChatThread.findById(req.params.id);
-        if (!thread) return res.status(404).json({ error: "Thread not found." });
         const msgId = String(req.params.msgId || "");
-        const before = (thread.messages || []).length;
-        thread.messages = (thread.messages || []).filter(function (m) {
-            return String(m._id) !== msgId;
-        });
-        if (thread.messages.length === before) {
-            return res.status(404).json({ error: "Message not found." });
-        }
-        await thread.save();
-        res.json({ ok: true, messages: thread.messages });
+        if (!msgId) return res.status(400).json({ error: "Message id required." });
+
+        // $pull is much faster than loading entire thread (with base64) and re-saving
+        const thread = await ChatThread.findByIdAndUpdate(
+            req.params.id,
+            { $pull: { messages: { _id: msgId } }, $set: { lastMessageAt: new Date() } },
+            { new: true }
+        );
+        if (!thread) return res.status(404).json({ error: "Thread not found." });
+
+        res.json({ ok: true, messages: thread.messages || [] });
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        // Fallback if ObjectId cast fails
+        try {
+            const thread = await ChatThread.findById(req.params.id);
+            if (!thread) return res.status(404).json({ error: "Thread not found." });
+            const msgId = String(req.params.msgId || "");
+            const before = (thread.messages || []).length;
+            thread.messages = (thread.messages || []).filter(function (m) {
+                return String(m._id) !== msgId;
+            });
+            if (thread.messages.length === before) {
+                return res.status(404).json({ error: "Message not found." });
+            }
+            thread.markModified("messages");
+            await thread.save();
+            res.json({ ok: true, messages: thread.messages });
+        } catch (e2) {
+            res.status(500).json({ error: e2.message || e.message });
+        }
     }
 });
 
