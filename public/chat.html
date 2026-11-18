@@ -498,7 +498,7 @@
           threadId = d.id || d.threadId;
           $('title').textContent = d.label || trackCode;
           show('stepChat');
-          renderMsgs(d.messages || [], true);
+          renderMsgs(d.messages || [], true, true);
           startPoll();
         } catch (e) { $('shipErr').textContent = e.message || 'Wrong PIN'; }
         finally { hideWait(); }
@@ -524,12 +524,29 @@
           var r = await fetch(API + '/chat/admin/threads/' + threadId + '/messages/' + encodeURIComponent(msgId), { method: 'DELETE', headers: headers() });
           var d = await r.json().catch(function () { return {}; });
           if (!r.ok) throw new Error(d.error || 'Delete failed');
-          renderMsgs(d.messages || [], false);
+          renderMsgs(d.messages || [], true, true);
         } catch (e) { alert(e.message || 'Delete failed'); }
         finally { hideWait(); }
       }
 
-      function renderMsgs(list, forceBottom) {
+      function renderMsgs(list, forceBottom, force) {
+        list = list || [];
+        var sig = msgSig(list);
+        // Soft poll: skip rebuild if unchanged or a video is playing (rebuild kills playback)
+        if (!force) {
+          if (window._chatMsgSig === sig) return;
+          try {
+            var box0 = $('msgs');
+            if (box0) {
+              var vs = box0.querySelectorAll('video');
+              for (var vi = 0; vi < vs.length; vi++) {
+                if (!vs[vi].paused && !vs[vi].ended) return;
+              }
+            }
+          } catch (e) { }
+        }
+        window._chatMsgSig = sig;
+
         var box = $('msgs');
         var nearBottom = forceBottom || ((box.scrollHeight - box.scrollTop - box.clientHeight) < 80);
         list = list || [];
@@ -567,7 +584,9 @@
                 d.textContent = 'Video cannot play. Resend a shorter clip (under 4 MB).';
                 if (v.parentNode) v.parentNode.replaceChild(d, v);
               };
-              v.src = src;
+              var playSrc = (src.indexOf('data:') === 0) ? dataUrlToBlob(src) : src;
+              v.style.cssText = 'max-width:100%;max-height:260px;width:100%;border-radius:10px;margin-top:6px;background:#000;object-fit:contain;display:block';
+              v.src = playSrc;
               el.appendChild(v);
             } else if (isPdf) {
               var a = document.createElement('a');
@@ -613,6 +632,23 @@
         if (nearBottom) box.scrollTop = box.scrollHeight;
       }
 
+
+      function msgSig(msgs) {
+        return (msgs || []).map(function (m) {
+          return String(m._id || '') + ':' + (m.from || '') + ':' + (m.seenByGuest ? 1 : 0) + ':' + String(m.text || '').length + ':' + (m.image ? String(m.image).length : 0);
+        }).join('|');
+      }
+      function dataUrlToBlob(url) {
+        try {
+          if (!url || String(url).indexOf('data:') !== 0) return url;
+          var p = String(url).split(',');
+          var mime = (p[0].match(/:(.*?);/) || [])[1] || 'video/mp4';
+          var b = atob(p[1] || '');
+          var u8 = new Uint8Array(b.length);
+          for (var i = 0; i < b.length; i++) u8[i] = b.charCodeAt(i);
+          return URL.createObjectURL(new Blob([u8], { type: mime }));
+        } catch (e) { return url; }
+      }
       function startPoll() {
         if (pollTimer) clearInterval(pollTimer);
         pollTimer = setInterval(async function () {
@@ -620,9 +656,9 @@
           try {
             var r = await fetch(API + '/chat/admin/threads/' + threadId, { headers: headers() });
             var d = await r.json();
-            if (r.ok) renderMsgs(d.messages || [], false);
+            if (r.ok) renderMsgs(d.messages || [], false, false);
           } catch (e) { }
-        }, 3000);
+        }, 4000);
       }
 
       $('btnSend').onclick = async function () {
@@ -634,7 +670,7 @@
           var d = await r.json();
           if (!r.ok) throw new Error(d.error || 'Send failed');
           $('msgIn').value = '';
-          renderMsgs(d.messages || [], true);
+          renderMsgs(d.messages || [], true, true);
         } catch (e) { alert(e.message); }
         finally { hideWait(); }
       };
@@ -651,7 +687,7 @@
             var r = await fetch(API + '/chat/admin/threads/' + threadId + '/reply', { method: 'POST', headers: headers(), body: JSON.stringify({ text: '', image: reader.result, fileName: f.name || '', fileType: ft }) });
             var d = await r.json();
             if (!r.ok) throw new Error(d.error || 'Upload failed');
-            renderMsgs(d.messages || [], true);
+            renderMsgs(d.messages || [], true, true);
           } catch (e) { alert(e.message); }
           finally { hideWait(); }
         };

@@ -2825,6 +2825,41 @@ async function guestChatStart() {
     }
 }
 
+
+function dhlChatMsgSig(msgs) {
+    return (msgs || []).map(function (m) {
+        return String(m._id || '') + ':' + (m.from || '') + ':' + (m.seenByGuest ? '1' : '0') + ':' +
+            String(m.text || '').length + ':' + (m.image ? String(m.image).length : 0);
+    }).join('|');
+}
+function dhlDataUrlToBlobUrl(dataUrl) {
+    try {
+        if (!dataUrl || String(dataUrl).indexOf('data:') !== 0) return dataUrl;
+        var parts = String(dataUrl).split(',');
+        var meta = parts[0] || '';
+        var mime = (meta.match(/:(.*?);/) || [])[1] || 'application/octet-stream';
+        var b64 = parts[1] || '';
+        var bin = atob(b64);
+        var len = bin.length;
+        var u8 = new Uint8Array(len);
+        for (var i = 0; i < len; i++) u8[i] = bin.charCodeAt(i);
+        return URL.createObjectURL(new Blob([u8], { type: mime }));
+    } catch (e) {
+        return dataUrl;
+    }
+}
+function dhlChatMediaSrc(m) {
+    if (!m || !m.image) return '';
+    var src = String(m.image);
+    if (src.indexOf('data:video') === 0 || src.indexOf('data:image') === 0) {
+        if (!m._blobUrl) {
+            try { m._blobUrl = dhlDataUrlToBlobUrl(src); } catch (e) { m._blobUrl = src; }
+        }
+        return m._blobUrl || src;
+    }
+    return src;
+}
+
 function dhlChatFileKind(m) {
     var t = (m && m.fileType) ? String(m.fileType).toLowerCase() : '';
     var src = (m && m.image) ? String(m.image) : '';
@@ -2838,25 +2873,21 @@ function dhlChatAttachmentHtml(m) {
     if (!m || !m.image) return '';
     var kind = dhlChatFileKind(m);
     var name = (m.fileName || 'Attachment').replace(/</g, '');
+    var src = dhlChatMediaSrc(m);
     if (kind === 'video') {
-        // preload=metadata; type helps some mobile browsers
-        var vtype = '';
-        if (String(m.image).indexOf('data:video/mp4') === 0) vtype = 'video/mp4';
-        else if (String(m.image).indexOf('data:video/webm') === 0) vtype = 'video/webm';
-        else if (String(m.image).indexOf('data:video/quicktime') === 0) vtype = 'video/mp4';
-        return '<video class="chat-vid" controls playsinline preload="metadata" ' +
-            (vtype ? 'type="' + vtype + '" ' : '') +
-            'src="' + m.image + '" ' +
-            'style="max-width:100%;max-height:280px;border-radius:10px;margin-top:6px;background:#000" ' +
-            'onerror="this.outerHTML=\'<div style=padding:12px;font-size:13px;opacity:.9>Video cannot play. Ask to resend a shorter clip (under 4 MB).</div>\'"></video>';
+        // Blob URL plays more reliably than huge data: URLs on mobile
+        return '<video class="chat-vid" controls playsinline webkit-playsinline preload="auto" ' +
+            'src="' + src + '" ' +
+            'style="max-width:100%;max-height:260px;width:100%;border-radius:10px;margin-top:6px;background:#000;object-fit:contain;display:block" ' +
+            'onerror="this.outerHTML=\'<div style=padding:12px;font-size:13px;opacity:.9>Video cannot play. Resend a shorter clip (under 4 MB).</div>\'"></video>';
     }
     if (kind === 'pdf') {
-        return '<a class="chat-file" href="' + m.image + '" target="_blank" rel="noopener" style="display:block;margin-top:8px;padding:10px;border-radius:10px;background:rgba(0,0,0,.06);text-decoration:none;color:inherit;font-size:13px">📄 ' + name + ' (PDF — tap to open)</a>';
+        return '<a class="chat-file" href="' + src + '" target="_blank" rel="noopener" style="display:block;margin-top:8px;padding:10px;border-radius:10px;background:rgba(0,0,0,.06);text-decoration:none;color:inherit;font-size:13px">📄 ' + name + ' (PDF — tap to open)</a>';
     }
     if (kind === 'image') {
-        return '<img class="chat-img" src="' + m.image + '" alt="" onclick="dhlChatPhotoPreview(this.src)" style="max-width:100%;border-radius:10px;margin-top:6px;cursor:pointer">';
+        return '<img class="chat-img" src="' + src + '" alt="" onclick="dhlChatPhotoPreview(this.src)" style="max-width:100%;border-radius:10px;margin-top:6px;cursor:pointer">';
     }
-    return '<a class="chat-file" href="' + m.image + '" target="_blank" rel="noopener" style="display:block;margin-top:8px;padding:10px;border-radius:10px;background:rgba(0,0,0,.06);text-decoration:none;color:inherit;font-size:13px">📎 ' + name + '</a>';
+    return '<a class="chat-file" href="' + src + '" target="_blank" rel="noopener" style="display:block;margin-top:8px;padding:10px;border-radius:10px;background:rgba(0,0,0,.06);text-decoration:none;color:inherit;font-size:13px">📎 ' + name + '</a>';
 }
 function chatShouldStickBottom(box) {
     if (!box) return false;
@@ -2902,9 +2933,24 @@ window.dhlCopyChatText = function (btn) {
     }
 };
 
-function guestRenderMessages(msgs) {
+function guestRenderMessages(msgs, force) {
     const box = document.getElementById('guestChatMessages');
     if (!box) return;
+    var sig = dhlChatMsgSig(msgs);
+    if (!force && window._guestChatMsgSig === sig) return; // do not rebuild (kills video)
+    // If a video is playing, skip soft polls
+    if (!force) {
+        var playing = box.querySelector('video:not([paused])');
+        try {
+            if (box.querySelectorAll('video').length) {
+                var vids = box.querySelectorAll('video');
+                for (var i = 0; i < vids.length; i++) {
+                    if (!vids[i].paused && !vids[i].ended) return;
+                }
+            }
+        } catch (e) { }
+    }
+    window._guestChatMsgSig = sig;
     const stick = chatShouldStickBottom(box);
     box.innerHTML = (msgs || []).map(function (m) {
         if (m.from === 'system') {
@@ -2956,7 +3002,7 @@ async function guestChatSend() {
         // Server returns welcome + queue auto-replies — do not invent local duplicates
         var box = document.getElementById('guestChatMessages');
         if (box) box.scrollTop = box.scrollHeight;
-        guestRenderMessages(data.messages || []);
+        guestRenderMessages(data.messages || [], true);
         if (box) box.scrollTop = box.scrollHeight;
     } catch (e) {
         alert(e.message || 'Send failed');
@@ -3045,16 +3091,27 @@ async function adminOpenThread(id) {
         const data = await apiRequest('/chat/admin/threads/' + id);
         const title = document.getElementById('adminChatTitle');
         if (title) title.textContent = data.label || 'Chat';
-        adminRenderMessages(data.messages || []);
+        adminRenderMessages(data.messages || [], true);
         adminLoadThreads();
     } catch (e) {
         alert(e.message || 'Could not open chat');
     }
 }
 
-function adminRenderMessages(msgs) {
+function adminRenderMessages(msgs, force) {
     const box = document.getElementById('adminChatMessages');
     if (!box) return;
+    var sig = dhlChatMsgSig(msgs);
+    if (!force && window._adminChatMsgSig === sig) return;
+    if (!force) {
+        try {
+            var vids = box.querySelectorAll('video');
+            for (var i = 0; i < vids.length; i++) {
+                if (!vids[i].paused && !vids[i].ended) return;
+            }
+        } catch (e) { }
+    }
+    window._adminChatMsgSig = sig;
     const stick = chatShouldStickBottom(box);
     box.innerHTML = (msgs || []).map(function (m) {
         const side = m.from === 'admin' ? 'right' : 'left';
@@ -3089,7 +3146,7 @@ window.adminDeleteChatMsg = async function adminDeleteChatMsg(btn) {
         const data = await apiRequest('/chat/admin/threads/' + adminSelectedThreadId + '/messages/' + encodeURIComponent(mid), {
             method: 'DELETE'
         });
-        adminRenderMessages(data.messages || []);
+        adminRenderMessages(data.messages || [], true);
     } catch (e) {
         alert(e.message || 'Delete failed');
     }
@@ -3112,7 +3169,7 @@ window.adminChatSend = async function adminChatSend() {
         window._adminChatPendingImage = '';
         window._adminChatPendingName = '';
         window._adminChatPendingType = '';
-        adminRenderMessages(data.messages || []);
+        adminRenderMessages(data.messages || [], true);
         adminLoadThreads();
     } catch (e) {
         alert(e.message || 'Send failed');
