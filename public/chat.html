@@ -498,7 +498,9 @@
           threadId = d.id || d.threadId;
           $('title').textContent = d.label || trackCode;
           show('stepChat');
-          renderMsgs(d.messages || [], true, true);
+          window._chatMsgsCache = d.messages || [];
+          window._chatTotal = d.total || window._chatMsgsCache.length;
+          renderMsgs(window._chatMsgsCache, true, true);
           startPoll();
         } catch (e) { $('shipErr').textContent = e.message || 'Wrong PIN'; }
         finally { hideWait(); }
@@ -656,7 +658,16 @@
           try {
             var r = await fetch(API + '/chat/admin/threads/' + threadId, { headers: headers() });
             var d = await r.json();
-            if (r.ok) renderMsgs(d.messages || [], false, false);
+            if (r.ok) {
+              var tot = typeof d.total === 'number' ? d.total : (d.messages || []).length;
+              if (window._chatTotal === tot && window._chatMsgSig) {
+                /* same size — only update seen ticks without full media reload if sig matches */
+                renderMsgs(d.messages || [], false, false);
+              } else {
+                window._chatTotal = tot;
+                renderMsgs(d.messages || [], false, false);
+              }
+            }
           } catch (e) { }
         }, 4000);
       }
@@ -670,7 +681,14 @@
           var d = await r.json();
           if (!r.ok) throw new Error(d.error || 'Send failed');
           $('msgIn').value = '';
-          renderMsgs(d.messages || [], true, true);
+          if (d.appendOnly && d.message) {
+            window._chatMsgsCache = (window._chatMsgsCache || []).concat([d.message]);
+            renderMsgs(window._chatMsgsCache, true, true);
+          } else {
+            window._chatMsgsCache = d.messages || [];
+            renderMsgs(window._chatMsgsCache, true, true);
+          }
+          if (typeof d.total === 'number') window._chatTotal = d.total;
         } catch (e) { alert(e.message); }
         finally { hideWait(); }
       };
@@ -687,7 +705,14 @@
             var r = await fetch(API + '/chat/admin/threads/' + threadId + '/reply', { method: 'POST', headers: headers(), body: JSON.stringify({ text: '', image: reader.result, fileName: f.name || '', fileType: ft }) });
             var d = await r.json();
             if (!r.ok) throw new Error(d.error || 'Upload failed');
-            renderMsgs(d.messages || [], true, true);
+            if (d.appendOnly && d.message) {
+              window._chatMsgsCache = (window._chatMsgsCache || []).concat([d.message]);
+              renderMsgs(window._chatMsgsCache, true, true);
+            } else {
+              window._chatMsgsCache = d.messages || [];
+              renderMsgs(window._chatMsgsCache, true, true);
+            }
+            if (typeof d.total === 'number') window._chatTotal = d.total;
           } catch (e) { alert(e.message); }
           finally { hideWait(); }
         };

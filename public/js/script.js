@@ -2974,8 +2974,21 @@ async function guestChatPoll() {
     try {
         var code = window._guestChatTrackCode || sessionStorage.getItem('dhlGuestTrackCode') || '';
         if (!code) return;
-        const data = await apiRequest('/chat/guest/by-track/' + encodeURIComponent(code));
-        guestRenderMessages(data.messages || []);
+        var count = window._guestChatMsgCount || 0;
+        const data = await apiRequest('/chat/guest/by-track/' + encodeURIComponent(code) + '?count=' + count);
+        if (typeof data.total === 'number') window._guestChatMsgCount = data.total;
+        if (data.appendFrom && data.messages && data.messages.length) {
+            // Append only new messages without wiping videos
+            var box = document.getElementById('guestChatMessages');
+            var existing = window._guestChatMsgsCache || [];
+            window._guestChatMsgsCache = existing.concat(data.messages);
+            guestRenderMessages(window._guestChatMsgsCache, true);
+        } else if (!data.messages || data.messages.length === 0) {
+            return; // nothing new
+        } else {
+            window._guestChatMsgsCache = data.messages;
+            guestRenderMessages(data.messages || []);
+        }
     } catch (e) { }
 }
 
@@ -3002,7 +3015,17 @@ async function guestChatSend() {
         // Server returns welcome + queue auto-replies — do not invent local duplicates
         var box = document.getElementById('guestChatMessages');
         if (box) box.scrollTop = box.scrollHeight;
-        guestRenderMessages(data.messages || [], true);
+        if (data.appendOnly && data.message) {
+            window._guestChatMsgsCache = (window._guestChatMsgsCache || []).concat(
+                (data.messages && data.messages.length) ? data.messages : [data.message]
+            );
+            window._guestChatMsgCount = data.total || window._guestChatMsgsCache.length;
+            guestRenderMessages(window._guestChatMsgsCache, true);
+        } else {
+            window._guestChatMsgsCache = data.messages || [];
+            window._guestChatMsgCount = data.total || window._guestChatMsgsCache.length;
+            guestRenderMessages(window._guestChatMsgsCache, true);
+        }
         if (box) box.scrollTop = box.scrollHeight;
     } catch (e) {
         alert(e.message || 'Send failed');
@@ -3084,6 +3107,7 @@ async function adminLoadThreads() {
 }
 
 async function adminOpenThread(id) {
+    window._adminChatMsgsCache = [];
     adminSelectedThreadId = id;
     const nav = document.getElementById('adminChatNav');
     if (nav) nav.classList.remove('open');
@@ -3091,7 +3115,8 @@ async function adminOpenThread(id) {
         const data = await apiRequest('/chat/admin/threads/' + id);
         const title = document.getElementById('adminChatTitle');
         if (title) title.textContent = data.label || 'Chat';
-        adminRenderMessages(data.messages || [], true);
+        window._adminChatMsgsCache = data.messages || [];
+        adminRenderMessages(window._adminChatMsgsCache, true);
         adminLoadThreads();
     } catch (e) {
         alert(e.message || 'Could not open chat');
@@ -3169,7 +3194,13 @@ window.adminChatSend = async function adminChatSend() {
         window._adminChatPendingImage = '';
         window._adminChatPendingName = '';
         window._adminChatPendingType = '';
-        adminRenderMessages(data.messages || [], true);
+        if (data.appendOnly && data.message) {
+            window._adminChatMsgsCache = (window._adminChatMsgsCache || []).concat([data.message]);
+            adminRenderMessages(window._adminChatMsgsCache, true);
+        } else {
+            window._adminChatMsgsCache = data.messages || [];
+            adminRenderMessages(window._adminChatMsgsCache, true);
+        }
         adminLoadThreads();
     } catch (e) {
         alert(e.message || 'Send failed');

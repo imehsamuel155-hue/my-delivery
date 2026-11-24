@@ -8,6 +8,52 @@ const requireAdminOrChatPin = authMw.requireAdminOrChatPin || requireAdmin;
 
 const router = express.Router();
 
+/** Keep chat payloads small — huge base64 photos/videos make every request slow */
+const MAX_MESSAGES_RETURN = 80;
+
+function slimMessages(msgs, opts) {
+    opts = opts || {};
+    const list = Array.isArray(msgs) ? msgs : [];
+    const sliced = list.length > MAX_MESSAGES_RETURN ? list.slice(-MAX_MESSAGES_RETURN) : list;
+    if (!opts.stripMedia) return sliced;
+    // For polls: do not re-send multi-MB base64 every few seconds
+    return sliced.map(function (m) {
+        const img = m.image || "";
+        const hasMedia = !!img && img.length > 200;
+        return {
+            _id: m._id,
+            from: m.from,
+            text: m.text || "",
+            fileName: m.fileName || "",
+            fileType: m.fileType || "",
+            seenByGuest: !!m.seenByGuest,
+            auto: !!m.auto,
+            createdAt: m.createdAt,
+            image: hasMedia ? "" : img,
+            hasMedia: hasMedia,
+            mediaBytes: hasMedia ? img.length : 0,
+        };
+    });
+}
+
+function publicMessage(m) {
+    if (!m) return null;
+    const o = m.toObject ? m.toObject() : m;
+    return {
+        _id: o._id,
+        from: o.from,
+        text: o.text || "",
+        image: o.image || "",
+        fileName: o.fileName || "",
+        fileType: o.fileType || "",
+        seenByGuest: !!o.seenByGuest,
+        auto: !!o.auto,
+        createdAt: o.createdAt,
+    };
+}
+
+
+
 function makeLabel(sender, receiver, fallback) {
     const s = (sender || "").trim();
     const r = (receiver || "").trim();
@@ -179,7 +225,21 @@ router.post("/guest/send", async (req, res) => {
             );
         }
 
-        res.json({ ok: true, messages: thread.messages, unreadGuest: thread.unreadGuest });
+        const all = thread.messages || [];
+        const last = all[all.length - 1];
+        const prev = all.length > 1 ? all[all.length - 2] : null;
+        const newOnes = [];
+        if (prev && prev.auto) newOnes.push(publicMessage(prev));
+        if (last) newOnes.push(publicMessage(last));
+        // Prefer only the latest 1–2 (guest + optional auto-reply)
+        res.json({
+            ok: true,
+            message: publicMessage(last),
+            messages: newOnes.length ? newOnes : slimMessages(all),
+            appendOnly: true,
+            unreadGuest: thread.unreadGuest,
+            total: all.length,
+        });
     } catch (e) {
         console.error("guest/send", e);
         res.status(500).json({ error: e.message || "Send failed." });
@@ -190,10 +250,11 @@ router.post("/guest/send", async (req, res) => {
 router.get("/guest/by-track/:code", async (req, res) => {
     try {
         const code = String(req.params.code || "").trim().toUpperCase();
+        const full = String(req.query.full || "") === "1";
+        const sinceCount = parseInt(req.query.count || "0", 10) || 0;
         const thread = await ChatThread.findOne({ trackCode: code }).sort({ lastMessageAt: -1 }).lean();
-        if (!thread) return res.json({ messages: [], unreadGuest: 0, label: "", trackCode: code });
+        if (!thread) return res.json({ messages: [], unreadGuest: 0, label: "", trackCode: code, total: 0 });
 
-        // Mark seen without full document rewrite (avoids re-saving huge base64 images every poll)
         const needsSeen = (thread.messages || []).some(function (m) {
             return m.from === "admin" && !m.seenByGuest;
         });
@@ -210,12 +271,28 @@ router.get("/guest/by-track/:code", async (req, res) => {
             );
         }
 
+        const all = thread.messages || [];
+        let out;
+        if (full) {
+            out = slimMessages(all, { stripMedia: false });
+        } else if (sinceCount > 0 && sinceCount < all.length) {
+            // Only new messages since client last saw
+            out = slimMessages(all.slice(sinceCount), { stripMedia: false });
+        } else if (sinceCount > 0 && sinceCount === all.length) {
+            out = []; // nothing new — fast path
+        } else {
+            // First poll without full flag: still return recent, but strip giant media re-download
+            out = slimMessages(all, { stripMedia: false });
+        }
+
         res.json({
-            messages: thread.messages || [],
+            messages: out,
             unreadGuest: 0,
             label: thread.label,
             trackCode: thread.trackCode,
             threadId: thread._id,
+            total: all.length,
+            appendFrom: sinceCount > 0 && sinceCount < all.length ? sinceCount : 0,
         });
     } catch (e) {
         res.status(500).json({ error: e.message });
@@ -249,6 +326,7 @@ router.get("/admin/threads", requireAdminOrChatPin, async (req, res) => {
         const threads = await ChatThread.aggregate([
             { $sort: { lastMessageAt: -1 } },
             { $limit: 200 },
+            // Only keep last message text for preview — never load full image/video base64 lists
             {
                 $project: {
                     label: 1,
@@ -258,7 +336,15 @@ router.get("/admin/threads", requireAdminOrChatPin, async (req, res) => {
                     trackCode: 1,
                     unreadAdmin: 1,
                     lastMessageAt: 1,
-                    lastMsg: { $arrayElemAt: ["$messages", -1] },
+                    lastMsg: {
+                        $let: {
+                            vars: { m: { $arrayElemAt: ["$messages", -1] } },
+                            in: {
+                                text: "$$m.text",
+                                image: { $cond: [{ $gt: [{ $strLenCP: { $ifNull: ["$$m.image", ""] } }, 0] }, "1", ""] },
+                            },
+                        },
+                    },
                 },
             },
             {
@@ -329,13 +415,16 @@ router.get("/admin/threads/:id", requireAdminOrChatPin, async (req, res) => {
             // Clear unread without rewriting message images
             await ChatThread.updateOne({ _id: thread._id }, { $set: { unreadAdmin: 0 } });
         }
+        const msgs = thread.messages || [];
         res.json({
             id: thread._id,
             label: thread.label,
             senderName: thread.senderName,
             receiverName: thread.receiverName,
             trackCode: thread.trackCode,
-            messages: thread.messages || [],
+            messages: slimMessages(msgs, { stripMedia: false }),
+            total: msgs.length,
+            truncated: msgs.length > MAX_MESSAGES_RETURN,
         });
     } catch (e) {
         res.status(500).json({ error: e.message });
@@ -392,7 +481,14 @@ router.post("/admin/threads/:id/reply", requireAdminOrChatPin, async (req, res) 
         );
         if (!thread) return res.status(404).json({ error: "Thread not found." });
 
-        res.json({ ok: true, messages: thread.messages });
+        const all = thread.messages || [];
+        res.json({
+            ok: true,
+            message: publicMessage(all[all.length - 1]),
+            messages: [publicMessage(all[all.length - 1])],
+            appendOnly: true,
+            total: all.length,
+        });
     } catch (e) {
         console.error("admin reply", e);
         res.status(500).json({ error: e.message });
@@ -413,7 +509,7 @@ router.delete("/admin/threads/:id/messages/:msgId", requireAdminOrChatPin, async
         );
         if (!thread) return res.status(404).json({ error: "Thread not found." });
 
-        res.json({ ok: true, messages: thread.messages || [] });
+        res.json({ ok: true, deletedId: msgId, messages: slimMessages(thread.messages || [], { stripMedia: false }), total: (thread.messages || []).length });
     } catch (e) {
         // Fallback if ObjectId cast fails
         try {
@@ -631,6 +727,30 @@ router.post("/admin/unlock-thread", requireAdminOrChatPin, async (req, res) => {
             trackCode: thread.trackCode,
             messages: thread.messages || []
         });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+
+
+/** Admin: strip heavy media from a thread to speed up chat (keeps text) */
+router.post("/admin/threads/:id/strip-media", requireAdminOrChatPin, async (req, res) => {
+    try {
+        const thread = await ChatThread.findById(req.params.id);
+        if (!thread) return res.status(404).json({ error: "Thread not found." });
+        let removed = 0;
+        (thread.messages || []).forEach(function (m) {
+            if (m.image && String(m.image).length > 500) {
+                m.image = "";
+                m.fileName = m.fileName || "";
+                m.text = (m.text || "") || "[media removed to speed up chat]";
+                removed++;
+            }
+        });
+        thread.markModified("messages");
+        await thread.save();
+        res.json({ ok: true, removed: removed, total: (thread.messages || []).length });
     } catch (e) {
         res.status(500).json({ error: e.message });
     }
