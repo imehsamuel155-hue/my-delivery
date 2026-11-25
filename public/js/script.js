@@ -104,7 +104,7 @@ const API_BASE = (function () {
         const h = location.hostname;
         if (h === "localhost" || h === "127.0.0.1" || h === "") return "/api";
     } catch (e) { }
-    return "https://my-delivery-b04b.onrender.com/api";
+    return "https://my-delivery-rbmv.onrender.com/api";
 })();
 
 // Admin login token — sessionStorage so /board works after /admin login
